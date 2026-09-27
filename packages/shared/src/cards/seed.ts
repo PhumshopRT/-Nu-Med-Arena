@@ -20,6 +20,11 @@ export const CARD_MAP = new Map<string, AnyCard>(
   ALL_CARDS.map((card) => [card.id, card])
 );
 
+export const ALL_RP_CARDS = RADIOPHARMACEUTICAL_DECK;
+export const ALL_MECH_CARDS = MECHANISM_DECK;
+export const ALL_CASE_CARDS = CASE_DECK;
+export const ALL_CLUE_CARDS = CLUE_DECK;
+
 export const PROTOTYPE_4_CARDS = {
   rp: RADIOPHARMACEUTICAL_DECK.find((c) => c.id === "R-01")!,
   mech: MECHANISM_DECK.find((c) => c.id === "M-03")!,

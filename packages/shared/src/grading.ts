@@ -26,3 +26,17 @@ export function grade(
     mechOk,
   };
 }
+
+export function gradeAnswer(
+  caseCard: CaseCard,
+  rpId: string | null | undefined,
+  mechId: string | null | undefined
+) {
+  const res = grade(rpId, mechId, caseCard);
+  return {
+    ...res,
+    scoreAwarded: res.points,
+    rpMatch: res.rpOk,
+    mechMatch: res.mechOk,
+  };
+}

@@ -16,6 +16,7 @@ interface MechCardProps {
   isHoverable?: boolean;
   isSelected?: boolean;
   onClick?: () => void;
+  size?: "sm" | "md" | "lg";
 }
 
 export function MechCard({
@@ -24,6 +25,7 @@ export function MechCard({
   isHoverable = true,
   isSelected = false,
   onClick,
+  size = "md",
 }: MechCardProps) {
   const renderIllustration = () => {
     switch (card.id) {
@@ -45,6 +47,7 @@ export function MechCard({
       isHoverable={isHoverable}
       isSelected={isSelected}
       onClick={onClick}
+      size={size}
     >
       <div className="flex flex-col h-full justify-between">
         {/* Top Header Capsule Bar */}

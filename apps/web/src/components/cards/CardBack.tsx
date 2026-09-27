@@ -6,15 +6,23 @@ import clsx from "clsx";
 interface CardBackProps {
   className?: string;
   theme?: "navy" | "hotcell" | "pet";
+  size?: "sm" | "md" | "lg";
   onClick?: () => void;
 }
 
-export function CardBack({ className, theme = "navy", onClick }: CardBackProps) {
+export function CardBack({ className, theme = "navy", size = "md", onClick }: CardBackProps) {
+  const sizeClasses = {
+    sm: "w-28 h-[156px]",
+    md: "w-48 h-[268px]",
+    lg: "w-64 h-[357px]",
+  };
+
   return (
     <div
       onClick={onClick}
       className={clsx(
         "relative rounded-[18px] border-[3px] border-amber-400/80 p-2 flex flex-col justify-between items-center select-none overflow-hidden shadow-card cursor-pointer transition-all hover:scale-[1.02]",
+        sizeClasses[size],
         theme === "navy" && "bg-gradient-to-br from-[#0B1F2A] via-[#0F2D3D] to-[#08151D]",
         theme === "hotcell" && "bg-gradient-to-br from-[#4A1515] via-[#661E1E] to-[#2D0A0A]",
         theme === "pet" && "bg-gradient-to-br from-[#2E1065] via-[#4C1D95] to-[#1E0B36]",

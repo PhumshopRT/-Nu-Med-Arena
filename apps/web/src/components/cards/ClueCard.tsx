@@ -17,6 +17,7 @@ interface ClueCardProps {
   isHoverable?: boolean;
   isSelected?: boolean;
   onClick?: () => void;
+  size?: "sm" | "md" | "lg";
 }
 
 export function ClueCard({
@@ -25,6 +26,7 @@ export function ClueCard({
   isHoverable = true,
   isSelected = false,
   onClick,
+  size = "md",
 }: ClueCardProps) {
   const renderIllustration = () => {
     switch (card.illustration) {
@@ -51,6 +53,7 @@ export function ClueCard({
       isHoverable={isHoverable}
       isSelected={isSelected}
       onClick={onClick}
+      size={size}
     >
       <div className="flex flex-col h-full justify-between">
         {/* Top Header Capsule Bar */}

@@ -12,6 +12,7 @@ interface CardFrameProps {
   isSelected?: boolean;
   onClick?: () => void;
   scale?: number;
+  size?: "sm" | "md" | "lg";
 }
 
 export function CardFrame({
@@ -21,7 +22,13 @@ export function CardFrame({
   isHoverable = true,
   isSelected = false,
   onClick,
+  size = "md",
 }: CardFrameProps) {
+  const sizeClasses = {
+    sm: "w-36 h-[201px]",
+    md: "w-48 h-[268px]",
+    lg: "w-64 h-[357px]",
+  };
   const getThemeClasses = () => {
     switch (type) {
       case "RP":
@@ -62,6 +69,7 @@ export function CardFrame({
       onClick={onClick}
       className={clsx(
         "relative rounded-[18px] border-[3px] p-2 flex flex-col justify-between select-none overflow-hidden transition-all duration-200",
+        sizeClasses[size],
         theme.bg,
         theme.border,
         "shadow-card",

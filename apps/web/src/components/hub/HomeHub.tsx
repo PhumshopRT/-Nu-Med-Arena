@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { LabWorldBackground } from "../splash/LabWorldBackground";
 import { FloatingCardIcons } from "../splash/FloatingCardIcons";
 import { MascotNew, MascotMed, MascotGamma } from "../splash/Mascots";
-import { StudentUser } from "@nucmed/shared";
+import { StudentUser, generateRoomCode } from "@nucmed/shared";
+import { sounds } from "@/lib/sound";
 import { 
   Users, 
   PlusCircle, 
@@ -18,7 +20,9 @@ import {
   Coins, 
   Sparkles,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Tv,
+  ShieldCheck
 } from "lucide-react";
 
 interface HomeHubProps {
@@ -28,6 +32,7 @@ interface HomeHubProps {
 }
 
 export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
+  const router = useRouter();
   const [joinCode, setJoinCode] = useState("");
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -113,7 +118,10 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 w-full max-w-2xl mt-2">
           {/* 1. Create Room */}
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => {
+              sounds.playClick();
+              setShowCreateModal(true);
+            }}
             className="wood-panel p-4 rounded-2xl text-left border-3 border-amber-950 hover:border-amber-400/80 transition-all hover:scale-103 group shadow-xl cursor-pointer"
           >
             <div className="w-10 h-10 rounded-xl bg-emerald-600 border border-emerald-400 flex items-center justify-center text-white mb-2 group-hover:rotate-6 transition-transform">
@@ -129,7 +137,10 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
 
           {/* 2. Join Room */}
           <button
-            onClick={() => setShowJoinModal(true)}
+            onClick={() => {
+              sounds.playClick();
+              setShowJoinModal(true);
+            }}
             className="wood-panel p-4 rounded-2xl text-left border-3 border-amber-950 hover:border-amber-400/80 transition-all hover:scale-103 group shadow-xl cursor-pointer"
           >
             <div className="w-10 h-10 rounded-xl bg-blue-600 border border-blue-400 flex items-center justify-center text-white mb-2 group-hover:rotate-6 transition-transform">
@@ -146,7 +157,8 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
           {/* 3. Solo Practice vs Bot */}
           <button
             onClick={() => {
-              alert("โหมดซ้อมเดี่ยวกับบอท (บอท-เรซิน, บอท-คอลลอยด์) กำลังจะเปิดใน Phase 3-4!");
+              sounds.playClick();
+              router.push("/play/SOLO_PRACTICE");
             }}
             className="wood-panel p-4 rounded-2xl text-left border-3 border-amber-950 hover:border-amber-400/80 transition-all hover:scale-103 group shadow-xl cursor-pointer"
           >
@@ -162,29 +174,60 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
           </button>
         </div>
 
-        {/* Secondary Hub Actions: Gallery, Shop, How to play */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
+        {/* Secondary Hub Actions: Gallery, Shop, Projector, Admin */}
+        <div className="flex flex-wrap items-center justify-center gap-2.5 mt-4">
           <button
-            onClick={onOpenGallery}
-            className="wood-panel px-4 py-2 rounded-xl text-white text-xs md:text-sm font-bold flex items-center space-x-2 hover:scale-105 transition-transform border border-amber-500/40"
+            onClick={() => {
+              sounds.playClick();
+              onOpenGallery();
+            }}
+            className="wood-panel px-3.5 py-1.5 rounded-xl text-white text-xs font-bold flex items-center space-x-1.5 hover:scale-105 transition-transform border border-amber-500/40 cursor-pointer"
           >
             <Layers className="w-4 h-4 text-blue-400" />
-            <span>อัลบั้มการ์ด 4 สี (/gallery)</span>
+            <span>อัลบั้มการ์ด 4 สี</span>
           </button>
 
           <button
-            onClick={() => alert("ร้านค้าไอเทม NucCoin กำลังจะเปิดใน Phase 6 (สวมกรอบทอง, หลังไพ่ PET Ring, อวาตาร์)")}
-            className="wood-panel px-4 py-2 rounded-xl text-white text-xs md:text-sm font-bold flex items-center space-x-2 hover:scale-105 transition-transform border border-amber-500/40"
+            onClick={() => {
+              sounds.playClick();
+              router.push("/shop");
+            }}
+            className="wood-panel px-3.5 py-1.5 rounded-xl text-white text-xs font-bold flex items-center space-x-1.5 hover:scale-105 transition-transform border border-amber-500/40 cursor-pointer"
           >
             <ShoppingBag className="w-4 h-4 text-amber-400" />
             <span>ร้านค้า NucCoin</span>
           </button>
 
           <button
-            onClick={() => setShowHowToModal(true)}
-            className="wood-panel px-4 py-2 rounded-xl text-white text-xs md:text-sm font-bold flex items-center space-x-2 hover:scale-105 transition-transform border border-amber-500/40"
+            onClick={() => {
+              sounds.playClick();
+              router.push("/board/ROOM01");
+            }}
+            className="wood-panel px-3.5 py-1.5 rounded-xl text-white text-xs font-bold flex items-center space-x-1.5 hover:scale-105 transition-transform border border-amber-500/40 cursor-pointer"
           >
-            <BookOpen className="w-4 h-4 text-emerald-400" />
+            <Tv className="w-4 h-4 text-purple-400" />
+            <span>จอฉายห้องเรียน (Projector)</span>
+          </button>
+
+          <button
+            onClick={() => {
+              sounds.playClick();
+              router.push("/admin");
+            }}
+            className="wood-panel px-3.5 py-1.5 rounded-xl text-white text-xs font-bold flex items-center space-x-1.5 hover:scale-105 transition-transform border border-amber-500/40 cursor-pointer"
+          >
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>แผงอาจารย์ (Admin)</span>
+          </button>
+
+          <button
+            onClick={() => {
+              sounds.playClick();
+              setShowHowToModal(true);
+            }}
+            className="wood-panel px-3.5 py-1.5 rounded-xl text-white text-xs font-bold flex items-center space-x-1.5 hover:scale-105 transition-transform border border-amber-500/40 cursor-pointer"
+          >
+            <BookOpen className="w-4 h-4 text-cyan-300" />
             <span>กติกาการเล่น</span>
           </button>
         </div>
@@ -223,8 +266,11 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
               </div>
             </div>
             <button
-              onClick={() => setShowHowToModal(false)}
-              className="w-full mt-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-xl font-bold text-sm"
+              onClick={() => {
+                sounds.playClick();
+                setShowHowToModal(false);
+              }}
+              className="w-full mt-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-xl font-bold text-sm cursor-pointer"
             >
               เข้าใจแล้ว
             </button>
@@ -252,21 +298,25 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
             />
             <div className="flex space-x-2 mt-4">
               <button
-                onClick={() => setShowJoinModal(false)}
-                className="flex-1 py-2.5 bg-black/40 hover:bg-black/60 rounded-xl font-bold text-xs"
+                onClick={() => {
+                  sounds.playClick();
+                  setShowJoinModal(false);
+                }}
+                className="flex-1 py-2.5 bg-black/40 hover:bg-black/60 rounded-xl font-bold text-xs cursor-pointer"
               >
                 ยกเลิก
               </button>
               <button
                 onClick={() => {
-                  if (joinCode.length !== 6) {
-                    alert("รหัสห้องต้องมี 6 ตัวอักษร");
+                  if (joinCode.trim().length === 0) {
+                    alert("กรุณากรอกรหัสห้อง");
                     return;
                   }
-                  alert(`กำลังเชื่อมต่อห้อง ${joinCode} (ระบบห้อง Socket.IO จะเปิดใน Phase 3)`);
+                  sounds.playClick();
                   setShowJoinModal(false);
+                  router.push(`/lobby/${joinCode.trim().toUpperCase()}`);
                 }}
-                className="flex-1 py-2.5 bg-play hover:bg-play-hover border-2 border-play-border rounded-xl font-bold text-xs shadow-md"
+                className="flex-1 py-2.5 bg-play hover:bg-play-hover border-2 border-play-border rounded-xl font-bold text-xs shadow-md cursor-pointer"
               >
                 เข้าร่วมห้อง
               </button>
@@ -298,17 +348,22 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
             </div>
             <div className="flex space-x-2">
               <button
-                onClick={() => setShowCreateModal(false)}
-                className="flex-1 py-2.5 bg-black/40 hover:bg-black/60 rounded-xl font-bold text-xs"
+                onClick={() => {
+                  sounds.playClick();
+                  setShowCreateModal(false);
+                }}
+                className="flex-1 py-2.5 bg-black/40 hover:bg-black/60 rounded-xl font-bold text-xs cursor-pointer"
               >
                 ยกเลิก
               </button>
               <button
                 onClick={() => {
-                  alert("สร้างห้องเรียบร้อย! ระบบ Multiplayer Room จะเชื่อมต่อใน Phase 3");
+                  sounds.playClick();
                   setShowCreateModal(false);
+                  const generated = generateRoomCode();
+                  router.push(`/lobby/${generated}`);
                 }}
-                className="flex-1 py-2.5 bg-play hover:bg-play-hover border-2 border-play-border rounded-xl font-bold text-xs shadow-md"
+                className="flex-1 py-2.5 bg-play hover:bg-play-hover border-2 border-play-border rounded-xl font-bold text-xs shadow-md cursor-pointer"
               >
                 สร้างห้องทันที
               </button>

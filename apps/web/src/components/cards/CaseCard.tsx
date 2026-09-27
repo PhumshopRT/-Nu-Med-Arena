@@ -12,6 +12,7 @@ interface CaseCardProps {
   isHoverable?: boolean;
   isSelected?: boolean;
   onClick?: () => void;
+  size?: "sm" | "md" | "lg";
 }
 
 export function CaseCard({
@@ -20,6 +21,7 @@ export function CaseCard({
   isHoverable = true,
   isSelected = false,
   onClick,
+  size = "md",
 }: CaseCardProps) {
   const renderIllustration = () => {
     if (card.id.includes("05") || card.organHint?.includes("lung")) {
@@ -41,6 +43,7 @@ export function CaseCard({
       isHoverable={isHoverable}
       isSelected={isSelected}
       onClick={onClick}
+      size={size}
     >
       <div className="flex flex-col h-full justify-between">
         {/* Top Header Capsule Bar */}
