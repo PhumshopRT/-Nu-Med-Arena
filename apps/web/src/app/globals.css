@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@400;600;700;800;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --rp: #2F6FED;
+  --rp-head: #1E4FD7;
+  --rp-body: #E8F1FF;
+  --rp-line: #7AA7FF;
+  --mech: #E6A100;
+  --mech-head: #D49200;
+  --mech-body: #FFF6D9;
+  --mech-line: #F2C14E;
+  --case: #E23B4A;
+  --case-head: #C81E33;
+  --case-body: #FFE8EA;
+  --case-line: #F08A93;
+  --clue: #1FA971;
+  --clue-head: #0E8A58;
+  --clue-body: #E5F8EF;
+  --clue-line: #7DD3A8;
+  --felt: #0B3B36;
+  --felt-deep: #072824;
+  --wood: #6B3E2E;
+  --play: #2EAD4B;
+  --gold: #D4A017;
+  --navy: #0B1F2A;
+  --card-radius: 18px;
+  --card-aspect: 63 / 88;
+  --shadow-card: 0 10px 24px rgba(0, 0, 0, 0.28);
+}
+
+body {
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  user-select: none;
+  overflow-x: hidden;
+  background-color: #072824;
+  color: #ffffff;
+}
+
+/* 3D text effect for game titles */
+.text-shadow-game-title {
+  text-shadow:
+    0 2px 0 #92400e,
+    0 4px 0 #78350f,
+    0 6px 0 #451a03,
+    0 8px 12px rgba(0, 0, 0, 0.5);
+}
+
+.text-shadow-gold-title {
+  text-shadow:
+    0 2px 0 #b45309,
+    0 4px 0 #92400e,
+    0 6px 0 #78350f,
+    0 8px 16px rgba(0, 0, 0, 0.6);
+}
+
+.text-shadow-sub {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* Wood board texture effect */
+.wood-panel {
+  background: linear-gradient(180deg, #8B5A2B 0%, #6B3E2E 50%, #4A281D 100%);
+  border: 4px solid #3d1c13;
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.4),
+    0 6px 16px rgba(0, 0, 0, 0.45);
+}
