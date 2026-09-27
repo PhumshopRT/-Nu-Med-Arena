@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useState, useEffect, useRef } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Users, 
@@ -17,7 +17,11 @@ import {
   MessageSquare,
   Shield,
   Sparkles,
-  Trash2
+  Trash2,
+  Share2,
+  Crown,
+  Wifi,
+  WifiOff
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { 
@@ -29,20 +33,41 @@ import {
 } from "@nucmed/shared";
 import { getLocalUser } from "@/lib/user";
 import { sounds } from "@/lib/sound";
+import { createRoomSync, RoomSyncHandle, SyncMessage } from "@/lib/sync";
 
 export function LobbyClient() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const roomCode = ((params?.code as string) || "ROOM01").toUpperCase();
+
+  // Support both /lobby/?code=XYZ and /lobby/XYZ
+  const rawCode = (searchParams?.get("code") || params?.code || "ROOM01") as string;
+  const roomCode = rawCode.toUpperCase();
 
   const [user, setUser] = useState<StudentUser | null>(null);
   const [room, setRoom] = useState<PublicRoomState | null>(null);
   const [showQrModal, setShowQrModal] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [chatMessages, setChatMessages] = useState<{ id: string; sender: string; text: string }[]>([]);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [activeReactions, setActiveReactions] = useState<{ id: string; playerId: string; emoji: string }[]>([]);
+  const [chatMessages, setChatMessages] = useState<{ id: string; sender: string; text: string; avatar?: string }[]>([]);
   const [customChat, setCustomChat] = useState("");
+  const [isMuted, setIsMuted] = useState(sounds.getMuted());
 
-  // Initialize room state
+  const syncRef = useRef<RoomSyncHandle | null>(null);
+  const roomRef = useRef<PublicRoomState | null>(null);
+  roomRef.current = room;
+
+  const isHost = Boolean(user && room && room.hostId === `p_${user.studentId}`);
+  const myPlayer = room?.players.find((p) => p.studentId === user?.studentId);
+
+  // Computed invite URL
+  const inviteUrl = typeof window !== "undefined"
+    ? `${window.location.origin}${window.location.pathname.startsWith("/RTGAME") ? "/RTGAME" : ""}/lobby/?code=${roomCode}`
+    : `https://masterphum07-web.github.io/RTGAME/lobby/?code=${roomCode}`;
+
+  // 1. Initialize user & initial room
   useEffect(() => {
     const localUser = getLocalUser();
     setUser(localUser);
@@ -54,7 +79,6 @@ export function LobbyClient() {
     if (saved) {
       try {
         currentRoom = JSON.parse(saved);
-        // Ensure current user is in player list
         const existingPlayer = currentRoom.players.find((p) => p.studentId === localUser.studentId);
         if (!existingPlayer && currentRoom.players.length < currentRoom.settings.maxPlayers) {
           currentRoom.players.push({
@@ -76,8 +100,102 @@ export function LobbyClient() {
     }
 
     setRoom(currentRoom);
-    saveRoom(currentRoom);
-  }, [roomCode]);
+    localStorage.setItem(savedRoomKey, JSON.stringify(currentRoom));
+
+    // 2. Setup Real-time Multi-device Synchronizer
+    const handleSyncMessage = (msg: SyncMessage) => {
+      switch (msg.type) {
+        case "PLAYER_JOIN": {
+          const hostRoom = roomRef.current;
+          if (!hostRoom) return;
+          // Only host manages and broadcasts state updates to avoid conflicts
+          const hostIsMe = hostRoom.hostId === `p_${localUser.studentId}`;
+          if (hostIsMe) {
+            const playerExists = hostRoom.players.some((p) => p.studentId === msg.player.studentId);
+            if (!playerExists && hostRoom.players.length < hostRoom.settings.maxPlayers) {
+              sounds.playClick();
+              const updatedRoom = {
+                ...hostRoom,
+                players: [...hostRoom.players, msg.player]
+              };
+              setRoom(updatedRoom);
+              localStorage.setItem(`nucmed_room_${roomCode}`, JSON.stringify(updatedRoom));
+              syncRef.current?.publish({ type: "ROOM_STATE_SYNC", room: updatedRoom });
+            } else {
+              // Re-broadcast current state so the newcomer receives it
+              syncRef.current?.publish({ type: "ROOM_STATE_SYNC", room: hostRoom });
+            }
+          }
+          break;
+        }
+
+        case "ROOM_STATE_SYNC": {
+          setRoom(msg.room);
+          localStorage.setItem(`nucmed_room_${roomCode}`, JSON.stringify(msg.room));
+          break;
+        }
+
+        case "PLAYER_READY": {
+          setRoom((prev) => {
+            if (!prev) return prev;
+            const updated = {
+              ...prev,
+              players: prev.players.map((p) =>
+                p.id === msg.playerId ? { ...p, ready: msg.ready } : p
+              )
+            };
+            localStorage.setItem(`nucmed_room_${roomCode}`, JSON.stringify(updated));
+            return updated;
+          });
+          break;
+        }
+
+        case "MATCH_START": {
+          sounds.playWin();
+          router.push(`/play/?code=${roomCode}`);
+          break;
+        }
+
+        case "CHAT_MESSAGE": {
+          sounds.playSelect();
+          setChatMessages((prev) => [...prev.slice(-20), msg.message]);
+          break;
+        }
+
+        case "EMOJI_REACTION": {
+          sounds.playSelect();
+          const reactionId = `rx_${Date.now()}_${Math.random()}`;
+          setActiveReactions((prev) => [...prev, { id: reactionId, playerId: msg.playerId, emoji: msg.emoji }]);
+          setTimeout(() => {
+            setActiveReactions((prev) => prev.filter((r) => r.id !== reactionId));
+          }, 3000);
+          break;
+        }
+      }
+    };
+
+    const syncHandle = createRoomSync(roomCode, handleSyncMessage, (connected) => {
+      setIsConnected(connected);
+    });
+    syncRef.current = syncHandle;
+
+    // Broadcast myself to the room
+    const myPlayerInfo: PublicPlayer = {
+      id: `p_${localUser.studentId}`,
+      name: localUser.displayName,
+      studentId: localUser.studentId,
+      ready: true,
+      locked: false,
+      score: 0,
+      handCount: 5,
+      avatar: "☢️"
+    };
+    syncHandle.publish({ type: "PLAYER_JOIN", player: myPlayerInfo });
+
+    return () => {
+      syncHandle.destroy();
+    };
+  }, [roomCode, router]);
 
   const createInitialRoom = (code: string, host: StudentUser): PublicRoomState => {
     return {
@@ -106,29 +224,34 @@ export function LobbyClient() {
     };
   };
 
-  const saveRoom = (updated: PublicRoomState) => {
+  const saveAndBroadcastRoom = (updated: PublicRoomState) => {
     setRoom(updated);
     localStorage.setItem(`nucmed_room_${roomCode}`, JSON.stringify(updated));
+    syncRef.current?.publish({ type: "ROOM_STATE_SYNC", room: updated });
   };
-
-  const isHost = Boolean(user && room && room.hostId === `p_${user.studentId}`);
-  const myPlayer = room?.players.find((p) => p.studentId === user?.studentId);
 
   const handleCopyCode = () => {
     sounds.playClick();
     navigator.clipboard.writeText(roomCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  const handleAddBot = (botIndex: number) => {
+  const handleCopyLink = () => {
+    sounds.playClick();
+    navigator.clipboard.writeText(inviteUrl);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handleAddBot = (seatIdx: number) => {
     if (!room || room.players.length >= 6) return;
     sounds.playClick();
-    const botTemplate = BOTS[botIndex % BOTS.length];
+    const botTemplate = BOTS[seatIdx % BOTS.length];
     const newBot: PublicPlayer = {
-      id: `bot_${Date.now()}_${botIndex}`,
-      name: `${botTemplate.name} #${room.players.length + 1}`,
-      studentId: `BOT-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: `bot_${Date.now()}_${seatIdx}`,
+      name: `${botTemplate.name}`,
+      studentId: `BOT-${Math.floor(100 + Math.random() * 900)}`,
       ready: true,
       locked: false,
       score: 0,
@@ -140,7 +263,7 @@ export function LobbyClient() {
       ...room,
       players: [...room.players, newBot]
     };
-    saveRoom(updated);
+    saveAndBroadcastRoom(updated);
   };
 
   const handleRemovePlayer = (playerId: string) => {
@@ -150,19 +273,29 @@ export function LobbyClient() {
       ...room,
       players: room.players.filter((p) => p.id !== playerId)
     };
-    saveRoom(updated);
+    saveAndBroadcastRoom(updated);
   };
 
   const handleToggleReady = () => {
     if (!room || !myPlayer) return;
     sounds.playSelect();
-    const updated = {
-      ...room,
-      players: room.players.map((p) =>
-        p.id === myPlayer.id ? { ...p, ready: !p.ready } : p
-      )
-    };
-    saveRoom(updated);
+    const nextReady = !myPlayer.ready;
+    if (isHost) {
+      const updated = {
+        ...room,
+        players: room.players.map((p) => (p.id === myPlayer.id ? { ...p, ready: nextReady } : p))
+      };
+      saveAndBroadcastRoom(updated);
+    } else {
+      syncRef.current?.publish({ type: "PLAYER_READY", playerId: myPlayer.id, ready: nextReady });
+      setRoom((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          players: prev.players.map((p) => (p.id === myPlayer.id ? { ...p, ready: nextReady } : p))
+        };
+      });
+    }
   };
 
   const handleStartGame = () => {
@@ -172,8 +305,20 @@ export function LobbyClient() {
       ...room,
       phase: "DEAL"
     };
-    saveRoom(updated);
-    router.push(`/play/${roomCode}`);
+    saveAndBroadcastRoom(updated);
+    syncRef.current?.publish({ type: "MATCH_START", roomCode });
+    router.push(`/play/?code=${roomCode}`);
+  };
+
+  const sendReaction = (emoji: string) => {
+    if (!myPlayer) return;
+    sounds.playSelect();
+    syncRef.current?.publish({ type: "EMOJI_REACTION", playerId: myPlayer.id, emoji });
+    const reactionId = `rx_${Date.now()}_${Math.random()}`;
+    setActiveReactions((prev) => [...prev, { id: reactionId, playerId: myPlayer.id, emoji }]);
+    setTimeout(() => {
+      setActiveReactions((prev) => prev.filter((r) => r.id !== reactionId));
+    }, 3000);
   };
 
   const sendChat = (text: string) => {
@@ -182,20 +327,23 @@ export function LobbyClient() {
     const msg = {
       id: `msg_${Date.now()}`,
       sender: user.displayName,
-      text: text.trim()
+      text: text.trim(),
+      avatar: "☢️"
     };
-    setChatMessages((prev) => [...prev.slice(-15), msg]);
+    syncRef.current?.publish({ type: "CHAT_MESSAGE", message: msg });
+    setChatMessages((prev) => [...prev.slice(-20), msg]);
     setCustomChat("");
   };
 
-  const quickEmojis = ["พร้อมลุย! 🔥", "สวัสดีครับ 👋", "ข้อนี้ง่าย! ✨", "ขอเวลาคิดแป๊บ 🤔", "นิวเคลียร์สู้ๆ ☢️"];
+  const quickReactions = ["👍", "🔥", "☢️", "🎯", "🤔", "👏"];
+  const quickPhrases = ["พร้อมลุยแล้ว! 🔥", "สวัสดีเพื่อนๆ 👋", "ข้อนี้สนุกแน่ ✨", "รอแป๊บนึงนะ ⏳"];
 
   return (
     <div className="relative min-h-screen bg-felt-table text-amber-50 flex flex-col justify-between overflow-x-hidden select-none">
-      {/* Table Vignette */}
+      {/* Table Felt Vignette & Grain */}
       <div className="fixed inset-0 pointer-events-none bg-radial-vignette opacity-80" />
 
-      {/* Top Header */}
+      {/* Top Header Navigation Bar */}
       <header className="relative z-20 w-full flex justify-between items-center px-4 md:px-8 py-3 bg-amber-950/90 border-b-4 border-amber-900 shadow-2xl backdrop-blur-md">
         <div className="flex items-center space-x-3">
           <button
@@ -206,70 +354,81 @@ export function LobbyClient() {
             className="p-2 bg-amber-900/80 hover:bg-amber-800 rounded-xl text-amber-200 border-2 border-amber-600 transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center space-x-1.5"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="text-xs font-bold font-game">ออกห้อง</span>
+            <span className="text-xs font-bold font-game">ออกจากห้อง</span>
           </button>
           <div>
-            <h1 className="font-game font-black text-lg md:text-xl text-amber-200 tracking-wide">
-              ห้องประลอง (MATCH LOBBY)
+            <h1 className="font-game font-black text-lg md:text-xl text-amber-200 tracking-wide flex items-center space-x-2">
+              <span>โต๊ะแข่งขัน 6 ที่นั่ง (MATCH LOBBY)</span>
             </h1>
-            <p className="text-[10px] text-amber-300/80">จัดโต๊ะ 6 ที่นั่ง เตรียมประลองสารเภสัชรังสีและกลไก</p>
+            <p className="text-[10px] text-amber-300/80">
+              {isHost ? "คุณคือหัวหน้าห้อง (Host) — สามารถตั้งค่าและกดเริ่มเกมได้" : "รอหัวหน้าห้องเริ่มการแข่งขัน"}
+            </p>
           </div>
         </div>
 
-        {/* Room Code Badge with Copy & QR */}
-        <div className="flex items-center space-x-2">
-          <div className="bg-amber-900/90 border-2 border-amber-500/80 px-4 py-1.5 rounded-xl flex items-center space-x-2 shadow-inner">
-            <span className="text-[10px] text-amber-300 uppercase font-bold">รหัสห้อง:</span>
-            <span className="font-mono font-black text-lg md:text-xl text-amber-200 tracking-widest">
-              {roomCode}
-            </span>
+        {/* Real-time Status + Quick Share Controls */}
+        <div className="flex items-center space-x-2 md:space-x-3">
+          {/* Live Sync Status Indicator */}
+          <div
+            className={`px-3 py-1.5 rounded-full flex items-center space-x-1.5 border text-xs font-bold shadow-md ${
+              isConnected
+                ? "bg-emerald-950/80 border-emerald-500/80 text-emerald-300"
+                : "bg-amber-950/80 border-amber-500/80 text-amber-300"
+            }`}
+          >
+            {isConnected ? (
+              <>
+                <Wifi className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                <span className="hidden sm:inline">เรียลไทม์ออนไลน์ (LIVE)</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-3.5 h-3.5 text-amber-400" />
+                <span className="hidden sm:inline">เชื่อมต่อในเครื่อง</span>
+              </>
+            )}
           </div>
 
-          <button
-            onClick={handleCopyCode}
-            className="p-2 bg-amber-800 hover:bg-amber-700 text-amber-100 rounded-xl border border-amber-500 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
-            title="คัดลอกรหัสห้อง"
-          >
-            {copied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
-          </button>
-
+          {/* Sound Toggle */}
           <button
             onClick={() => {
-              sounds.playClick();
-              setShowQrModal(true);
+              const muted = sounds.toggleMute();
+              setIsMuted(muted);
+              if (!muted) sounds.playClick();
             }}
-            className="p-2 bg-amber-800 hover:bg-amber-700 text-amber-100 rounded-xl border border-amber-500 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
-            title="แสดง QR Code สำหรับมือถือ"
+            className="p-2 bg-amber-900/80 hover:bg-amber-800 text-amber-200 rounded-xl border border-amber-600 shadow cursor-pointer"
           >
-            <QrCode className="w-4 h-4" />
+            {isMuted ? <VolumeX className="w-4 h-4 text-rose-300" /> : <Volume2 className="w-4 h-4 text-emerald-300" />}
           </button>
         </div>
       </header>
 
-      {/* Main Table Area (6 Seats) */}
-      <main className="relative z-10 flex-1 max-w-7xl mx-auto w-full px-4 md:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: 6-Seat Card Table (8 cols) */}
+      {/* Main Tabletop Arena Area */}
+      <main className="relative z-10 flex-1 max-w-7xl mx-auto w-full px-3 md:px-8 py-4 md:py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left / Center Table (8 cols): 3D Felt Oval Arena with 6 Seats */}
         <div className="lg:col-span-8 flex flex-col items-center">
-          {/* Circular Wooden Arena Table */}
-          <div className="relative w-full max-w-2xl bg-[#0F2D24] border-8 border-wood-dark rounded-[40px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_0_40px_rgba(0,0,0,0.6)] flex flex-col justify-between items-center min-h-[460px]">
-            {/* Table center felt logo */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center opacity-15 pointer-events-none select-none">
-              <span className="text-8xl">☢️</span>
-              <span className="font-game font-black text-3xl tracking-widest text-white mt-2">
-                NUC-MED ARENA
-              </span>
-            </div>
+          {/* The Casino Felt Oval Table */}
+          <div className="relative w-full rounded-[40px] md:rounded-[60px] bg-gradient-to-b from-[#0A3D36] via-[#072824] to-[#041D1A] border-8 md:border-12 border-[#4A281D] shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_0_80px_rgba(0,0,0,0.7)] p-4 md:p-8 flex flex-col justify-between items-center min-h-[460px] md:min-h-[520px]">
+            {/* Brass / Gold Table Rivet Highlights */}
+            <div className="absolute top-2 left-6 w-3 h-3 rounded-full bg-amber-400/80 shadow-[0_0_8px_#f59e0b]" />
+            <div className="absolute top-2 right-6 w-3 h-3 rounded-full bg-amber-400/80 shadow-[0_0_8px_#f59e0b]" />
+            <div className="absolute bottom-2 left-6 w-3 h-3 rounded-full bg-amber-400/80 shadow-[0_0_8px_#f59e0b]" />
+            <div className="absolute bottom-2 right-6 w-3 h-3 rounded-full bg-amber-400/80 shadow-[0_0_8px_#f59e0b]" />
 
-            {/* 6 Seats Layout (3 top, 3 bottom) */}
-            <div className="w-full grid grid-cols-3 gap-3 z-10">
+            {/* Top 3 Player Seats */}
+            <div className="w-full grid grid-cols-3 gap-2 md:gap-4 z-10">
               {[0, 1, 2].map((idx) => {
                 const player = room?.players[idx];
+                const activeReaction = activeReactions.find((r) => r.playerId === player?.id);
                 return (
-                  <div key={idx} className="flex justify-center">
-                    <SeatCard
+                  <div key={idx} className="flex justify-center relative">
+                    <SeatPedestal
                       seatNumber={idx + 1}
                       player={player}
                       isHost={isHost}
+                      isCurrentPlayer={player?.studentId === user?.studentId}
+                      isRoomHost={player?.id === room?.hostId}
+                      reaction={activeReaction?.emoji}
                       onRemove={() => player && handleRemovePlayer(player.id)}
                       onAddBot={() => handleAddBot(idx)}
                     />
@@ -278,57 +437,97 @@ export function LobbyClient() {
               })}
             </div>
 
-            {/* Table Center Controls */}
-            <div className="z-10 my-6 flex flex-col items-center">
-              <div className="bg-amber-950/90 border-2 border-amber-600/80 px-6 py-2 rounded-2xl shadow-xl flex items-center space-x-4">
-                <div className="flex items-center space-x-1.5 text-xs text-amber-200">
-                  <Users className="w-4 h-4 text-emerald-400" />
-                  <span>ผู้เล่น: <strong>{room?.players.length ?? 0}/6</strong></span>
-                </div>
-                <div className="w-0.5 h-4 bg-amber-700/60" />
-                <div className="text-xs text-amber-200">
-                  รอบแข่ง: <strong>{room?.totalRounds ?? 10} ข้อ</strong>
+            {/* Table Center Stage: Room Code Plaque + Start / Ready Button */}
+            <div className="my-auto flex flex-col items-center text-center z-10 py-3">
+              {/* Wooden Engraved Room Code Plaque */}
+              <div className="wood-panel px-6 md:px-10 py-3 rounded-3xl border-4 border-amber-950 shadow-2xl flex flex-col items-center">
+                <span className="text-[10px] md:text-xs text-amber-300 font-bold uppercase tracking-wider mb-0.5">
+                  รหัสห้องเข้าประลอง (ROOM CODE)
+                </span>
+                <span className="font-mono font-black text-3xl md:text-5xl text-amber-100 tracking-[0.2em] text-shadow-gold-title filter drop-shadow">
+                  {roomCode}
+                </span>
+
+                {/* Quick Copy & Share Buttons */}
+                <div className="flex items-center space-x-2 mt-3">
+                  <button
+                    onClick={handleCopyCode}
+                    className="px-3 py-1.5 bg-amber-900/80 hover:bg-amber-800 text-amber-200 rounded-xl text-xs font-bold border border-amber-600 flex items-center space-x-1.5 transition-all active:scale-95 cursor-pointer shadow"
+                  >
+                    {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedCode ? "คัดลอกรหัสแล้ว!" : "คัดลอกรหัส"}</span>
+                  </button>
+
+                  <button
+                    onClick={handleCopyLink}
+                    className="px-3 py-1.5 bg-blue-900/80 hover:bg-blue-800 text-blue-200 rounded-xl text-xs font-bold border border-blue-500 flex items-center space-x-1.5 transition-all active:scale-95 cursor-pointer shadow"
+                  >
+                    {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Share2 className="w-3.5 h-3.5" />}
+                    <span>{copiedLink ? "คัดลอกลิงก์แล้ว!" : "คัดลอกลิงก์เชิญ"}</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      sounds.playClick();
+                      setShowQrModal(true);
+                    }}
+                    className="p-1.5 bg-emerald-900/80 hover:bg-emerald-800 text-emerald-200 rounded-xl border border-emerald-500 shadow transition-all active:scale-95 cursor-pointer"
+                    title="แสดง QR Code สำหรับสแกนด้วยมือถือ"
+                  >
+                    <QrCode className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
-              {/* Start Match Button for Host */}
-              {isHost ? (
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="mt-4">
-                  <button
+              {/* Giant 3D Action Button: START GAME (for Host) or READY TOGGLE (for Guest) */}
+              <div className="mt-4">
+                {isHost ? (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={handleStartGame}
-                    disabled={(room?.players.length ?? 0) < 1}
-                    className="px-10 py-3.5 bg-play hover:bg-play-hover border-3 border-play-border rounded-2xl text-white font-game font-black text-xl tracking-wider shadow-play-btn active:shadow-play-btn-pressed transition-all flex items-center space-x-3 cursor-pointer group disabled:opacity-50"
+                    disabled={!room || room.players.length < 1}
+                    className="px-8 md:px-14 py-3.5 md:py-4 bg-gradient-to-b from-[#34D399] via-[#10B981] to-[#047857] hover:from-[#4ade80] hover:to-[#059669] border-4 border-[#A7F3D0] rounded-2xl text-white font-game font-black text-lg md:text-2xl tracking-wider shadow-[0_8px_0_#064e3b,0_14px_25px_rgba(0,0,0,0.6)] active:translate-y-2 active:shadow-[0_2px_0_#064e3b] transition-all flex items-center space-x-3 cursor-pointer group disabled:opacity-50"
                   >
-                    <Play className="w-6 h-6 fill-white text-white group-hover:translate-x-1 transition-transform" />
-                    <span>เริ่มการประลอง</span>
-                  </button>
-                </motion.div>
-              ) : (
-                <div className="mt-4">
-                  <button
+                    <Play className="w-6 h-6 fill-white text-white group-hover:translate-x-1 transition-transform filter drop-shadow" />
+                    <span>เริ่มการแข่งขัน (START GAME)</span>
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={handleToggleReady}
-                    className={`px-8 py-3 rounded-2xl font-game font-black text-lg tracking-wider border-3 transition-all cursor-pointer shadow-lg ${
+                    className={`px-8 md:px-12 py-3.5 rounded-2xl font-game font-black text-base md:text-xl tracking-wider border-3 transition-all cursor-pointer shadow-xl ${
                       myPlayer?.ready
-                        ? "bg-emerald-600 hover:bg-emerald-500 border-emerald-300 text-white"
-                        : "bg-amber-700 hover:bg-amber-600 border-amber-400 text-white"
+                        ? "bg-gradient-to-b from-emerald-500 to-emerald-700 border-emerald-300 text-white shadow-[0_6px_0_#064e3b]"
+                        : "bg-gradient-to-b from-amber-500 to-amber-700 border-amber-300 text-white shadow-[0_6px_0_#78350f]"
                     }`}
                   >
-                    {myPlayer?.ready ? "✓ พร้อมแล้ว (READY)" : "กดเพื่อพร้อม (READY)"}
-                  </button>
-                </div>
-              )}
+                    {myPlayer?.ready ? "✓ พร้อมแล้ว (READY)" : "แตะเพื่อกดพร้อม (READY)"}
+                  </motion.button>
+                )}
+              </div>
+
+              {/* Player count alert hint */}
+              <div className="text-[11px] text-amber-200/80 font-bold mt-2">
+                ผู้เล่นในห้อง: {room?.players.length ?? 1} / 6 คน (เพิ่มบอทเพื่อเริ่มเล่นได้)
+              </div>
             </div>
 
-            {/* Bottom 3 Seats */}
-            <div className="w-full grid grid-cols-3 gap-3 z-10">
+            {/* Bottom 3 Player Seats */}
+            <div className="w-full grid grid-cols-3 gap-2 md:gap-4 z-10">
               {[3, 4, 5].map((idx) => {
                 const player = room?.players[idx];
+                const activeReaction = activeReactions.find((r) => r.playerId === player?.id);
                 return (
-                  <div key={idx} className="flex justify-center">
-                    <SeatCard
+                  <div key={idx} className="flex justify-center relative">
+                    <SeatPedestal
                       seatNumber={idx + 1}
                       player={player}
                       isHost={isHost}
+                      isCurrentPlayer={player?.studentId === user?.studentId}
+                      isRoomHost={player?.id === room?.hostId}
+                      reaction={activeReaction?.emoji}
                       onRemove={() => player && handleRemovePlayer(player.id)}
                       onAddBot={() => handleAddBot(idx)}
                     />
@@ -338,29 +537,30 @@ export function LobbyClient() {
             </div>
           </div>
 
-          {/* Quick Chat Bubble Bar */}
-          <div className="w-full max-w-2xl mt-4 flex flex-wrap items-center justify-center gap-2">
-            {quickEmojis.map((msg, i) => (
+          {/* Quick Reaction Emoji Wheel */}
+          <div className="w-full max-w-xl mt-3 flex items-center justify-center space-x-2 bg-amber-950/70 p-2 rounded-2xl border border-amber-700/60 shadow-lg">
+            <span className="text-[11px] text-amber-300 font-bold mr-1">ส่งอิโมจิ:</span>
+            {quickReactions.map((emoji) => (
               <button
-                key={i}
-                onClick={() => sendChat(msg)}
-                className="wood-panel px-3 py-1.5 rounded-xl text-amber-200 hover:text-white text-xs font-bold border border-amber-700/60 shadow hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                key={emoji}
+                onClick={() => sendReaction(emoji)}
+                className="w-9 h-9 text-lg rounded-xl bg-amber-900/80 hover:bg-amber-800 hover:scale-120 active:scale-95 transition-all flex items-center justify-center cursor-pointer shadow border border-amber-600/50"
               >
-                {msg}
+                {emoji}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Right Column: Room Settings & Live Room Chat (4 cols) */}
+        {/* Right Side: Host Match Settings & Live Lobby Chat (4 cols) */}
         <div className="lg:col-span-4 flex flex-col space-y-4">
-          {/* Host Settings Plaque */}
+          {/* Host Settings Panel */}
           {isHost && (
             <div className="wood-panel p-4 rounded-3xl border-3 border-amber-950 shadow-xl">
-              <div className="flex items-center space-x-2 mb-3">
+              <div className="flex items-center space-x-2 mb-2 pb-1.5 border-b border-amber-900/60">
                 <Settings className="w-4 h-4 text-amber-400" />
                 <h3 className="font-game font-bold text-amber-200 text-sm">
-                  ตั้งค่าห้อง (HOST SETTINGS)
+                  ตั้งค่าการประลอง (HOST SETTINGS)
                 </h3>
               </div>
 
@@ -371,13 +571,13 @@ export function LobbyClient() {
                     value={room?.totalRounds ?? 10}
                     onChange={(e) => {
                       sounds.playSelect();
-                      if (room) saveRoom({ ...room, totalRounds: Number(e.target.value) });
+                      if (room) saveAndBroadcastRoom({ ...room, totalRounds: Number(e.target.value) });
                     }}
-                    className="bg-amber-950 border border-amber-600 rounded-lg px-2 py-1 text-white font-bold"
+                    className="bg-amber-950 border border-amber-600 rounded-lg px-2.5 py-1 text-white font-bold"
                   >
-                    <option value={5}>5 ข้อ (รอบเร็ว)</option>
+                    <option value={5}>5 ข้อ (โหมดเร็ว)</option>
                     <option value={10}>10 ข้อ (มาตรฐาน)</option>
-                    <option value={15}>15 ข้อ (ประลองมาราธอน)</option>
+                    <option value={15}>15 ข้อ (แข่งขันมาราธอน)</option>
                   </select>
                 </div>
 
@@ -388,13 +588,13 @@ export function LobbyClient() {
                     onChange={(e) => {
                       sounds.playSelect();
                       if (room) {
-                        saveRoom({
+                        saveAndBroadcastRoom({
                           ...room,
                           settings: { ...room.settings, thinkSeconds: Number(e.target.value) }
                         });
                       }
                     }}
-                    className="bg-amber-950 border border-amber-600 rounded-lg px-2 py-1 text-white font-bold"
+                    className="bg-amber-950 border border-amber-600 rounded-lg px-2.5 py-1 text-white font-bold"
                   >
                     <option value={30}>30 วินาที</option>
                     <option value={45}>45 วินาที</option>
@@ -403,11 +603,11 @@ export function LobbyClient() {
                 </div>
 
                 <div className="pt-2 border-t border-amber-900/60 flex justify-between items-center">
-                  <span className="text-[11px] text-amber-300">บอท AI สำหรับซ้อม:</span>
+                  <span className="text-[11px] text-amber-300">บอท AI อัตโนมัติ:</span>
                   <button
                     onClick={() => handleAddBot((room?.players.length ?? 0))}
                     disabled={(room?.players.length ?? 0) >= 6}
-                    className="bg-purple-700 hover:bg-purple-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg border border-purple-400 flex items-center space-x-1 disabled:opacity-50"
+                    className="bg-purple-700 hover:bg-purple-600 text-white text-[11px] font-bold px-3 py-1 rounded-lg border border-purple-400 flex items-center space-x-1 disabled:opacity-50 cursor-pointer shadow active:scale-95"
                   >
                     <Bot className="w-3.5 h-3.5" />
                     <span>+ เพิ่มบอท AI</span>
@@ -417,31 +617,49 @@ export function LobbyClient() {
             </div>
           )}
 
-          {/* Quick Chat Feed */}
-          <div className="wood-panel p-4 rounded-3xl border-3 border-amber-950 shadow-xl flex flex-col h-[280px]">
-            <div className="flex items-center space-x-2 mb-2">
+          {/* Quick Chat & Messages Feed */}
+          <div className="wood-panel p-4 rounded-3xl border-3 border-amber-950 shadow-xl flex flex-col h-[320px]">
+            <div className="flex items-center space-x-2 mb-2 pb-1.5 border-b border-amber-900/60">
               <MessageSquare className="w-4 h-4 text-cyan-400" />
               <h3 className="font-game font-bold text-amber-200 text-sm">
-                ข้อความในห้อง (LOBBY CHAT)
+                แชทในห้อง (LOBBY CHAT)
               </h3>
             </div>
 
-            <div className="flex-1 bg-black/40 rounded-xl p-2.5 overflow-y-auto space-y-2 border border-amber-900/40 text-xs">
+            {/* Chat Feed */}
+            <div className="flex-1 bg-black/40 rounded-xl p-2.5 overflow-y-auto space-y-2 border border-amber-900/40 text-xs scrollbar-thin">
               {chatMessages.length === 0 ? (
-                <div className="text-center text-amber-300/40 py-6">
-                  ยังไม่มีข้อความ ทักทายเพื่อนในห้องได้เลย!
+                <div className="text-center text-amber-300/40 py-8">
+                  ยังไม่มีข้อความ ทักทายเพื่อนๆ ในห้องได้เลย!
                 </div>
               ) : (
                 chatMessages.map((msg) => (
-                  <div key={msg.id} className="bg-amber-950/60 p-1.5 rounded-lg border border-amber-800/40">
-                    <span className="font-bold text-amber-300 mr-1.5">{msg.sender}:</span>
-                    <span className="text-white">{msg.text}</span>
+                  <div key={msg.id} className="bg-amber-950/70 p-2 rounded-xl border border-amber-800/40">
+                    <div className="flex items-center space-x-1.5 mb-0.5">
+                      <span className="text-xs">☢️</span>
+                      <span className="font-bold text-amber-300">{msg.sender}</span>
+                    </div>
+                    <div className="text-white pl-4">{msg.text}</div>
                   </div>
                 ))
               )}
             </div>
 
-            <div className="flex space-x-2 mt-2">
+            {/* Quick Phrases */}
+            <div className="flex flex-wrap gap-1.5 my-2">
+              {quickPhrases.map((phrase, i) => (
+                <button
+                  key={i}
+                  onClick={() => sendChat(phrase)}
+                  className="bg-amber-900/60 hover:bg-amber-800 text-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-lg border border-amber-700/50 cursor-pointer transition-all active:scale-95"
+                >
+                  {phrase}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom Input */}
+            <div className="flex space-x-2">
               <input
                 type="text"
                 value={customChat}
@@ -452,7 +670,7 @@ export function LobbyClient() {
               />
               <button
                 onClick={() => sendChat(customChat)}
-                className="px-3 py-1.5 bg-amber-700 hover:bg-amber-600 rounded-xl text-xs font-bold text-white cursor-pointer"
+                className="px-3.5 py-1.5 bg-amber-700 hover:bg-amber-600 rounded-xl text-xs font-bold text-white cursor-pointer active:scale-95"
               >
                 ส่ง
               </button>
@@ -463,23 +681,26 @@ export function LobbyClient() {
 
       {/* QR Code Modal */}
       {showQrModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
-          <div className="relative wood-panel p-6 rounded-3xl border-4 border-amber-950 shadow-2xl text-center max-w-xs w-full flex flex-col items-center">
-            <h3 className="font-game font-bold text-lg text-amber-200 mb-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+          <div className="relative wood-panel p-6 rounded-3xl border-4 border-amber-950 shadow-2xl text-center max-w-sm w-full flex flex-col items-center">
+            <h3 className="font-game font-bold text-xl text-amber-200 mb-1">
               สแกนเข้าร่วมห้อง
             </h3>
-            <div className="p-3 bg-white rounded-2xl shadow-inner my-2">
-              <QRCodeSVG
-                value={typeof window !== "undefined" ? window.location.href : `https://masterphum07-web.github.io/RTGAME/lobby/${roomCode}/`}
-                size={180}
-              />
+            <p className="text-xs text-amber-300/80 mb-3">
+              ใช้กล้องมือถือสแกนเพื่อเข้าโต๊ะประลองได้ทันที
+            </p>
+
+            <div className="p-4 bg-white rounded-2xl shadow-2xl my-2 border-4 border-amber-500">
+              <QRCodeSVG value={inviteUrl} size={200} />
             </div>
+
             <div className="text-xs text-amber-300 font-mono font-bold mt-2">
               รหัสห้อง: {roomCode}
             </div>
+
             <button
               onClick={() => setShowQrModal(false)}
-              className="mt-4 w-full py-2 bg-amber-700 hover:bg-amber-600 rounded-xl text-xs font-bold text-white cursor-pointer"
+              className="mt-4 w-full py-2.5 bg-amber-700 hover:bg-amber-600 rounded-xl text-xs font-bold text-white cursor-pointer shadow active:scale-95"
             >
               ปิดหน้าต่าง
             </button>
@@ -490,30 +711,36 @@ export function LobbyClient() {
   );
 }
 
-// Seat Component
-function SeatCard({
+// Seat Pedestal Component with 3D Ring & Floating Emoji
+function SeatPedestal({
   seatNumber,
   player,
   isHost,
+  isCurrentPlayer,
+  isRoomHost,
+  reaction,
   onRemove,
   onAddBot
 }: {
   seatNumber: number;
   player?: PublicPlayer;
   isHost: boolean;
+  isCurrentPlayer: boolean;
+  isRoomHost: boolean;
+  reaction?: string;
   onRemove: () => void;
   onAddBot: () => void;
 }) {
   if (!player) {
     return (
-      <div className="w-24 md:w-28 h-28 md:h-32 rounded-2xl border-2 border-dashed border-amber-700/60 bg-amber-950/20 flex flex-col items-center justify-center p-2 text-center">
-        <span className="text-xs text-amber-400/60 font-game font-bold mb-1">ที่นั่ง {seatNumber}</span>
+      <div className="w-24 md:w-32 h-32 md:h-36 rounded-3xl border-2 border-dashed border-amber-700/50 bg-black/20 flex flex-col items-center justify-center p-2 text-center shadow-inner">
+        <span className="text-[11px] text-amber-400/60 font-game font-bold mb-2">ที่นั่ง {seatNumber}</span>
         {isHost ? (
           <button
             onClick={onAddBot}
-            className="px-2 py-1 bg-purple-900/60 hover:bg-purple-800 border border-purple-500/50 rounded-lg text-[10px] text-purple-200 font-bold transition-transform hover:scale-105"
+            className="px-2.5 py-1.5 bg-purple-900/80 hover:bg-purple-800 border border-purple-500/60 rounded-xl text-[10px] text-purple-200 font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer shadow"
           >
-            + บอท AI
+            + เพิ่มบอท
           </button>
         ) : (
           <span className="text-[10px] text-amber-400/40">ว่าง</span>
@@ -523,37 +750,70 @@ function SeatCard({
   }
 
   return (
-    <div className="relative w-24 md:w-28 h-28 md:h-32 wood-panel rounded-2xl border-2 border-amber-500/80 p-2 flex flex-col justify-between items-center text-center shadow-lg group">
-      {/* Ready Badge */}
-      <div className="w-full flex justify-between items-center">
-        <span className="text-[9px] font-mono text-amber-300/80">#{seatNumber}</span>
+    <div className={`relative w-24 md:w-32 h-32 md:h-36 wood-panel rounded-3xl border-2 p-2 flex flex-col justify-between items-center text-center shadow-2xl transition-all group ${
+      isCurrentPlayer
+        ? "border-amber-400 ring-2 ring-amber-400/50"
+        : "border-amber-600/80"
+    }`}>
+      {/* Floating Emoji Reaction Bubble */}
+      <AnimatePresence>
+        {reaction && (
+          <motion.div
+            initial={{ scale: 0, y: 10, opacity: 0 }}
+            animate={{ scale: 1.4, y: -25, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            className="absolute -top-4 z-40 bg-amber-950 border-2 border-amber-400 rounded-full w-10 h-10 flex items-center justify-center text-xl shadow-2xl"
+          >
+            {reaction}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Top Status: Host Crown or Seat Number & Ready Dot */}
+      <div className="w-full flex justify-between items-center px-1">
+        <div className="flex items-center space-x-1">
+          {isRoomHost && <Crown className="w-3.5 h-3.5 text-amber-400 filter drop-shadow" />}
+          <span className="text-[9px] font-mono text-amber-300/80">#{seatNumber}</span>
+        </div>
+
         {player.ready ? (
-          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" title="พร้อมแล้ว" />
+          <span className="bg-emerald-500/90 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-[0_0_8px_#10b981]">
+            READY
+          </span>
         ) : (
-          <span className="w-2 h-2 rounded-full bg-amber-400" title="กำลังรอ" />
+          <span className="bg-amber-800/80 text-amber-200 text-[8px] font-bold px-1.5 py-0.5 rounded-full">
+            WAIT
+          </span>
         )}
       </div>
 
-      {/* Avatar */}
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 border-2 border-amber-200 flex items-center justify-center text-lg shadow-inner my-1">
-        {player.avatar || (player.isBot ? "🤖" : "👨‍🎓")}
+      {/* Circular Avatar with Glowing Ring */}
+      <div className="relative my-0.5">
+        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 border-2 border-amber-200 flex items-center justify-center text-2xl shadow-[0_0_15px_rgba(245,158,11,0.5)]">
+          {player.avatar || (player.isBot ? "🤖" : "👨‍🎓")}
+        </div>
+        {isCurrentPlayer && (
+          <span className="absolute -bottom-1 -right-1 bg-blue-600 text-white text-[7px] font-black px-1 rounded-full border border-white">
+            YOU
+          </span>
+        )}
       </div>
 
-      {/* Name */}
+      {/* Player Name & Student ID */}
       <div className="w-full">
-        <div className="font-bold text-[11px] text-white truncate max-w-full">
+        <div className="font-bold text-[11px] md:text-xs text-white truncate max-w-full leading-tight">
           {player.name}
         </div>
-        <div className="text-[9px] text-amber-300/70 font-mono">
+        <div className="text-[8.5px] md:text-[9.5px] text-amber-300/80 font-mono truncate">
           {player.studentId}
         </div>
       </div>
 
-      {/* Remove button for Host */}
-      {isHost && (
+      {/* Remove button for Host (Only for bots or other players) */}
+      {isHost && !isCurrentPlayer && (
         <button
           onClick={onRemove}
-          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow"
+          className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg cursor-pointer"
           title="เตะออกจากห้อง"
         >
           <Trash2 className="w-3 h-3" />

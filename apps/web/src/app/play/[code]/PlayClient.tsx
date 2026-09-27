@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { 
@@ -45,11 +45,15 @@ import { ClueCard as ClueCardComponent } from "@/components/cards/ClueCard";
 import { CardBack } from "@/components/cards/CardBack";
 import { getLocalUser, addRewards, saveLocalUser } from "@/lib/user";
 import { sounds } from "@/lib/sound";
+import { createRoomSync, RoomSyncHandle, SyncMessage } from "@/lib/sync";
 
 export function PlayClient() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const roomCode = ((params?.code as string) || "ROOM01").toUpperCase();
+
+  const rawCode = (searchParams?.get("code") || params?.code || "ROOM01") as string;
+  const roomCode = rawCode.toUpperCase();
 
   const [user, setUser] = useState<StudentUser | null>(null);
   const [room, setRoom] = useState<PublicRoomState | null>(null);

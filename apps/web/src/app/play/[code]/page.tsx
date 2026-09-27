@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { PlayClient } from "./PlayClient";
 
 export function generateStaticParams() {
@@ -11,5 +11,9 @@ export function generateStaticParams() {
 }
 
 export default function PlayPage() {
-  return <PlayClient />;
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-felt-table" />}>
+      <PlayClient />
+    </Suspense>
+  );
 }

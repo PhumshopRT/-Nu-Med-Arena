@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>NucMed Arena - Redirecting...</title>
+    <script>
+      (function() {
+        var path = window.location.pathname;
+        var search = window.location.search;
+        var hash = window.location.hash;
+        
+        // Detect repo base path (e.g. /RTGAME/)
+        var base = "/RTGAME";
+        var hasBase = path.indexOf(base) === 0;
+        var relativePath = hasBase ? path.substring(base.length) : path;
+        
+        // Strip trailing slash
+        if (relativePath.length > 1 && relativePath.endsWith('/')) {
+          relativePath = relativePath.slice(0, -1);
+        }
+
+        var segments = relativePath.split('/').filter(Boolean);
+        var prefix = hasBase ? base : "";
+
+        // Check if route matches dynamic patterns
+        if (segments[0] === 'lobby' && segments[1]) {
+          window.location.replace(prefix + '/lobby/?code=' + encodeURIComponent(segments[1]) + (hash || ''));
+          return;
+        }
+        if (segments[0] === 'play' && segments[1]) {
+          window.location.replace(prefix + '/play/?code=' + encodeURIComponent(segments[1]) + (hash || ''));
+          return;
+        }
+        if (segments[0] === 'board' && segments[1]) {
+          window.location.replace(prefix + '/board/?code=' + encodeURIComponent(segments[1]) + (hash || ''));
+          return;
+        }
+
+        // Default redirect to home hub
+        window.location.replace(prefix + '/' + (search || '') + (hash || ''));
+      })();
+    </script>
+  </head>
+  <body style="background-color: #072824; color: #fef3c7; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+    <div style="text-align: center;">
+      <h2 style="font-size: 24px; margin-bottom: 8px;">กำลังพาเข้าสู่สังเวียนประลอง...</h2>
+      <p style="color: #6ee7b7; font-size: 14px;">NucMed Arena: Localization Match</p>
+    </div>
+  </body>
+</html>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Trophy, 
@@ -23,7 +23,9 @@ import { CaseCard as CaseCardComponent } from "@/components/cards/CaseCard";
 
 export function BoardClient() {
   const params = useParams();
-  const roomCode = ((params?.code as string) || "ROOM01").toUpperCase();
+  const searchParams = useSearchParams();
+  const rawCode = (searchParams?.get("code") || params?.code || "ROOM01") as string;
+  const roomCode = rawCode.toUpperCase();
 
   const [currentCase, setCurrentCase] = useState<CaseCard>(ALL_CASE_CARDS[0]);
   const [round, setRound] = useState(1);

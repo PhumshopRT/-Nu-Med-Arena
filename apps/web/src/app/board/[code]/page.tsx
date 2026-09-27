@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { BoardClient } from "./BoardClient";
 
 export function generateStaticParams() {
@@ -11,5 +11,9 @@ export function generateStaticParams() {
 }
 
 export default function BoardPage() {
-  return <BoardClient />;
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-950" />}>
+      <BoardClient />
+    </Suspense>
+  );
 }

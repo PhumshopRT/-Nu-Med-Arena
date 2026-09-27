@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { LobbyClient } from "./LobbyClient";
 
 export function generateStaticParams() {
@@ -11,5 +11,9 @@ export function generateStaticParams() {
 }
 
 export default function LobbyPage() {
-  return <LobbyClient />;
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-felt-table" />}>
+      <LobbyClient />
+    </Suspense>
+  );
 }
