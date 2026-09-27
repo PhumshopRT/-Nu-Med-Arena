@@ -13,6 +13,7 @@ if (isGithubActions) {
 
 const nextConfig = {
   output: isGithubActions ? 'export' : undefined,
+  trailingSlash: true,
   basePath: isGithubActions ? repo : '',
   assetPrefix: isGithubActions ? `${repo}/` : undefined,
   outputFileTracingRoot: path.join(__dirname, '../../'),
