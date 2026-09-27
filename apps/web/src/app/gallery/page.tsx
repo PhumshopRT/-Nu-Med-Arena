@@ -65,20 +65,23 @@ export default function GalleryPage() {
       return (
         <CardBack 
           onClick={() => toggleFlip(card.id)} 
-          className="w-full h-full" 
+          size={isInspect ? "lg" : "md"}
+          className="mx-auto shadow-2xl" 
         />
       );
     }
 
+    const cardSize = isInspect ? "lg" : "md";
+
     switch (card.type) {
       case "RP":
-        return <RpCard card={card} isHoverable={!isInspect} onClick={() => !isInspect && setSelectedCard(card)} />;
+        return <RpCard card={card} size={cardSize} isHoverable={!isInspect} onClick={() => !isInspect && setSelectedCard(card)} className="mx-auto shadow-2xl" />;
       case "MECH":
-        return <MechCard card={card} isHoverable={!isInspect} onClick={() => !isInspect && setSelectedCard(card)} />;
+        return <MechCard card={card} size={cardSize} isHoverable={!isInspect} onClick={() => !isInspect && setSelectedCard(card)} className="mx-auto shadow-2xl" />;
       case "CASE":
-        return <CaseCard card={card} isHoverable={!isInspect} onClick={() => !isInspect && setSelectedCard(card)} />;
+        return <CaseCard card={card} size={cardSize} isHoverable={!isInspect} onClick={() => !isInspect && setSelectedCard(card)} className="mx-auto shadow-2xl" />;
       case "CLUE":
-        return <ClueCard card={card} isHoverable={!isInspect} onClick={() => !isInspect && setSelectedCard(card)} />;
+        return <ClueCard card={card} size={cardSize} isHoverable={!isInspect} onClick={() => !isInspect && setSelectedCard(card)} className="mx-auto shadow-2xl" />;
     }
   };
 

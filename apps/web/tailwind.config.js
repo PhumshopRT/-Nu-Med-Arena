@@ -10,26 +10,26 @@ module.exports = {
     extend: {
       colors: {
         rp: {
-          DEFAULT: "#2F6FED",
-          head: "#1E4FD7",
+          DEFAULT: "#1B70BF",
+          head: "#155A9C",
           body: "#E8F1FF",
           line: "#7AA7FF",
         },
         mech: {
-          DEFAULT: "#E6A100",
-          head: "#D49200",
+          DEFAULT: "#EFA316",
+          head: "#C7850D",
           body: "#FFF6D9",
           line: "#F2C14E",
         },
         case: {
-          DEFAULT: "#E23B4A",
-          head: "#C81E33",
+          DEFAULT: "#E03E3E",
+          head: "#B92B2B",
           body: "#FFE8EA",
           line: "#F08A93",
         },
         clue: {
-          DEFAULT: "#1FA971",
-          head: "#0E8A58",
+          DEFAULT: "#00A86B",
+          head: "#008755",
           body: "#E5F8EF",
           line: "#7DD3A8",
         },

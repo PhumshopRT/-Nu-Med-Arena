@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { RadiopharmaceuticalCard } from "@nucmed/shared";
+import { RadiopharmaceuticalCard, MECHANISM_DECK } from "@nucmed/shared";
 import { CardFrame } from "./CardFrame";
 import { 
   CellMetabolismIllustration, 
@@ -51,6 +51,10 @@ export function RpCard({
     }
   };
 
+  // Resolve mechanism title (e.g. "Facilitated Diffusion" instead of "M-02")
+  const mechObj = MECHANISM_DECK.find((m) => m.id === card.mechanismId);
+  const mechName = mechObj ? mechObj.titleEn.split('/')[0].trim() : card.mechanismId;
+
   return (
     <CardFrame
       type="RP"
@@ -60,70 +64,69 @@ export function RpCard({
       onClick={onClick}
       size={size}
     >
-      <div className="flex flex-col h-full justify-between">
-        {/* Top Header Capsule Bar */}
+      <div className="flex flex-col h-full justify-between select-none">
+        {/* 1. Top Header Capsule Bar (Matching card-prototype.jpg) */}
         <div>
-          <div className="flex justify-between items-center px-1 mb-1">
+          <div className="flex justify-between items-center mb-0.5">
             {/* Left ID Badge */}
-            <div className="bg-[#1E4FD7] text-white px-2 py-0.5 rounded-full flex items-center space-x-1 shadow-sm border border-blue-400">
-              <span className="text-[10px]">☢️</span>
-              <span className="text-[10px] font-bold font-mono tracking-tight">{card.id}</span>
+            <div className="bg-[#E3EFFB] text-[#1B70BF] px-2 py-0.5 rounded-full flex items-center space-x-1 shadow-xs border border-blue-200">
+              <span className="text-xs">☢️</span>
+              <span className="font-game font-bold text-[10px] md:text-[11px] tracking-wide">{card.id}</span>
             </div>
 
-            {/* Right Modality Capsule (PET / SPECT) */}
-            <div className="bg-[#0284C7] text-white px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider shadow-sm border border-cyan-300">
+            {/* Right Modality Pill */}
+            <div className="bg-[#2EB8E6] text-white px-2 py-0.5 rounded-full font-bold text-[9px] md:text-[10px] tracking-wider uppercase shadow-xs">
               {card.modality}
             </div>
           </div>
 
-          {/* Title and Full Name */}
-          <div className="text-center px-1">
-            <h3 className="font-nuclide font-bold text-lg md:text-xl text-white tracking-wide leading-tight drop-shadow-sm">
+          {/* 2. Title & Subtitle (Centered matching prototype) */}
+          <div className="text-center mt-0.5 mb-0.5">
+            <h3 className="text-base md:text-lg font-black font-nuclide text-slate-900 leading-tight tracking-tight">
               {card.titleEn}
             </h3>
-            {card.subtitle && (
-              <p className="text-[10px] text-blue-100 font-medium tracking-tight">
-                ({card.subtitle})
-              </p>
-            )}
+            <div className="text-[9px] md:text-[11px] text-slate-500 font-medium">
+              ({card.subtitle || card.titleTh})
+            </div>
           </div>
         </div>
 
-        {/* Illustration Container Box */}
-        <div className="bg-[#E8F1FF] rounded-xl border border-[#7AA7FF] p-1.5 my-1.5 flex items-center justify-center h-28 md:h-32 shadow-inner overflow-hidden">
+        {/* 3. Illustration Area (Chemical + Organ / PET scan) */}
+        <div className="my-auto w-full h-20 md:h-24 flex items-center justify-center py-1">
           {renderIllustration()}
         </div>
 
-        {/* Medical Properties Table */}
-        <div className="bg-white/95 rounded-xl p-2 text-slate-800 text-[10px] leading-tight space-y-1 shadow-sm border border-blue-200">
-          <div className="grid grid-cols-[72px_1fr] gap-1 items-start">
-            <span className="font-bold text-blue-900">Target :</span>
-            <span className="font-medium text-slate-700 truncate">{card.target}</span>
+        {/* 4. Specification Table (Key-Value Rows matching prototype) */}
+        <div className="border-t border-slate-200/90 pt-1 space-y-0.5 text-[9px] md:text-[10.5px] leading-tight text-slate-800">
+          {/* Target */}
+          <div className="grid grid-cols-[68px_8px_1fr] items-baseline">
+            <span className="font-bold text-slate-900">Target</span>
+            <span className="text-slate-400 font-bold">:</span>
+            <span className="text-slate-700 font-medium truncate">{card.target}</span>
           </div>
 
+          {/* Transporter */}
           {card.transporter && (
-            <div className="grid grid-cols-[72px_1fr] gap-1 items-start">
-              <span className="font-bold text-blue-900">Transporter :</span>
-              <span className="font-medium text-slate-700 truncate">{card.transporter}</span>
+            <div className="grid grid-cols-[68px_8px_1fr] items-baseline">
+              <span className="font-bold text-slate-900">Transporter</span>
+              <span className="text-slate-400 font-bold">:</span>
+              <span className="text-slate-700 font-medium truncate">{card.transporter}</span>
             </div>
           )}
 
-          <div className="grid grid-cols-[72px_1fr] gap-1 items-start">
-            <span className="font-bold text-blue-900">Mechanism :</span>
-            <span className="font-medium text-slate-700 truncate">{card.titleTh}</span>
+          {/* Mechanism */}
+          <div className="grid grid-cols-[68px_8px_1fr] items-baseline">
+            <span className="font-bold text-slate-900">Mechanism</span>
+            <span className="text-slate-400 font-bold">:</span>
+            <span className="text-slate-700 font-medium truncate">{mechName}</span>
           </div>
 
-          <div className="grid grid-cols-[72px_1fr] gap-1 items-start">
-            <span className="font-bold text-blue-900">Application :</span>
-            <span className="font-medium text-slate-700 line-clamp-2">{card.application}</span>
+          {/* Application */}
+          <div className="grid grid-cols-[68px_8px_1fr] items-baseline">
+            <span className="font-bold text-slate-900">Application</span>
+            <span className="text-slate-400 font-bold">:</span>
+            <span className="text-slate-700 font-medium truncate">{card.application}</span>
           </div>
-        </div>
-
-        {/* Bottom Strip Category Label */}
-        <div className="mt-1 text-center">
-          <span className="text-[9px] font-bold text-white uppercase tracking-widest drop-shadow-xs">
-            Radiopharmaceutical
-          </span>
         </div>
       </div>
     </CardFrame>

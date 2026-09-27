@@ -51,25 +51,25 @@ export function LabWorldBackground() {
             </div>
 
             {/* Blue: RP */}
-            <div className="bg-[#2F6FED] border-2 border-[#7AA7FF] text-white px-2 py-1 rounded-md text-[10px] font-bold shadow-md flex items-center space-x-1.5 hover:translate-x-1 transition-transform">
+            <div className="bg-[#1B70BF] border-2 border-[#60A5FA] text-white px-2 py-1 rounded-md text-[10px] font-bold shadow-md flex items-center space-x-1.5 hover:translate-x-1 transition-transform">
               <span className="w-2 h-2 rounded-full bg-blue-200" />
               <span>สารเภสัชรังสี (RP)</span>
             </div>
 
             {/* Gold: MECH */}
-            <div className="bg-[#E6A100] border-2 border-[#F2C14E] text-amber-950 px-2 py-1 rounded-md text-[10px] font-black shadow-md flex items-center space-x-1.5 hover:translate-x-1 transition-transform">
+            <div className="bg-[#EFA316] border-2 border-[#FCD34D] text-amber-950 px-2 py-1 rounded-md text-[10px] font-black shadow-md flex items-center space-x-1.5 hover:translate-x-1 transition-transform">
               <span className="w-2 h-2 rounded-full bg-amber-800" />
               <span>กลไกการสะสม</span>
             </div>
 
             {/* Red: CASE */}
-            <div className="bg-[#E23B4A] border-2 border-[#F08A93] text-white px-2 py-1 rounded-md text-[10px] font-bold shadow-md flex items-center space-x-1.5 hover:translate-x-1 transition-transform">
+            <div className="bg-[#E03E3E] border-2 border-[#FCA5A5] text-white px-2 py-1 rounded-md text-[10px] font-bold shadow-md flex items-center space-x-1.5 hover:translate-x-1 transition-transform">
               <span className="w-2 h-2 rounded-full bg-red-200" />
               <span>โจทย์คลินิก</span>
             </div>
 
             {/* Green: CLUE */}
-            <div className="bg-[#1FA971] border-2 border-[#7DD3A8] text-white px-2 py-1 rounded-md text-[10px] font-bold shadow-md flex items-center space-x-1.5 hover:translate-x-1 transition-transform">
+            <div className="bg-[#00A86B] border-2 border-[#6EE7B7] text-white px-2 py-1 rounded-md text-[10px] font-bold shadow-md flex items-center space-x-1.5 hover:translate-x-1 transition-transform">
               <span className="w-2 h-2 rounded-full bg-emerald-200" />
               <span>เป้าหมาย / คำใบ้</span>
             </div>

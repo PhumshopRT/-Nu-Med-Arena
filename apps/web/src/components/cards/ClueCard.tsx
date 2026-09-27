@@ -9,7 +9,6 @@ import {
   LiverSpleenIllustration,
   LungIllustration 
 } from "./illustrations/OrganIllustrations";
-import { Target, Lightbulb } from "lucide-react";
 
 interface ClueCardProps {
   card: ClueCardType;
@@ -55,64 +54,52 @@ export function ClueCard({
       onClick={onClick}
       size={size}
     >
-      <div className="flex flex-col h-full justify-between">
-        {/* Top Header Capsule Bar */}
+      <div className="flex flex-col h-full justify-between select-none">
+        {/* 1. Top Header Capsule Bar (Matching card-prototype.jpg) */}
         <div>
-          <div className="flex justify-between items-center px-1 mb-1">
+          <div className="flex justify-between items-center mb-0.5">
             {/* Left ID Badge */}
-            <div className="bg-[#0E8A58] text-white px-2 py-0.5 rounded-full flex items-center space-x-1 shadow-sm border border-emerald-300">
-              <span className="text-[10px] font-bold font-mono">{card.id}</span>
+            <div className="bg-[#D1FAE5] text-[#00A86B] px-2 py-0.5 rounded-full flex items-center space-x-1 shadow-xs border border-emerald-300">
+              <span className="text-xs">🎯</span>
+              <span className="font-game font-bold text-[10px] md:text-[11px] tracking-wide">{card.id}</span>
             </div>
 
-            {/* Right Target Icon */}
-            <div className="bg-emerald-950 text-white p-1 rounded-full shadow-sm">
-              <Target className="w-3.5 h-3.5 text-emerald-300" />
+            {/* Right Target / Clue Icon */}
+            <div className="w-5 h-5 rounded-full bg-[#D1FAE5] text-[#00A86B] flex items-center justify-center text-xs shadow-xs border border-emerald-300">
+              🎯
             </div>
           </div>
 
-          {/* Title */}
-          <div className="text-center px-1">
-            <h3 className="font-game font-black text-base md:text-lg text-white tracking-tight leading-tight drop-shadow-xs">
+          {/* 2. Title Block (Centered matching prototype) */}
+          <div className="text-center mt-0.5 mb-1">
+            <h3 className="text-sm md:text-base font-black text-slate-900 leading-tight tracking-tight">
               {card.titleEn}
             </h3>
-            {card.subtitle && (
-              <p className="text-[10px] text-emerald-100 font-medium">
-                ({card.subtitle})
-              </p>
-            )}
           </div>
         </div>
 
-        {/* Illustration Container Box */}
-        <div className="bg-[#E5F8EF] rounded-xl border border-[#7DD3A8] p-1.5 my-1 flex items-center justify-center h-28 md:h-32 shadow-inner overflow-hidden">
+        {/* 3. Illustration Area (Organ drawing) */}
+        <div className="my-auto w-full h-18 md:h-22 flex items-center justify-center py-0.5">
           {renderIllustration()}
         </div>
 
-        {/* Clue Properties & Hint Box */}
-        <div className="bg-white/95 rounded-xl p-2 text-emerald-950 text-[10px] leading-tight space-y-1.5 shadow-sm border border-emerald-200">
-          <ul className="list-disc pl-4 space-y-0.5">
-            {card.body.map((item, idx) => (
-              <li key={idx} className="font-medium text-slate-800">
-                {item}
-              </li>
-            ))}
-          </ul>
-
-          {/* Hint callout */}
-          <div className="bg-emerald-50 rounded-lg p-1.5 border border-emerald-200 flex items-start space-x-1.5">
-            <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-            <div className="text-[9.5px] font-semibold text-emerald-900 leading-snug">
-              <span className="font-bold">Hint: </span>
-              {card.reveals}
+        {/* 4. Bullet Points Details */}
+        <div className="border-t border-slate-200/90 pt-1 space-y-0.5 text-[9px] md:text-[10px] leading-tight text-slate-800">
+          {card.body.map((bullet, i) => (
+            <div key={i} className="flex items-start space-x-1.5">
+              <span className="text-slate-900 font-black mt-0.5">•</span>
+              <span className="text-slate-700 font-medium leading-tight">{bullet}</span>
             </div>
-          </div>
+          ))}
         </div>
 
-        {/* Bottom Strip Category Label */}
-        <div className="mt-1 text-center">
-          <span className="text-[9px] font-bold text-white uppercase tracking-widest drop-shadow-xs">
-            Target / Clue
-          </span>
+        {/* 5. Bottom Green Hint Callout Box (Matching prototype) */}
+        <div className="bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl p-1.5 flex items-start space-x-1.5 mt-1 shadow-xs">
+          <span className="text-sm leading-none mt-0.5">💡</span>
+          <div className="text-[8.5px] md:text-[9.5px] text-slate-800 leading-tight">
+            <strong className="text-emerald-800 font-bold block mb-0.5">Hint</strong>
+            {card.reveals}
+          </div>
         </div>
       </div>
     </CardFrame>

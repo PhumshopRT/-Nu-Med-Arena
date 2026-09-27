@@ -24,76 +24,73 @@ export function CardFrame({
   onClick,
   size = "md",
 }: CardFrameProps) {
+  // Size presets respecting standard 63/88 trading card ratio
   const sizeClasses = {
-    sm: "w-36 h-[201px]",
-    md: "w-48 h-[268px]",
-    lg: "w-64 h-[357px]",
+    sm: "w-48 h-[268px]",
+    md: "w-64 h-[357px]",
+    lg: "w-80 h-[447px]",
   };
-  const getThemeClasses = () => {
+
+  const getThemeConfig = () => {
     switch (type) {
       case "RP":
         return {
-          bg: "bg-[#2F6FED]",
-          border: "border-[#7AA7FF]",
-          shadow: "shadow-blue-900/30",
-          selectedRing: "ring-4 ring-white shadow-[0_0_25px_rgba(47,111,237,0.8)]",
+          bg: "bg-[#1B70BF]", // Vibrant Medical Cobalt Blue from card-prototype.jpg
+          border: "border-[#155A9C]",
+          categoryLabel: "Radiopharmaceutical",
+          selectedGlow: "ring-4 ring-white shadow-[0_0_25px_rgba(27,112,191,0.9)]",
         };
       case "MECH":
         return {
-          bg: "bg-[#E6A100]",
-          border: "border-[#F2C14E]",
-          shadow: "shadow-amber-900/30",
-          selectedRing: "ring-4 ring-white shadow-[0_0_25px_rgba(230,161,0,0.8)]",
+          bg: "bg-[#EFA316]", // Warm Golden Amber from card-prototype.jpg
+          border: "border-[#C7850D]",
+          categoryLabel: "Mechanism",
+          selectedGlow: "ring-4 ring-white shadow-[0_0_25px_rgba(239,163,22,0.9)]",
         };
       case "CASE":
         return {
-          bg: "bg-[#E23B4A]",
-          border: "border-[#F08A93]",
-          shadow: "shadow-red-900/30",
-          selectedRing: "ring-4 ring-white shadow-[0_0_25px_rgba(226,59,74,0.8)]",
+          bg: "bg-[#E03E3E]", // Clinical Crimson Red from card-prototype.jpg
+          border: "border-[#B92B2B]",
+          categoryLabel: "Clinical Case",
+          selectedGlow: "ring-4 ring-white shadow-[0_0_25px_rgba(224,62,62,0.9)]",
         };
       case "CLUE":
         return {
-          bg: "bg-[#1FA971]",
-          border: "border-[#7DD3A8]",
-          shadow: "shadow-emerald-900/30",
-          selectedRing: "ring-4 ring-white shadow-[0_0_25px_rgba(31,169,113,0.8)]",
+          bg: "bg-[#00A86B]", // Target Clue Emerald Green from card-prototype.jpg
+          border: "border-[#008755]",
+          categoryLabel: "Target / Clue",
+          selectedGlow: "ring-4 ring-white shadow-[0_0_25px_rgba(0,168,107,0.9)]",
         };
     }
   };
 
-  const theme = getThemeClasses();
+  const theme = getThemeConfig();
 
   return (
     <div
       onClick={onClick}
       className={clsx(
-        "relative rounded-[18px] border-[3px] p-2 flex flex-col justify-between select-none overflow-hidden transition-all duration-200",
+        "relative rounded-[22px] p-[6px] pb-[4px] flex flex-col justify-between select-none overflow-hidden transition-all duration-200 shadow-xl",
         sizeClasses[size],
         theme.bg,
-        theme.border,
-        "shadow-card",
-        isHoverable && "hover:-translate-y-2 hover:shadow-card-hover hover:scale-[1.02] cursor-pointer",
-        isSelected && theme.selectedRing,
+        isHoverable && "hover:-translate-y-2 hover:shadow-2xl hover:scale-[1.02] cursor-pointer",
+        isSelected && theme.selectedGlow,
         className
       )}
       style={{
         aspectRatio: "63 / 88",
       }}
     >
-      {/* Background Subtle Trefoil Watermark */}
-      <div className="absolute inset-0 pointer-events-none opacity-5 flex items-center justify-center">
-        <svg viewBox="0 0 100 100" className="w-48 h-48 fill-white">
-          <circle cx="50" cy="50" r="10" />
-          <path d="M50 35 L40 15 A40 40 0 0 1 60 15 Z" />
-          <path d="M37 57 L17 50 A40 40 0 0 1 27 30 Z" />
-          <path d="M63 57 L83 50 A40 40 0 0 0 73 30 Z" />
-        </svg>
+      {/* 1. Inner White Card Container (Houses all contents exactly as in prototype) */}
+      <div className="relative z-10 w-full flex-1 min-h-0 bg-white rounded-[16px] p-2 md:p-2.5 flex flex-col justify-between overflow-hidden shadow-inner text-slate-900">
+        {children}
       </div>
 
-      {/* Card Contents */}
-      <div className="relative z-10 w-full h-full flex flex-col justify-between">
-        {children}
+      {/* 2. Bottom Colored Footer with White Category Title (matching card-prototype.jpg) */}
+      <div className="w-full h-[22px] shrink-0 flex items-center justify-center pointer-events-none select-none">
+        <span className="text-white font-black text-[9px] md:text-[11px] tracking-wider font-sans uppercase drop-shadow-xs">
+          {theme.categoryLabel}
+        </span>
       </div>
     </div>
   );
