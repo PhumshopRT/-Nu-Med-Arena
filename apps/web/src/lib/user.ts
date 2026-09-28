@@ -647,7 +647,7 @@ export function getNaAccounts(): NaAccount[] {
         return parsed.map((acc: any) => {
           let decoded = acc.password;
           if (typeof decoded === "string" && decoded.startsWith("b64:")) {
-            try { decoded = atob(decoded.substring(4)); } catch {}
+            try { const b64 = decoded.substring(4); try { decoded = decodeURIComponent(atob(b64)); } catch { decoded = atob(b64); } } catch {}
           }
           return { ...acc, password: decoded };
         });
@@ -693,7 +693,7 @@ export function saveNaAccounts(accounts: NaAccount[]): void {
   try {
     const obfuscated = accounts.map(acc => ({
       ...acc,
-      password: acc.password && !acc.password.startsWith("b64:") ? `b64:${btoa(acc.password)}` : acc.password
+      password: acc.password && !acc.password.startsWith("b64:") ? `b64:${btoa(encodeURIComponent(acc.password))}` : acc.password
     }));
     localStorage.setItem("na_accounts", JSON.stringify(obfuscated));
   } catch {}
