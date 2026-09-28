@@ -347,6 +347,33 @@ export function setNaEquipped(equipped: NaEquipped): void {
   }
 }
 
+export function getAvatarIcon(avatarId?: string): string {
+  switch (avatarId) {
+    case "avatar-thyroid": return "🦋";
+    case "avatar-lung": return "🫁";
+    case "av_bone": return "🦴";
+    case "avatar-default":
+    default: return "☢️";
+  }
+}
+
+export function getTitleBadge(titleId?: string): string | null {
+  if (titleId === "title-capillary") return "Capillary Blockader";
+  return null;
+}
+
+export function getFrameStyle(frameId?: string): string {
+  switch (frameId) {
+    case "frame-gold":
+      return "border-amber-300 ring-2 ring-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.6)]";
+    case "frame-reactor":
+      return "border-cyan-400 ring-2 ring-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.8)] animate-pulse";
+    case "frame-graphite":
+    default:
+      return "border-amber-600/60 shadow-md";
+  }
+}
+
 // na_preview: separate from equipped, clearable on shop close
 export function getNaPreview(): NaPreview | null {
   if (typeof window === "undefined") return null;

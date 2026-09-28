@@ -378,10 +378,10 @@ export default function AdminPage() {
           <span className="text-xl shrink-0">⚠️</span>
           <div className="leading-relaxed">
             <strong className="text-amber-300 font-bold block mb-0.5">
-              ข้อควรทราบเกี่ยวกับการแสดงผลข้อมูลนักศึกษา:
+              ข้อควรทราบเกี่ยวกับการแสดงผลข้อมูลนักศึกษา (Local Storage Notice):
             </strong>
             <span>
-              แสดงข้อมูลนักศึกษาที่บันทึกในเบราว์เซอร์นี้เท่านั้น หากต้องการเห็นทั้งห้องเรียนต้องเชื่อมต่อฐานข้อมูลกลาง (Central Database)
+              ข้อมูลนักศึกษาและเหรียญรางวัลถูกบันทึกใน Local Storage ของเบราว์เซอร์เครื่องนี้เท่านั้น หากล้างข้อมูลหรือแคชเบราว์เซอร์ข้อมูลจะหาย หากต้องการใช้งานร่วมกันทั้งห้องเรียนต้องเชื่อมต่อฐานข้อมูลกลาง (Central Database)
             </span>
           </div>
         </div>

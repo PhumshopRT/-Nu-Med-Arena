@@ -31,7 +31,13 @@ import {
   BOTS, 
   StudentUser 
 } from "@nucmed/shared";
-import { getLocalUser } from "@/lib/user";
+import { 
+  getLocalUser, 
+  getNaEquipped, 
+  getAvatarIcon, 
+  getTitleBadge, 
+  getFrameStyle 
+} from "@/lib/user";
 import { sounds } from "@/lib/sound";
 import { createRoomSync, RoomSyncHandle, SyncMessage } from "@/lib/sync";
 
@@ -73,6 +79,10 @@ export function LobbyClient() {
     setUser(localUser);
 
     const isCreateIntent = searchParams?.get("create") === "true";
+    const equipped = getNaEquipped();
+    const myAvatar = getAvatarIcon(localUser.equipped?.avatar || equipped.avatar);
+    const myTitle = getTitleBadge(localUser.equipped?.title || equipped.title);
+    const myFrame = localUser.equipped?.frame || equipped.frame;
 
     const myPlayerInfo: PublicPlayer = {
       id: `p_${localUser.studentId}`,
@@ -82,7 +92,9 @@ export function LobbyClient() {
       locked: false,
       score: 0,
       handCount: 5,
-      avatar: "☢️"
+      avatar: myAvatar,
+      title: myTitle || undefined,
+      frame: myFrame
     };
 
     const savedRoomKey = `nucmed_room_${roomCode}`;
@@ -92,15 +104,26 @@ export function LobbyClient() {
     if (saved) {
       try {
         currentRoom = JSON.parse(saved);
+        currentRoom.players = (currentRoom.players || []).map((p) => {
+          if (p.studentId === localUser.studentId) {
+            return {
+              ...p,
+              avatar: myAvatar,
+              title: myTitle || p.title,
+              frame: myFrame || p.frame
+            };
+          }
+          return p;
+        });
         const existingPlayer = currentRoom.players.find((p) => p.studentId === localUser.studentId);
         if (!existingPlayer && currentRoom.players.length < currentRoom.settings.maxPlayers) {
           currentRoom.players.push(myPlayerInfo);
         }
       } catch {
-        currentRoom = createInitialRoom(roomCode, localUser, isCreateIntent);
+        currentRoom = createInitialRoom(roomCode, localUser, isCreateIntent, myAvatar, myTitle || undefined, myFrame);
       }
     } else {
-      currentRoom = createInitialRoom(roomCode, localUser, isCreateIntent);
+      currentRoom = createInitialRoom(roomCode, localUser, isCreateIntent, myAvatar, myTitle || undefined, myFrame);
     }
 
     setRoom(currentRoom);
@@ -224,7 +247,14 @@ export function LobbyClient() {
     };
   }, [roomCode, router]);
 
-  const createInitialRoom = (code: string, host: StudentUser, isHostRole: boolean = true): PublicRoomState => {
+  const createInitialRoom = (
+    code: string,
+    host: StudentUser,
+    isHostRole: boolean = true,
+    avatar: string = "☢️",
+    title?: string,
+    frame?: string
+  ): PublicRoomState => {
     return {
       code,
       hostId: isHostRole ? `p_${host.studentId}` : "",
@@ -245,7 +275,9 @@ export function LobbyClient() {
           locked: false,
           score: 0,
           handCount: 5,
-          avatar: "☢️"
+          avatar,
+          title,
+          frame
         }
       ]
     };
@@ -816,7 +848,9 @@ function SeatPedestal({
 
       {/* Circular Avatar with Glowing Ring */}
       <div className="relative my-0.5">
-        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 border-2 border-amber-200 flex items-center justify-center text-2xl shadow-[0_0_15px_rgba(245,158,11,0.5)]">
+        <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 border-2 flex items-center justify-center text-2xl shadow-[0_0_15px_rgba(245,158,11,0.5)] ${
+          player.frame ? getFrameStyle(player.frame) : "border-amber-200"
+        }`}>
           {player.avatar || (player.isBot ? "🤖" : "👨‍🎓")}
         </div>
         {isCurrentPlayer && (
@@ -831,6 +865,11 @@ function SeatPedestal({
         <div className="font-bold text-[11px] md:text-xs text-white truncate max-w-full leading-tight">
           {player.name}
         </div>
+        {player.title && (
+          <div className="text-[8px] text-amber-300 font-bold bg-amber-950/70 rounded px-1.5 py-0.2 mt-0.5 inline-block border border-amber-500/40 truncate max-w-[120px]">
+            {player.title}
+          </div>
+        )}
         <div className="text-[8.5px] md:text-[9.5px] text-amber-300/80 font-mono truncate">
           {player.studentId}
         </div>

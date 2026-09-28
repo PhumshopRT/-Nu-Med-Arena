@@ -51,39 +51,15 @@ import {
   saveLocalUser, 
   getNaEquipped, 
   recordMatchPlayed, 
-  getNaWallet 
+  getNaWallet,
+  getAvatarIcon,
+  getTitleBadge,
+  getFrameStyle
 } from "@/lib/user";
 import { sounds } from "@/lib/sound";
 import { createRoomSync, RoomSyncHandle, SyncMessage } from "@/lib/sync";
 import { getAssetPath } from "@/lib/assets";
 import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
-
-const getAvatarIcon = (avatarId?: string) => {
-  switch (avatarId) {
-    case "avatar-thyroid": return "🦋";
-    case "avatar-lung": return "🫁";
-    case "av_bone": return "🦴";
-    case "avatar-default":
-    default: return "☢️";
-  }
-};
-
-const getTitleBadge = (titleId?: string) => {
-  if (titleId === "title-capillary") return "Capillary Blockader";
-  return null;
-};
-
-const getFrameStyle = (frameId?: string) => {
-  switch (frameId) {
-    case "frame-gold":
-      return "border-amber-300 ring-2 ring-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.6)]";
-    case "frame-reactor":
-      return "border-cyan-400 ring-2 ring-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.8)] animate-pulse";
-    case "frame-graphite":
-    default:
-      return "border-amber-600/60 shadow-md";
-  }
-};
 
 export function PlayClient() {
   const params = useParams();
@@ -168,7 +144,17 @@ export function PlayClient() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        matchPlayers = parsed.players;
+        matchPlayers = (parsed.players || []).map((p: PublicPlayer) => {
+          if (p.studentId === localUser.studentId) {
+            return {
+              ...p,
+              avatar: myAvatar,
+              title: myTitle || p.title,
+              frame: myFrame || p.frame
+            };
+          }
+          return p;
+        });
         setTotalRounds(parsed.totalRounds || 10);
         setMaxTime(parsed.settings?.thinkSeconds || 45);
         setTimeLeft(parsed.settings?.thinkSeconds || 45);
