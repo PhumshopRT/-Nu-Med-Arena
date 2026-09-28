@@ -83,8 +83,7 @@ export function PlayClient() {
 
   const [user, setUser] = useState<StudentUser | null>(null);
   const [room, setRoom] = useState<PublicRoomState | null>(null);
-  const isClassMode = roomCode && roomCode !== "SOLO_PRACTICE" && roomCode !== "DEMO";
-  const isClassMode = roomCode && roomCode !== "SOLO_PRACTICE" && roomCode !== "DEMO";
+    const isClassMode = roomCode && roomCode !== "SOLO_PRACTICE" && roomCode !== "DEMO";
 
   // Match State
   const [currentRound, setCurrentRound] = useState(1);
@@ -788,29 +787,54 @@ export function PlayClient() {
       <main className="relative z-10 flex-1 max-w-6xl mx-auto w-full px-2 sm:px-4 py-1 sm:py-2.5 flex flex-col justify-between items-center overflow-y-auto overflow-x-hidden">
         {/* Upper Center: Clinical Case Card + Clue Card Slot + Selection Slot */}
         <div className="flex flex-col md:flex-row items-center justify-center gap-1.5 sm:gap-4 md:gap-6 lg:gap-8 my-0.5 sm:my-auto w-full px-1">
-          {/* Desktop Clue Slot */}
-            {!isClassMode && (
-              <div className="hidden md:flex flex-col items-center">
-                <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider mb-1 drop-shadow-md">
-                  คำใบ้ส่วนตัว (PRIVATE CLUE)
-                </span>
-                {isClueRevealed && currentClue ? (
-                  <motion.div initial={{ scale: 0.8, rotateY: 90 }} animate={{ scale: 1, rotateY: 0 }} transition={{ duration: 0.4 }}>
-                    <ClueCardComponent card={currentClue} size="sm" isHoverable={true} />
-                  </motion.div>
-                ) : (
-                  <button
-                    onClick={() => setShowClueConfirm(true)}
-                    className="w-38 md:w-44 h-54 md:h-62 rounded-2xl border-2 border-dashed border-emerald-500/60 bg-black/28 hover:bg-emerald-950/40 backdrop-blur-xs p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:scale-102 shadow-lg group"
-                  >
-                    <HelpCircle className="w-8 h-8 text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-bold text-emerald-200">«เปิดคำใบ้ -1 ถ้าตอบถูก»</span>
-                    <span className="text-[9px] text-emerald-300/80 mt-1">(เปิดแล้วไม่สามารถปิดได้ในตานี้)</span>
-                  </button>
-                )}
-              </div>
+          {/* Desktop Clue Slot (hidden on phone, shown on md+) */}
+          <div className="hidden md:flex flex-col items-center">
+            <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider mb-1 drop-shadow-md">
+              คำใบ้ส่วนตัว (PRIVATE CLUE)
+            </span>
+            {isClueRevealed && currentClue ? (
+              <motion.div initial={{ scale: 0.8, rotateY: 90 }} animate={{ scale: 1, rotateY: 0 }} transition={{ duration: 0.4 }}>
+                <ClueCardComponent card={currentClue} size="md" />
+              </motion.div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playSelect();
+                  setShowClueConfirm(true);
+                }}
+                className="w-38 md:w-44 h-54 md:h-62 rounded-2xl border-2 border-dashed border-emerald-500/60 bg-black/28 hover:bg-emerald-950/40 backdrop-blur-xs p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:scale-102 shadow-lg group"
+              >
+                <HelpCircle className="w-8 h-8 text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-bold text-emerald-200">«เปิดคำใบ้ -1 ถ้าตอบถูก»</span>
+                <span className="text-[9px] text-emerald-300/80 mt-1">(เปิดแล้วไม่สามารถปิดได้ในตานี้)</span>
+              </button>
             )}
-            
+          </div>
+
+          {/* Clinical Case Card (Hero in Center on both Phone, iPad & Desktop) */}
+          <div className="flex flex-col items-center shrink-0">
+            <span className="text-[10px] sm:text-xs text-rose-300 font-bold uppercase tracking-wider mb-0.5 sm:mb-1 drop-shadow-md">
+              โจทย์ทางคลินิก (CLINICAL CASE)
+            </span>
+            <motion.div
+              initial={{ scale: 0.9, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="origin-center"
+            >
+              {/* On phone (<md), size="sm" with responsive scaling so it never overpowers the screen; on desktop (>=md), size="md" */}
+              <div className="block md:hidden scale-[0.76] xs:scale-[0.84] sm:scale-95 origin-top -mb-14 xs:-mb-10 sm:mb-0">
+                <CaseCardComponent card={currentCase} size="sm" isHoverable={false} className="shadow-2xl" />
+              </div>
+              <div className="hidden md:block">
+                <CaseCardComponent card={currentCase} size="md" isHoverable={false} className="shadow-2xl" />
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Mobile Combined Row: Clue Slot (Left) + YOUR MATCH Slot (Right) */}
+          <div className="flex md:hidden flex-row items-stretch justify-center gap-2 w-full max-w-xs sm:max-w-sm px-1 mt-0.5 mb-1">
             {/* Mobile Clue Slot */}
             <div className="flex-1 flex flex-col items-center justify-between p-1.5 rounded-xl border border-emerald-500/50 bg-black/35 backdrop-blur-xs text-center shadow-lg">
               <span className="text-[8px] text-emerald-300 font-bold uppercase">

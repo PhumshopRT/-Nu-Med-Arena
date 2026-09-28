@@ -91,7 +91,7 @@ export function BoardClient() {
     
     // Request initial state if guest
     if (user && roomRef.current?.hostId !== `p_${user.studentId}`) {
-      sync.publish({ type: "REQUEST_ROOM_STATE", player: { id: `p_${user.studentId}`, name: user.displayName, studentId: user.studentId, ready: true, locked: false, score: 0 } });
+      sync.publish({ type: "REQUEST_ROOM_STATE", player: { id: `p_${user.studentId}`, name: user.displayName, studentId: user.studentId, ready: true, locked: false, score: 0, handCount: 5, avatar: "👨‍🎓" } });
     }
 
     return () => sync.destroy();
@@ -196,8 +196,8 @@ export function BoardClient() {
     }
   }, [lockedCount, totalPlayers, room?.phase, isHost]);
 
-  const correctRp = ALL_RP_CARDS.find(r => r.id === currentCase.correctRpId);
-  const correctMech = ALL_MECH_CARDS.find(m => m.id === currentCase.correctMechId);
+  const correctRp = ALL_RP_CARDS.find(r => currentCase.acceptedRpIds.includes(r.id));
+  const correctMech = ALL_MECH_CARDS.find(m => currentCase.acceptedMechIds.includes(m.id));
 
   return (
     <div className="relative min-h-screen bg-slate-950 text-white flex flex-col justify-between p-6 select-none overflow-hidden font-game">
@@ -261,11 +261,8 @@ export function BoardClient() {
               ) : (
                 <div className="w-full max-w-3xl bg-red-950/80 border-4 border-red-600 rounded-3xl p-10 text-center shadow-[0_0_50px_rgba(220,38,38,0.3)] backdrop-blur-sm">
                   <h2 className="text-4xl md:text-5xl font-black text-white leading-relaxed tracking-wide">
-                    {currentCase.title}
+                    {currentCase.promptTh}
                   </h2>
-                  {currentCase.description && (
-                    <p className="text-2xl text-red-200 mt-6">{currentCase.description}</p>
-                  )}
                 </div>
               )}
 
@@ -283,11 +280,11 @@ export function BoardClient() {
                   <div className="flex items-center justify-center space-x-6 w-full">
                     <div className="flex-1 bg-black/40 rounded-xl p-4 text-center border border-emerald-800">
                       <div className="text-emerald-500 text-xs mb-1">สารเภสัชรังสี (Radiopharmaceutical)</div>
-                      <div className="text-white font-bold text-lg">{correctRp?.name || currentCase.correctRpId}</div>
+                      <div className="text-white font-bold text-lg">{correctRp?.titleTh || currentCase.acceptedRpIds[0]}</div>
                     </div>
                     <div className="flex-1 bg-black/40 rounded-xl p-4 text-center border border-emerald-800">
                       <div className="text-emerald-500 text-xs mb-1">กลไก (Mechanism)</div>
-                      <div className="text-white font-bold text-lg">{correctMech?.name || currentCase.correctMechId}</div>
+                      <div className="text-white font-bold text-lg">{correctMech?.titleTh || currentCase.acceptedMechIds[0]}</div>
                     </div>
                   </div>
                 </div>
