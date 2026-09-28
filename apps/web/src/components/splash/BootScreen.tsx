@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { FloatingCardIcons } from "./FloatingCardIcons";
 import { Volume2, VolumeX, Sparkles, Zap, Radio, Activity, ShieldCheck } from "lucide-react";
 import { getAssetPath } from "@/lib/assets";
+import { TrefoilIcon } from "@/components/ui/TrefoilIcon";
 
 interface BootScreenProps {
   onComplete: () => void;
@@ -116,7 +117,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
             className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 border-2 border-amber-600 flex items-center justify-center shadow-[0_0_25px_rgba(245,158,11,0.8)] z-10"
           >
-            <span className="text-xl sm:text-2xl filter drop-shadow">☢️</span>
+            <TrefoilIcon size={26} className="text-amber-950" />
           </motion.div>
         </div>
 

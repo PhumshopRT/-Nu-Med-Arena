@@ -39,6 +39,20 @@ export const SHOP_CATALOG: ShopItem[] = [
     kind: "frame",
     descriptionTh: "ขอบการ์ดแผ่รังสีสีฟ้าเรืองแสงนีออนสว่างวาบ"
   },
+  {
+    id: "frame-clinic",
+    nameTh: "กรอบคลินิกแดง",
+    price: 70,
+    kind: "frame",
+    descriptionTh: "ขอบการ์ดโทนสีแดงทับทิมคลินิกสะท้อนแสงทรงพลัง"
+  },
+  {
+    id: "frame-tracer",
+    nameTh: "กรอบสารเรือง",
+    price: 85,
+    kind: "frame",
+    descriptionTh: "ขอบการ์ดรังสีเขียวมรกตเรืองแสงพัลส์ไอโซโทป"
+  },
 
   // Cardbacks
   {
@@ -62,6 +76,20 @@ export const SHOP_CATALOG: ShopItem[] = [
     kind: "cardback",
     descriptionTh: "หลังการ์ดวงแหวนเครื่องสแกน PET/CT ทรงพลัง"
   },
+  {
+    id: "back-cyclotron",
+    nameTh: "หลังไซโคลตรอน",
+    price: 55,
+    kind: "cardback",
+    descriptionTh: "หลังการ์ดวงแหวนเครื่องเร่งอนุภาคไซโคลตรอนสีฟ้าเข้ม"
+  },
+  {
+    id: "back-nightlab",
+    nameTh: "หลังแล็บกลางคืน",
+    price: 65,
+    kind: "cardback",
+    descriptionTh: "หลังการ์ดห้องแล็บปฏิบัติการรังสีเวรดึกสีเขียวเข้ม"
+  },
 
   // Avatars
   {
@@ -70,6 +98,27 @@ export const SHOP_CATALOG: ShopItem[] = [
     price: 0,
     kind: "avatar",
     descriptionTh: "โมเลกุลน้ำตาลติดฉลากรังสีฟลูออรีน-18"
+  },
+  {
+    id: "avatar-niw",
+    nameTh: "นิว",
+    price: 40,
+    kind: "avatar",
+    descriptionTh: "มาสคอตหนุ่มน้อยนักฟิสิกส์นิวเคลียร์แว่นตากลมรอบวงโคจร"
+  },
+  {
+    id: "avatar-med",
+    nameTh: "เมด",
+    price: 40,
+    kind: "avatar",
+    descriptionTh: "มาสคอตแพทย์หญิงรังสีรักษาพร้อมหูฟังตรวจการไหลเวียนเลือด"
+  },
+  {
+    id: "avatar-gamma",
+    nameTh: "แกมม่า",
+    price: 35,
+    kind: "avatar",
+    descriptionTh: "สัญลักษณ์ลำแสงรังสีแกมมาพลังงานสูงเปล่งประกายสีทอง"
   },
   {
     id: "avatar-thyroid",
@@ -102,6 +151,20 @@ export const SHOP_CATALOG: ShopItem[] = [
     descriptionTh: "คลื่นรังสีแกมมาสีทองระเบิดกระจายเมื่อชนะรอบ"
   },
   {
+    id: "fx-lock",
+    nameTh: "แสงตอนล็อกคำตอบ",
+    price: 50,
+    kind: "fx",
+    descriptionTh: "ลำแสงพลังงานนีออนสว่างวาบขณะกดล็อกส่งคำตอบ"
+  },
+  {
+    id: "fx-win",
+    nameTh: "ประกายตอนตอบถูก",
+    price: 70,
+    kind: "fx",
+    descriptionTh: "ประกายละอองแสงระยิบระยับรอบโต๊ะเมื่อตรวจคำตอบถูกต้อง"
+  },
+  {
     id: "title-none",
     nameTh: "ฉายาเริ่มต้น (ไม่มี)",
     price: 0,
@@ -114,6 +177,20 @@ export const SHOP_CATALOG: ShopItem[] = [
     price: 40,
     kind: "title",
     descriptionTh: "จอมอุดกั้นหลอดเลือดฝอยปอดระดับเซียน"
+  },
+  {
+    id: "title-perfusion",
+    nameTh: "Lung Perfusion",
+    price: 45,
+    kind: "title",
+    descriptionTh: "ผู้เชี่ยวชาญการประเมินการไหลเวียนเลือดในปอด"
+  },
+  {
+    id: "title-fdg",
+    nameTh: "FDG Reader",
+    price: 45,
+    kind: "title",
+    descriptionTh: "ยอดนักวิเคราะห์ภาพการเผาผลาญกลูโคสด้วยเพ็ทสแกน"
   }
 ];
 
@@ -123,14 +200,24 @@ export function normalizeShopId(id: string): string {
     "frame_graphite": "frame-graphite",
     "frame_gold": "frame-gold",
     "frame_reactor": "frame-reactor",
+    "frame_clinic": "frame-clinic",
+    "frame_tracer": "frame-tracer",
     "back_navy": "back-default",
+    "back_cyclotron": "back-cyclotron",
+    "back_nightlab": "back-nightlab",
     "av_fdg": "avatar-default",
     "av_thyroid": "avatar-thyroid",
     "av_lung": "avatar-lung",
+    "av_niw": "avatar-niw",
+    "av_med": "avatar-med",
+    "av_gamma": "avatar-gamma",
     "fx_confetti": "fx-none",
+    "fx_lock": "fx-lock",
+    "fx_win": "fx-win",
     "title_none": "title-none",
     "title_blockader": "title-capillary",
-    "title_fdg": "title-capillary"
+    "title_perfusion": "title-perfusion",
+    "title_fdg": "title-fdg"
   };
   return map[id] || id;
 }
@@ -419,9 +506,14 @@ export function setNaEquipped(equipped: NaEquipped): void {
 }
 
 export function getAvatarIcon(avatarId?: string): string {
-  switch (avatarId) {
+  const norm = avatarId ? normalizeShopId(avatarId) : "";
+  switch (norm) {
+    case "avatar-niw": return "👨‍🔬";
+    case "avatar-med": return "👩‍⚕️";
+    case "avatar-gamma": return "⚡";
     case "avatar-thyroid": return "🦋";
     case "avatar-lung": return "🫁";
+    case "av-bone":
     case "av_bone": return "🦴";
     case "avatar-default":
     default: return "☢️";
@@ -429,16 +521,24 @@ export function getAvatarIcon(avatarId?: string): string {
 }
 
 export function getTitleBadge(titleId?: string): string | null {
-  if (titleId === "title-capillary") return "Capillary Blockader";
+  const norm = titleId ? normalizeShopId(titleId) : "";
+  if (norm === "title-capillary") return "Capillary Blockader";
+  if (norm === "title-perfusion") return "Lung Perfusion";
+  if (norm === "title-fdg") return "FDG Reader";
   return null;
 }
 
 export function getFrameStyle(frameId?: string): string {
-  switch (frameId) {
+  const norm = frameId ? normalizeShopId(frameId) : "";
+  switch (norm) {
     case "frame-gold":
       return "border-amber-300 ring-2 ring-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.6)]";
     case "frame-reactor":
       return "border-cyan-400 ring-2 ring-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.8)] animate-pulse";
+    case "frame-clinic":
+      return "border-rose-500 ring-2 ring-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.7)]";
+    case "frame-tracer":
+      return "border-emerald-400 ring-2 ring-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.7)] animate-pulse";
     case "frame-graphite":
     default:
       return "border-amber-600/60 shadow-md";

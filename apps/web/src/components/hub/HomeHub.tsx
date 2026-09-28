@@ -12,6 +12,8 @@ import { MechCard } from "../cards/MechCard";
 import { CaseCard } from "../cards/CaseCard";
 import { ClueCard } from "../cards/ClueCard";
 import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
+import { AvatarBadge } from "@/components/ui/AvatarBadge";
+import { TrefoilIcon } from "@/components/ui/TrefoilIcon";
 import { getNaWallet } from "@/lib/user";
 import { 
   PlusCircle, 
@@ -117,9 +119,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
       <header className="w-full flex justify-between items-center px-4 md:px-8 py-3.5 z-30 pointer-events-auto">
         {/* Left: Player Profile Wood Plaque */}
         <div className="wood-panel px-4 py-2 rounded-2xl flex items-center space-x-3 shadow-2xl border-3 border-amber-950 backdrop-blur-xs">
-          <div className="w-11 h-11 rounded-full bg-amber-400 border-2 border-amber-600 flex items-center justify-center text-xl shadow-inner">
-            ☢️
-          </div>
+          <AvatarBadge avatarId={currentUser.equipped?.avatar || "avatar-default"} size={44} />
           <div>
             <div className="flex items-center space-x-2">
               <span className="font-bold text-sm text-white font-game">{currentUser.displayName}</span>
@@ -200,7 +200,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
             ZONE 1: Left Column (R-01 บน, M-03 ล่าง)
             อยู่ต่ำกว่าแผงนักศึกษา 7052 ไม่มีการทับซ้อน
             ------------------------------------------------------ */}
-        <div className="hidden md:flex flex-col justify-center items-center gap-3 lg:gap-4 h-full pointer-events-auto z-20 scale-[0.76] lg:scale-[0.84] xl:scale-[0.90] origin-left">
+        <div className="hidden md:flex flex-col justify-center items-center gap-3 lg:gap-4 h-full pointer-events-auto z-20 scale-[0.74] lg:scale-[0.82] xl:scale-[0.88] origin-center md:origin-left pt-2 pb-2">
           {/* Upper Card: R-01 18F-FDG */}
           <motion.div
             animate={{ y: [-4, 4, -4] }}
@@ -241,7 +241,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
           >
             <div className="relative mb-[-8px] z-30">
               <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 border-2 md:border-3 border-amber-800 flex items-center justify-center shadow-lg">
-                <span className="text-base md:text-lg">☢️</span>
+                <TrefoilIcon size={20} className="text-amber-950" />
               </div>
             </div>
 
@@ -411,7 +411,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
             ZONE 3: Right Column (C-05 บน, T-03 ล่าง)
             อยู่ต่ำกว่าแผง NucCoin 120 ไม่มีการทับซ้อน
             ------------------------------------------------------ */}
-        <div className="hidden md:flex flex-col justify-center items-center gap-3 lg:gap-4 h-full pointer-events-auto z-20 scale-[0.76] lg:scale-[0.84] xl:scale-[0.90] origin-right">
+        <div className="hidden md:flex flex-col justify-center items-center gap-3 lg:gap-4 h-full pointer-events-auto z-20 scale-[0.74] lg:scale-[0.82] xl:scale-[0.88] origin-center md:origin-right pt-2 pb-2">
           {/* Upper Card: C-05 Suspected PE */}
           <motion.div
             animate={{ y: [4, -4, 4] }}
@@ -464,7 +464,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-amber-500/30">
                 <div className="flex items-center space-x-2.5">
-                  <span className="text-2xl">📖</span>
+                  <BookOpen className="w-6 h-6 text-amber-300" />
                   <div>
                     <h3 className="text-lg sm:text-xl font-black font-game text-amber-200">
                       คู่มือกติกา NucMed Arena
@@ -498,9 +498,9 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
                   <p className="mt-1">
                     ระบบจะเปิดโจทย์ทางคลินิก 1 ข้อต่อรอบ แบ่งเป็น 2 ระดับ:
                   </p>
-                  <ul className="list-disc pl-5 mt-1 space-y-0.5">
-                    <li>🟢 <span className="font-bold text-emerald-300">BASIC (โจทย์ตรง):</span> 2 คะแนน</li>
-                    <li>🔴 <span className="font-bold text-rose-300">CLINICAL (วิเคราะห์อาการ/โรค):</span> 4 คะแนน</li>
+                  <ul className="pl-2 mt-1 space-y-1">
+                    <li className="flex items-center space-x-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block shrink-0" /><span className="font-bold text-emerald-300">BASIC (โจทย์ตรง):</span> <span>2 คะแนน</span></li>
+                    <li className="flex items-center space-x-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block shrink-0" /><span className="font-bold text-rose-300">CLINICAL (วิเคราะห์อาการ/โรค):</span> <span>4 คะแนน</span></li>
                   </ul>
                 </div>
                 <div className="p-3 bg-emerald-950/40 rounded-xl border border-emerald-500/50">
@@ -557,7 +557,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
             >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-bold font-game text-amber-200 flex items-center space-x-2">
-                  <span>🚪</span>
+                  <LogIn className="w-5 h-5 text-amber-300" />
                   <span>เข้าสู่ห้องประลอง</span>
                 </h3>
                 <button
@@ -626,7 +626,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
             >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold font-game text-amber-200 flex items-center space-x-2">
-                  <span>🛠️</span>
+                  <PlusCircle className="w-5 h-5 text-amber-300" />
                   <span>ตั้งค่าห้องประลอง</span>
                 </h3>
                 <button

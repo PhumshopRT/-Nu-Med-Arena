@@ -22,7 +22,10 @@ import {
   Sparkles, 
   Award, 
   Layers, 
-  Info 
+  Info,
+  Lightbulb,
+  Settings,
+  CheckCircle2
 } from "lucide-react";
 import { 
   ALL_RP_CARDS, 
@@ -51,6 +54,8 @@ import { MechCard } from "@/components/cards/MechCard";
 import { CaseCard as CaseCardComponent } from "@/components/cards/CaseCard";
 import { ClueCard as ClueCardComponent } from "@/components/cards/ClueCard";
 import { CardBack } from "@/components/cards/CardBack";
+import { AvatarBadge } from "@/components/ui/AvatarBadge";
+import { TrefoilIcon } from "@/components/ui/TrefoilIcon";
 import { 
   getLocalUser, 
   addRewards, 
@@ -95,6 +100,20 @@ export function PlayClient() {
   const [selectedRp, setSelectedRp] = useState<RadiopharmaceuticalCard | null>(null);
   const [selectedMech, setSelectedMech] = useState<MechanismCard | null>(null);
   const [isLocked, setIsLocked] = useState(false);
+  const [equippedCosmetics, setEquippedCosmetics] = useState<{
+    frame: string;
+    back: string;
+    avatar: string;
+    fx: string;
+    title: string;
+  }>({
+    frame: "frame-graphite",
+    back: "back-default",
+    avatar: "avatar-default",
+    fx: "fx-none",
+    title: "title-none"
+  });
+  const [activeFx, setActiveFx] = useState<"lock" | "win" | null>(null);
 
   // Timer
   const [timeLeft, setTimeLeft] = useState(45);
@@ -187,9 +206,19 @@ export function PlayClient() {
     setUser(localUser);
 
     const equipped = getNaEquipped();
-    const myAvatar = getAvatarIcon(localUser.equipped?.avatar || equipped.avatar);
+    const myAvatar = localUser.equipped?.avatar || equipped.avatar || "avatar-default";
     const myTitle = getTitleBadge(localUser.equipped?.title || equipped.title);
-    const myFrame = localUser.equipped?.frame || equipped.frame;
+    const myFrame = localUser.equipped?.frame || equipped.frame || "frame-graphite";
+    const myBack = localUser.equipped?.cardback || equipped.back || "back-default";
+    const myFx = localUser.equipped?.fx || equipped.fx || "fx-none";
+
+    setEquippedCosmetics({
+      frame: myFrame,
+      back: myBack,
+      avatar: myAvatar,
+      fx: myFx,
+      title: localUser.equipped?.title || equipped.title || "title-none"
+    });
 
     // Shuffle RP deck and deal 5 cards to player
     const playableRp = getPlayableRpCards();
@@ -251,7 +280,7 @@ export function PlayClient() {
           score: 0,
           handCount: 5,
           isBot: true,
-          avatar: "🧪"
+          avatar: "avatar-niw"
         },
         {
           id: "bot_2",
@@ -262,7 +291,7 @@ export function PlayClient() {
           score: 0,
           handCount: 5,
           isBot: true,
-          avatar: "🔬"
+          avatar: "avatar-med"
         }
       ];
     }
@@ -435,6 +464,11 @@ export function PlayClient() {
     setIsLocked(true);
     setPhase("LOCKED");
 
+    if (equippedCosmetics.fx === "fx-lock" || equippedCosmetics.fx === "fx-gamma") {
+      setActiveFx("lock");
+      setTimeout(() => setActiveFx(null), 1800);
+    }
+
     // Ensure all bots lock
     setPlayers((prev) =>
       prev.map((p) => {
@@ -494,6 +528,10 @@ export function PlayClient() {
     if (result.scoreAwarded > 0) {
       userCorrectCountRef.current += 1;
       sounds.playCorrect();
+      if (equippedCosmetics.fx === "fx-win" || equippedCosmetics.fx === "fx-gamma") {
+        setActiveFx("win");
+        setTimeout(() => setActiveFx(null), 2200);
+      }
       confetti({
         particleCount: 80,
         spread: 70,
@@ -722,7 +760,7 @@ export function PlayClient() {
                   : "bg-black/35 border-amber-800/40 text-amber-200/80"
               }`}
             >
-              <span className="text-xs sm:text-sm">{p.avatar || "👨‍🎓"}</span>
+              <AvatarBadge avatarId={p.avatar} size={18} />
               <span className="truncate max-w-[65px] sm:max-w-[95px]">{p.name}</span>
               {p.title && (
                 <span className="hidden xs:inline text-[8px] sm:text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/25 text-amber-300 border border-amber-400/40 truncate max-w-[70px] sm:max-w-[100px]">
@@ -838,7 +876,7 @@ export function PlayClient() {
                   {selectedMech ? (
                     <span className="text-[6.5px] font-black text-amber-300 truncate max-w-[38px]">{selectedMech.id}</span>
                   ) : (
-                    <span className="text-[8px] opacity-60">⚙️</span>
+                    <Settings className="w-2.5 h-2.5 opacity-60 text-amber-200" />
                   )}
                 </div>
               </div>
@@ -879,7 +917,10 @@ export function PlayClient() {
                   >
                     <div className="w-full flex-1 bg-white rounded-xl p-1.5 flex flex-col justify-between items-center text-center">
                       <div className="w-full flex justify-between items-center">
-                        <span className="text-[7.5px] font-black bg-blue-100 text-[#1B70BF] px-1 py-0.5 rounded">☢️ {selectedRp.id}</span>
+                        <span className="text-[7.5px] font-black bg-blue-100 text-[#1B70BF] px-1 py-0.5 rounded flex items-center space-x-0.5">
+                          <TrefoilIcon size={8} className="text-[#1B70BF]" />
+                          <span>{selectedRp.id}</span>
+                        </span>
                         <span className="text-[7.5px] font-bold bg-[#2EB8E6] text-white px-1 py-0.5 rounded">{selectedRp.modality}</span>
                       </div>
                       <div className="font-nuclide font-black text-xs md:text-sm text-slate-900 leading-tight">{selectedRp.nuclide}</div>
@@ -909,7 +950,7 @@ export function PlayClient() {
                     <div className="w-full flex-1 bg-white rounded-xl p-1.5 flex flex-col justify-between items-center text-center">
                       <div className="w-full flex justify-between items-center">
                         <span className="text-[7.5px] font-black bg-amber-100 text-[#D97706] px-1 py-0.5 rounded">{selectedMech.id}</span>
-                        <span className="text-xs">⚙️</span>
+                        <Settings className="w-2.5 h-2.5 text-[#D97706]" />
                       </div>
                       <div className="font-bold text-[10px] text-slate-900 leading-tight">{selectedMech.titleEn}</div>
                       <div className="text-[7.5px] text-amber-800 font-medium truncate max-w-full">{selectedMech.titleTh}</div>
@@ -920,7 +961,7 @@ export function PlayClient() {
                   </motion.div>
                 ) : (
                   <div className="w-22 lg:w-24 h-30 lg:h-34 rounded-2xl border-2 border-dashed border-amber-400/50 bg-black/25 backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center">
-                    <span className="text-xl mb-1 opacity-60">⚙️</span>
+                    <Settings className="w-5 h-5 mb-1 opacity-60 text-amber-300" />
                     <span className="text-[8.5px] text-amber-200/80 font-bold">เลือก 1 อย่างจากแถบ</span>
                   </div>
                 )}
@@ -951,7 +992,7 @@ export function PlayClient() {
         <div className="w-full flex flex-col items-center my-0.5 sm:my-1.5">
           {/* Rack Header */}
           <div className="flex items-center space-x-1 sm:space-x-2 text-[10px] sm:text-xs text-amber-200 font-bold mb-0.5 sm:mb-1 drop-shadow-md">
-            <span className="text-xs sm:text-base">⚙️</span>
+            <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300" />
             <span className="font-game tracking-wider uppercase">แถบกลไกการสะสมกลางโต๊ะ (MECHANISMS)</span>
             <span className="hidden sm:inline text-[10px] text-amber-300/80 font-normal">
               (แตะ 1 กลไกเพื่อจับคู่)
@@ -1001,7 +1042,7 @@ export function PlayClient() {
                       }`}>
                         {mech.id}
                       </span>
-                      <span className="text-[9px] sm:text-xs">⚙️</span>
+                      <Settings className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-300" />
                     </div>
                     <div className="text-[10px] sm:text-xs font-black truncate max-w-[95px] sm:max-w-[130px] leading-tight">
                       {mech.titleEn}
@@ -1034,7 +1075,7 @@ export function PlayClient() {
         <div className="w-full flex flex-col items-center mt-0.5 sm:mt-1 pb-1 sm:pb-3 select-none">
           {/* Header */}
           <div className="text-[10px] sm:text-[11.5px] text-blue-200 font-bold uppercase tracking-wider mb-0.5 drop-shadow-md flex items-center space-x-1.5">
-            <span>🎴</span>
+            <Layers className="w-3.5 h-3.5 text-blue-300" />
             <span>ไพ่สารเภสัชรังสีในมือคุณ (5 CARDS IN HAND)</span>
             {selectedRp && (
               <span className="hidden xs:inline bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 text-[8.5px] font-black px-1.5 py-0.2 rounded-full border border-white shadow-xs">
@@ -1099,6 +1140,7 @@ export function PlayClient() {
                       size="sm"
                       isSelected={isSelected}
                       isHoverable={false}
+                      frameId={equippedCosmetics.frame}
                       className={`shadow-2xl transition-all duration-200 ${
                         isSelected
                           ? "ring-4 ring-amber-400 shadow-[0_0_28px_rgba(251,191,36,0.9),0_12px_24px_rgba(0,0,0,0.6)]"
@@ -1180,8 +1222,8 @@ export function PlayClient() {
               exit={{ scale: 0.9, y: 15 }}
               className="relative w-full max-w-sm wood-panel p-5 rounded-3xl border-3 border-amber-950 shadow-2xl flex flex-col items-center text-center select-none"
             >
-              <div className="w-12 h-12 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-2xl mb-3 shadow-inner">
-                💡
+              <div className="w-12 h-12 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center mb-3 shadow-inner">
+                <Lightbulb className="w-6 h-6 text-emerald-300" />
               </div>
               <h3 className="font-game font-black text-xl text-emerald-200">
                 ยืนยันการเปิดคำใบ้?
@@ -1235,8 +1277,12 @@ export function PlayClient() {
               className="relative w-full max-w-xl wood-panel p-6 rounded-3xl border-4 border-amber-950 shadow-2xl flex flex-col items-center text-center"
             >
               {/* Result Icon */}
-              <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-xl -mt-12 mb-3 bg-gradient-to-br from-amber-400 to-amber-600 border-3 border-amber-200">
-                {lastRoundResult.scoreAwarded > 0 ? "🎉" : "❌"}
+              <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-xl -mt-12 mb-3 bg-gradient-to-br from-amber-400 to-amber-600 border-3 border-amber-200">
+                {lastRoundResult.scoreAwarded > 0 ? (
+                  <CheckCircle className="w-8 h-8 text-emerald-950 stroke-[2.5]" />
+                ) : (
+                  <XCircle className="w-8 h-8 text-rose-950 stroke-[2.5]" />
+                )}
               </div>
 
               <h2 className="font-game font-black text-2xl md:text-3xl text-amber-200">
@@ -1245,8 +1291,9 @@ export function PlayClient() {
                   : "ยังไม่ถูกต้อง (0 คะแนน)"}
               </h2>
               {lastRoundResult.cluePenalty > 0 && (
-                <div className="mt-1 px-3 py-1 bg-amber-950/90 border border-amber-500/70 rounded-full text-xs font-bold text-amber-300 inline-flex items-center space-x-1">
-                  <span>💡 หัก 1 คะแนนจากการเปิดคำใบ้ส่วนตัว</span>
+                <div className="mt-1 px-3 py-1 bg-amber-950/90 border border-amber-500/70 rounded-full text-xs font-bold text-amber-300 inline-flex items-center space-x-1.5">
+                  <Lightbulb className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                  <span>หัก 1 คะแนนจากการเปิดคำใบ้ส่วนตัว</span>
                 </div>
               )}
 
@@ -1340,7 +1387,8 @@ export function PlayClient() {
                   แตะการ์ดในมือเพื่อทิ้งและจั่วใบใหม่จากสำรับกลางก่อนเริ่มประลองรอบต่อไป
                 </span>
                 <div className="bg-emerald-950/90 border-2 border-emerald-400/60 text-emerald-300 px-3.5 py-1 rounded-full text-xs font-mono font-black flex items-center space-x-1.5 shadow-inner">
-                  <span>🎴 ไพ่ในสำรับคงเหลือ:</span>
+                  <Layers className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>ไพ่ในสำรับคงเหลือ:</span>
                   <span className="text-amber-300 text-sm">{deck.length} ใบ</span>
                 </div>
               </div>
@@ -1393,7 +1441,7 @@ export function PlayClient() {
                         className="group relative cursor-pointer transition-transform duration-200 hover:-translate-y-1.5"
                         title={deck.length > 0 ? "คลิกเพื่อสลับการ์ดใบนี้" : "สำรับหมดแล้ว"}
                       >
-                        <RpCard card={c} size="sm" isHoverable={false} className="shadow-2xl" />
+                        <RpCard card={c} size="sm" isHoverable={false} frameId={equippedCosmetics.frame} className="shadow-2xl" />
 
                         {/* Hover Overlay Hint */}
                         {deck.length > 0 && (
@@ -1484,7 +1532,7 @@ export function PlayClient() {
                           <span className="font-game font-black text-base text-amber-300">
                             #{rank + 1}
                           </span>
-                          <span className="text-lg">{p.avatar || "👨‍🎓"}</span>
+                          <AvatarBadge avatarId={p.avatar} size={28} />
                           <div className="text-left">
                             <div className="font-bold text-sm text-white">{p.name}</div>
                             <div className="text-[10px] text-amber-300/70 font-mono">{p.studentId}</div>
@@ -1556,6 +1604,41 @@ export function PlayClient() {
                 </button>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Dynamic In-Game Cosmetic FX Overlay */}
+      <AnimatePresence>
+        {activeFx && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center overflow-hidden"
+          >
+            {activeFx === "lock" ? (
+              <div className="relative flex flex-col items-center">
+                <div className="w-64 h-64 rounded-full border-4 border-cyan-400 animate-ping opacity-75" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="px-5 py-2 rounded-2xl bg-cyan-950/90 border-2 border-cyan-400 text-cyan-200 font-game font-black text-sm flex items-center space-x-2 shadow-[0_0_30px_rgba(34,211,238,0.8)] animate-bounce">
+                    <Lock className="w-4 h-4 text-cyan-300" />
+                    <span>LOCKED & ARMED!</span>
+                  </div>
+                </div>
+              </div>
+            ) : activeFx === "win" ? (
+              <div className="relative flex flex-col items-center">
+                <div className="w-72 h-72 rounded-full border-4 border-emerald-400 animate-ping opacity-75" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="px-5 py-2.5 rounded-2xl bg-emerald-950/90 border-2 border-emerald-400 text-emerald-200 font-game font-black text-base flex items-center space-x-2 shadow-[0_0_35px_rgba(52,211,153,0.85)] animate-bounce">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-300" />
+                    <span>PRECISION MATCH!</span>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </motion.div>
         )}
       </AnimatePresence>

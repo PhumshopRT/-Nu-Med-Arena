@@ -6,7 +6,9 @@ import { RpCard } from "../cards/RpCard";
 import { CardBack } from "../cards/CardBack";
 import { ALL_RP_CARDS } from "@nucmed/shared";
 import { normalizeShopId } from "@/lib/user";
-import { Sparkles, RefreshCw, Award, Smile, Shield, Layers, Zap } from "lucide-react";
+import { AvatarBadge } from "@/components/ui/AvatarBadge";
+import { TrefoilIcon } from "@/components/ui/TrefoilIcon";
+import { Sparkles, RefreshCw, Award, Smile, Shield, Layers, Zap, Lock, CheckCircle2 } from "lucide-react";
 
 export interface LivePreviewPanelProps {
   frameId: string;
@@ -44,43 +46,62 @@ export function LivePreviewPanel({
   const normFx = normalizeShopId(fxId);
 
   // Card back theme
-  const getCardBackTheme = (): "navy" | "hotcell" | "pet" => {
+  const getCardBackTheme = (): "navy" | "hotcell" | "pet" | "cyclotron" | "nightlab" => {
     if (normBack === "back-hotcell") return "hotcell";
     if (normBack === "back-pet") return "pet";
+    if (normBack === "back-cyclotron") return "cyclotron";
+    if (normBack === "back-nightlab") return "nightlab";
     return "navy";
   };
 
-  // Avatar config
-  const getAvatarInfo = () => {
+  // Avatar descriptive name
+  const getAvatarLabel = () => {
     switch (normAvatar) {
-      case "avatar-thyroid":
-        return { icon: "🦋", name: "ต่อมไทรอยด์ผีเสื้อ", color: "from-amber-400 to-orange-500", glow: "shadow-amber-500/50" };
-      case "avatar-lung":
-        return { icon: "🫁", name: "ปอดและหลอดเลือด", color: "from-cyan-400 to-blue-600", glow: "shadow-cyan-500/50" };
-      case "av_bone":
-        return { icon: "🦴", name: "ผลึกกระดูก", color: "from-slate-200 to-slate-400", glow: "shadow-slate-400/50" };
+      case "avatar-niw": return "นิว (มาสคอตนักฟิสิกส์)";
+      case "avatar-med": return "เมด (มาสคอตแพทย์รังสี)";
+      case "avatar-gamma": return "แกมม่า (ลำแสงพลังงาน)";
+      case "avatar-thyroid": return "ต่อมไทรอยด์ผีเสื้อ";
+      case "avatar-lung": return "ปอดและหลอดเลือด";
+      case "av-bone":
+      case "av_bone": return "ผลึกกระดูก";
       case "avatar-default":
       default:
-        return { icon: "☢️", name: "โมเลกุล ¹⁸F-FDG", color: "from-amber-300 via-amber-400 to-amber-600", glow: "shadow-amber-400/50" };
+        return "โมเลกุล ¹⁸F-FDG";
     }
   };
 
   // Title name
   const getTitleDisplayName = () => {
+    if (normTitle === "title-perfusion") return "Lung Perfusion";
+    if (normTitle === "title-fdg") return "FDG Reader";
     if (normTitle === "title-capillary") return "Capillary Blockader";
-    if (normTitle === "title_fdg") return "FDG Hunter";
     if (normTitle === "title-none") return "ไม่มีฉายา (นักศึกษาใหม่)";
-    return "Capillary Blockader";
+    return "ไม่มีฉายา";
   };
 
-  const avatarInfo = getAvatarInfo();
+  // Frame outer presentation classes
+  const getFrameContainerClasses = () => {
+    switch (normFrame) {
+      case "frame-gold":
+        return "p-2.5 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 border-4 border-amber-300 shadow-[0_0_28px_rgba(245,158,11,0.85)] scale-102";
+      case "frame-reactor":
+        return "p-2.5 rounded-2xl bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500 border-4 border-cyan-300 shadow-[0_0_28px_rgba(6,182,212,0.95)] animate-pulse scale-102";
+      case "frame-clinic":
+        return "p-2.5 rounded-2xl bg-gradient-to-r from-rose-500 via-red-400 to-rose-600 border-4 border-rose-300 shadow-[0_0_28px_rgba(244,63,94,0.85)] scale-102";
+      case "frame-tracer":
+        return "p-2.5 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-300 to-green-500 border-4 border-emerald-300 shadow-[0_0_28px_rgba(52,211,153,0.95)] animate-pulse scale-102";
+      case "frame-graphite":
+      default:
+        return "p-1 rounded-2xl bg-[#2F6FED] border border-[#1E4FD7] shadow-lg";
+    }
+  };
 
   return (
     <div className="w-full wood-panel p-5 rounded-3xl border-4 border-amber-950 shadow-2xl flex flex-col items-center select-none">
       {/* Header */}
       <div className="w-full flex flex-col items-center pb-2 border-b border-amber-900/60 mb-3 text-center">
         <h3 className="font-game font-black text-amber-200 text-sm md:text-base tracking-wide flex items-center space-x-1.5">
-          <span>🎨</span>
+          <Sparkles className="w-4 h-4 text-amber-400" />
           <span>ตัวอย่างสด (LIVE PREVIEW)</span>
         </h3>
         {/* Dynamic preview item name badge */}
@@ -93,7 +114,7 @@ export function LivePreviewPanel({
       {/* Main Preview Zone based on active tab / preview state */}
       <div className="w-full flex flex-col items-center justify-center min-h-[360px] relative py-2">
         {/* ----------------------------------------------------
-            1. AVATAR SHOWCASE (แท็บอวตาร: โชว์รูปอวตาร ไม่ใช่การ์ด R-01 ค้าง)
+            1. AVATAR SHOWCASE (แท็บอวตาร: โชว์รูปอวตารเวกเตอร์คมชัด)
             ---------------------------------------------------- */}
         {activeTab === "avatar" ? (
           <motion.div
@@ -105,21 +126,19 @@ export function LivePreviewPanel({
               อวตารประจำตัวผู้เล่น (PLAYER AVATAR)
             </span>
 
-            {/* Glowing Big Avatar Badge */}
+            {/* Glowing Big Avatar Badge using pure SVG AvatarBadge */}
             <div className="relative mb-3">
-              <div className={`w-32 h-32 rounded-full bg-gradient-to-br ${avatarInfo.color} border-4 border-amber-200 flex items-center justify-center shadow-2xl ${avatarInfo.glow}`}>
-                <span className="text-6xl filter drop-shadow-md select-none">{avatarInfo.icon}</span>
+              <div className="p-2 rounded-full bg-slate-950/80 border-4 border-amber-300 shadow-[0_0_30px_rgba(245,158,11,0.5)]">
+                <AvatarBadge avatarId={normAvatar} size={118} />
               </div>
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-slate-950 border border-amber-400 text-[10px] font-mono font-bold text-amber-200 whitespace-nowrap shadow-md">
-                {avatarInfo.name}
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-slate-950 border border-amber-400 text-[10.5px] font-mono font-bold text-amber-200 whitespace-nowrap shadow-md">
+                {getAvatarLabel()}
               </div>
             </div>
 
             {/* Mockup Profile Plaque showing this avatar */}
             <div className="wood-panel px-5 py-2.5 rounded-2xl flex items-center space-x-3 mt-4 border-2 border-amber-900 shadow-xl max-w-xs">
-              <div className="w-10 h-10 rounded-full bg-amber-400 border border-amber-600 flex items-center justify-center text-xl shadow-inner">
-                {avatarInfo.icon}
-              </div>
+              <AvatarBadge avatarId={normAvatar} size={38} />
               <div>
                 <div className="text-xs font-bold text-white font-game">นักศึกษา 7052</div>
                 <div className="text-[10px] text-amber-300 font-mono">LV.1 • สังเวียนประลอง</div>
@@ -151,16 +170,8 @@ export function LivePreviewPanel({
             <div className="relative">
               {faceUp ? (
                 /* Card Face with Frame */
-                <div
-                  className={`transition-all duration-300 ${
-                    normFrame === "frame-gold"
-                      ? "p-2.5 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 border-4 border-amber-300 shadow-[0_0_28px_rgba(245,158,11,0.85)] scale-102"
-                      : normFrame === "frame-reactor"
-                      ? "p-2.5 rounded-2xl bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500 border-4 border-cyan-300 shadow-[0_0_28px_rgba(6,182,212,0.95)] animate-pulse scale-102"
-                      : "p-1 rounded-2xl bg-[#2F6FED] border border-[#1E4FD7] shadow-lg"
-                  }`}
-                >
-                  <RpCard card={sampleCard} size="md" isHoverable={false} />
+                <div className={`transition-all duration-300 ${getFrameContainerClasses()}`}>
+                  <RpCard card={sampleCard} size="md" isHoverable={false} frameId={normFrame} />
                 </div>
               ) : (
                 /* Card Back */
@@ -168,6 +179,7 @@ export function LivePreviewPanel({
                   <CardBack
                     size="md"
                     theme={getCardBackTheme()}
+                    backId={normBack}
                     onClick={onToggleFlip}
                   />
                 </div>
@@ -189,33 +201,35 @@ export function LivePreviewPanel({
                         <div className="absolute w-48 h-48 rounded-full border-4 border-amber-300/80 animate-ping" />
                         <div className="absolute w-60 h-60 rounded-full border-2 border-yellow-400/60 animate-pulse" />
                         <div className="absolute inset-0 bg-radial from-amber-400/40 via-transparent to-transparent animate-pulse" />
-                        <span className="text-3xl font-black text-amber-200 filter drop-shadow-[0_0_12px_gold] animate-bounce">
+                        <span className="text-2xl font-black text-amber-200 filter drop-shadow-[0_0_12px_gold] animate-bounce tracking-wider">
                           ⚡ GAMMA WAVE ⚡
                         </span>
                       </div>
-                    ) : (
-                      /* Confetti Victory Sparkles */
+                    ) : normFx === "fx-lock" ? (
+                      /* Neon Blue/Cyan Lock Confirmation Burst */
                       <div className="relative w-full h-full flex items-center justify-center">
-                        <div className="absolute inset-0 bg-radial from-cyan-400/30 via-transparent to-transparent" />
-                        {[...Array(12)].map((_, i) => (
-                          <motion.span
-                            key={i}
-                            animate={{
-                              y: [-20, 20, -20],
-                              x: [-15, 15, -15],
-                              opacity: [0, 1, 0],
-                              scale: [0.5, 1.3, 0.5]
-                            }}
-                            transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}
-                            className="absolute text-xl"
-                            style={{
-                              top: `${15 + (i * 7)}%`,
-                              left: `${10 + (i * 7)}%`,
-                            }}
-                          >
-                            {["✨", "🎉", "🌟", "⭐", "🎊"][i % 5]}
-                          </motion.span>
-                        ))}
+                        <div className="absolute inset-2 rounded-2xl border-4 border-cyan-400 animate-pulse shadow-[0_0_25px_rgba(34,211,238,0.9)]" />
+                        <div className="absolute w-36 h-36 rounded-full border-2 border-dashed border-cyan-300 animate-spin" />
+                        <div className="px-3.5 py-1.5 rounded-full bg-cyan-950/95 border-2 border-cyan-400 text-cyan-200 text-xs font-game font-black flex items-center space-x-1.5 shadow-2xl animate-bounce">
+                          <Lock className="w-3.5 h-3.5 text-cyan-300" />
+                          <span>ANSWER LOCKED</span>
+                        </div>
+                      </div>
+                    ) : normFx === "fx-win" ? (
+                      /* Radiant Victory Emerald/Gold Sparkles Burst */
+                      <div className="relative w-full h-full flex items-center justify-center">
+                        <div className="absolute inset-0 bg-radial from-emerald-400/35 via-transparent to-transparent animate-pulse" />
+                        <div className="absolute w-44 h-44 rounded-full border-2 border-emerald-300/80 animate-ping" />
+                        <div className="px-3.5 py-1.5 rounded-full bg-emerald-950/95 border-2 border-emerald-400 text-emerald-200 text-xs font-game font-black flex items-center space-x-1.5 shadow-2xl animate-bounce">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                          <span>CORRECT MATCH!</span>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Default Subtle Motes */
+                      <div className="relative w-full h-full flex items-center justify-center">
+                        <div className="absolute inset-0 bg-radial from-amber-400/20 via-transparent to-transparent" />
+                        <Sparkles className="w-12 h-12 text-amber-300 animate-spin" />
                       </div>
                     )}
                   </motion.div>

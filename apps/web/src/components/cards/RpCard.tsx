@@ -12,6 +12,8 @@ import {
   LiverSpleenIllustration 
 } from "./illustrations/OrganIllustrations";
 
+import { TrefoilIcon } from "@/components/ui/TrefoilIcon";
+
 interface RpCardProps {
   card: RadiopharmaceuticalCard;
   className?: string;
@@ -19,6 +21,7 @@ interface RpCardProps {
   isSelected?: boolean;
   onClick?: () => void;
   size?: "sm" | "md" | "lg";
+  frameId?: string;
 }
 
 export const RpCard = React.memo(function RpCard({
@@ -28,6 +31,7 @@ export const RpCard = React.memo(function RpCard({
   isSelected = false,
   onClick,
   size = "md",
+  frameId,
 }: RpCardProps) {
   // Render matching SVG illustration based on card id or illustration key
   const renderIllustration = () => {
@@ -64,6 +68,7 @@ export const RpCard = React.memo(function RpCard({
       isSelected={isSelected}
       onClick={onClick}
       size={size}
+      frameId={frameId}
     >
       <div className="flex flex-col h-full justify-between select-none">
         {/* 1. Top Header Capsule Bar (Matching card-prototype.jpg) */}
@@ -74,7 +79,7 @@ export const RpCard = React.memo(function RpCard({
               "bg-[#E8F1FF] text-[#2F6FED] rounded-full flex items-center space-x-1 shadow-xs border border-blue-200",
               size === "sm" ? "px-1.5 py-0.5" : "px-2 py-0.5"
             )}>
-              <span className={size === "sm" ? "text-[10px]" : "text-xs"}>☢️</span>
+              <TrefoilIcon size={size === "sm" ? 10 : 12} className="text-[#2F6FED]" />
               <span className={clsx(
                 "font-game font-bold tracking-wide",
                 size === "sm" ? "text-[9.5px]" : "text-[10px] md:text-[11px]"

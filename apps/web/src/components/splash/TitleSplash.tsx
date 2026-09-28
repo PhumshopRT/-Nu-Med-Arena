@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { AmbientMotes } from "./AmbientMotes";
 import { StudentLoginModal } from "./StudentLoginModal";
-import { Play, LogIn, ShoppingBag, BookOpen, Volume2, VolumeX, Image as ImageIcon } from "lucide-react";
+import { Play, LogIn, ShoppingBag, BookOpen, Volume2, VolumeX, Image as ImageIcon, Lightbulb, X, Layers } from "lucide-react";
 import { StudentUser, PROTOTYPE_4_CARDS } from "@nucmed/shared";
 import { RpCard } from "@/components/cards/RpCard";
 import { MechCard } from "@/components/cards/MechCard";
 import { CaseCard } from "@/components/cards/CaseCard";
 import { ClueCard } from "@/components/cards/ClueCard";
+import { AvatarBadge } from "@/components/ui/AvatarBadge";
+import { TrefoilIcon } from "@/components/ui/TrefoilIcon";
 import { sounds } from "@/lib/sound";
 import { getLocalUser, getRememberedUser } from "@/lib/user";
 import { jev } from "@/lib/jev-engine";
@@ -25,16 +27,6 @@ interface TitleSplashProps {
   onOpenShop?: () => void;
   initialLoginOpen?: boolean;
 }
-
-const getAvatarIcon = (avatarId?: string) => {
-  switch (avatarId) {
-    case "avatar-thyroid": return "🦋";
-    case "avatar-lung": return "🫁";
-    case "av_bone": return "🦴";
-    case "avatar-default":
-    default: return "☢️";
-  }
-};
 
 export function TitleSplash({ 
   currentUser, 
@@ -161,8 +153,8 @@ export function TitleSplash({
               {/* Left: Active User Plaque OR Mode Indicator */}
               {rememberedUser ? (
                 <div className="wood-panel px-3.5 py-1.5 rounded-2xl border-2 border-amber-500/80 shadow-2xl flex items-center space-x-2.5 bg-amber-950/95 pointer-events-auto">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 border border-amber-200 flex items-center justify-center text-sm shadow shrink-0">
-                    {getAvatarIcon(rememberedUser.equipped?.avatar)}
+                  <div className="w-8 h-8 rounded-full border border-amber-200 flex items-center justify-center shadow shrink-0 overflow-hidden bg-amber-950/80">
+                    <AvatarBadge avatarId={rememberedUser.equipped?.avatar || "avatar-default"} size={32} />
                   </div>
                   <div className="text-left">
                     <div className="text-xs font-bold text-white font-game flex items-center space-x-1.5">
@@ -235,7 +227,7 @@ export function TitleSplash({
               {/* Radioactive Trefoil Badge on top */}
               <div className="relative mb-[-10px] z-30">
                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 border-2 md:border-3 border-amber-800 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
-                  <span className="text-lg md:text-xl filter drop-shadow">☢️</span>
+                  <TrefoilIcon size={22} className="text-amber-950" />
                 </div>
               </div>
 
@@ -379,8 +371,9 @@ export function TitleSplash({
       {showJoinModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="relative w-full max-w-sm wood-panel rounded-2xl p-6 text-white border-4 border-amber-950 shadow-2xl">
-            <h3 className="text-lg font-bold font-game text-amber-200 mb-2">
-              🚪 เข้าสู่ห้องประลอง
+            <h3 className="text-lg font-bold font-game text-amber-200 mb-2 flex items-center space-x-2">
+              <LogIn className="w-5 h-5 text-amber-300 inline" />
+              <span>เข้าสู่ห้องประลอง</span>
             </h3>
             <p className="text-xs text-amber-200/80 mb-4">
               กรอกรหัสห้อง 6 ตัวอักษรที่ได้รับจากเพื่อนหรืออาจารย์
@@ -429,7 +422,7 @@ export function TitleSplash({
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-amber-500/30">
               <div className="flex items-center space-x-2">
-                <span className="text-2xl">📖</span>
+                <BookOpen className="w-6 h-6 text-amber-300" />
                 <div>
                   <h3 className="text-lg sm:text-xl font-black font-game text-amber-200">
                     คู่มือกติกา NucMed Arena
@@ -446,7 +439,7 @@ export function TitleSplash({
                 }}
                 className="w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 border border-amber-500/40 text-amber-200 flex items-center justify-center font-bold text-sm cursor-pointer transition-transform hover:scale-110 active:scale-95"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -454,27 +447,28 @@ export function TitleSplash({
             <div className="mt-3 space-y-3 text-xs text-amber-100/90 leading-relaxed overflow-y-auto pr-1.5 scrollbar-thin">
               {/* Card 4 Types Grid */}
               <div className="bg-black/35 rounded-2xl p-3 border border-amber-500/30">
-                <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wider block mb-2">
-                  🃏 สำรับการ์ด 4 หมวดหลัก
+                <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center space-x-1.5 mb-2">
+                  <Layers className="w-4 h-4 text-amber-300" />
+                  <span>สำรับการ์ด 4 หมวดหลัก</span>
                 </span>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[10px]">
                   <div className="p-2 rounded-xl bg-blue-950/60 border border-blue-400/50">
-                    <span className="text-base block mb-0.5">🔵</span>
+                    <span className="w-3.5 h-3.5 rounded-full bg-blue-500 block mx-auto mb-1 shadow" />
                     <strong className="text-blue-300 block">RP (น้ำเงิน)</strong>
                     <span className="text-slate-300 text-[9px]">สารเภสัชรังสี ในมือ 5 ใบ</span>
                   </div>
                   <div className="p-2 rounded-xl bg-amber-950/60 border border-amber-400/50">
-                    <span className="text-base block mb-0.5">🟡</span>
+                    <span className="w-3.5 h-3.5 rounded-full bg-amber-400 block mx-auto mb-1 shadow" />
                     <strong className="text-amber-300 block">MECH (เหลือง)</strong>
                     <span className="text-amber-200/80 text-[9px]">12 กลไก แถบกลางโต๊ะ</span>
                   </div>
                   <div className="p-2 rounded-xl bg-rose-950/60 border border-rose-400/50">
-                    <span className="text-base block mb-0.5">🔴</span>
+                    <span className="w-3.5 h-3.5 rounded-full bg-rose-500 block mx-auto mb-1 shadow" />
                     <strong className="text-rose-300 block">CASE (แดง)</strong>
                     <span className="text-rose-200/80 text-[9px]">โจทย์อาการ Basic / Clinical</span>
                   </div>
                   <div className="p-2 rounded-xl bg-emerald-950/60 border border-emerald-400/50">
-                    <span className="text-base block mb-0.5">🟢</span>
+                    <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 block mx-auto mb-1 shadow" />
                     <strong className="text-emerald-300 block">CLUE (เขียว)</strong>
                     <span className="text-emerald-200/80 text-[9px]">คำใบ้อวัยวะ ปอด ไทรอยด์</span>
                   </div>
@@ -551,7 +545,7 @@ export function TitleSplash({
 
               {/* Pro Tips Banner */}
               <div className="p-2.5 bg-amber-950/70 rounded-xl border border-amber-500/40 text-[11px] flex items-center space-x-2">
-                <span className="text-base">💡</span>
+                <Lightbulb className="w-4 h-4 text-amber-300 shrink-0" />
                 <span className="text-amber-200">
                   <strong>เคล็ดลับนักประลอง:</strong> เมื่อจบรอบจะมีช่วง <em>Hand Swap</em> ให้เลือกทิ้งการ์ดที่ไม่ถนัดเพื่อจั่วการ์ดใหม่ฟรี 1 ใบ!
                 </span>

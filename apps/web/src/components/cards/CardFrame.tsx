@@ -13,6 +13,7 @@ interface CardFrameProps {
   onClick?: () => void;
   scale?: number;
   size?: "sm" | "md" | "lg";
+  frameId?: string;
 }
 
 export function CardFrame({
@@ -23,6 +24,7 @@ export function CardFrame({
   isSelected = false,
   onClick,
   size = "md",
+  frameId,
 }: CardFrameProps) {
   // Size presets respecting standard 63/88 trading card ratio with comfortable breathing room
   const sizeClasses = {
@@ -66,6 +68,22 @@ export function CardFrame({
 
   const theme = getThemeConfig();
 
+  const getCosmeticFrameClasses = () => {
+    if (isSelected) return "";
+    switch (frameId) {
+      case "frame-gold":
+        return "ring-[3px] ring-amber-300 shadow-[0_0_18px_rgba(245,158,11,0.7)]";
+      case "frame-reactor":
+        return "ring-[3px] ring-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.85)] animate-pulse";
+      case "frame-clinic":
+        return "ring-[3px] ring-rose-500 shadow-[0_0_18px_rgba(244,63,94,0.75)]";
+      case "frame-tracer":
+        return "ring-[3px] ring-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.8)] animate-pulse";
+      default:
+        return "";
+    }
+  };
+
   return (
     <div
       onClick={onClick}
@@ -73,6 +91,7 @@ export function CardFrame({
         "relative rounded-[18px] p-[5px] pb-[3px] flex flex-col justify-between select-none overflow-visible transition-all duration-200 shadow-xl",
         sizeClasses[size],
         theme.bg,
+        getCosmeticFrameClasses(),
         isHoverable && "hover:-translate-y-2 hover:shadow-2xl hover:scale-[1.02] cursor-pointer",
         isSelected && theme.selectedGlow,
         className

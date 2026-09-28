@@ -12,7 +12,9 @@ import {
   Award, 
   Zap,
   Eye,
-  Sparkles
+  Sparkles,
+  ShoppingBag,
+  AlertCircle
 } from "lucide-react";
 import { ShopItem } from "@nucmed/shared";
 import { 
@@ -166,8 +168,9 @@ export default function ShopPage() {
     if (wallet.coins < item.price) {
       sounds.playWrong();
       showToast(
-        <div className="flex items-center space-x-1.5 text-rose-300 font-bold">
-          <span>❌ NucCoin ไม่พอ (ต้องการ {item.price} NucCoin แต่มีเพียง {wallet.coins})</span>
+        <div className="flex items-center space-x-2 text-rose-300 font-bold">
+          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+          <span>NucCoin ไม่พอ (ต้องการ {item.price} NucCoin แต่มีเพียง {wallet.coins})</span>
         </div>
       );
       return;
@@ -193,7 +196,8 @@ export default function ShopPage() {
     // Required toast message: «ซื้อแล้ว เหลือ xx NucCoin»
     showToast(
       <div className="flex items-center space-x-2 text-amber-200 font-bold text-sm">
-        <span>🎉 ซื้อแล้ว เหลือ {remaining}</span>
+        <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
+        <span>ซื้อแล้ว เหลือ {remaining}</span>
         <NucCoinIcon size={18} />
         <span>NucCoin</span>
       </div>
@@ -249,8 +253,10 @@ export default function ShopPage() {
             <ArrowLeft className="w-4 h-4" />
             <span className="text-xs font-bold font-game">หน้าหลัก</span>
           </button>
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">🛍️</span>
+          <div className="flex items-center space-x-2.5">
+            <div className="w-9 h-9 rounded-xl bg-amber-900/90 border border-amber-500/60 flex items-center justify-center text-amber-300 shadow-inner">
+              <ShoppingBag className="w-5 h-5 text-amber-300" />
+            </div>
             <div>
               <h1 className="font-game font-black text-lg md:text-xl text-amber-200 tracking-wide">
                 ร้านค้า NucCoin (COSMETIC SHOP)
