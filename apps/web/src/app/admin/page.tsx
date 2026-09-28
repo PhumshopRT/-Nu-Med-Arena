@@ -106,6 +106,7 @@ export default function AdminPage() {
 
   // Students list from na_accounts
   const [students, setStudents] = useState<NaAccount[]>([]);
+  const [studentsLoadedAt, setStudentsLoadedAt] = useState<Date | null>(null);
   const [studentSearch, setStudentSearch] = useState("");
 
   // Student Password Reveal states
@@ -245,6 +246,36 @@ export default function AdminPage() {
     }
   }, []);
 
+  // Listen to window focus and storage changes to keep students list fresh
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
+    const handleFocus = () => {
+      setStudents(getNaAccounts());
+      setStudentsLoadedAt(new Date());
+    };
+    
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "na_accounts") {
+        setStudents(getNaAccounts());
+        setStudentsLoadedAt(new Date());
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [isAuthenticated]);
+
+  const handleManualRefresh = () => {
+    sounds.playClick();
+    setStudents(getNaAccounts());
+    setStudentsLoadedAt(new Date());
+  };
+
   const loadAllData = () => {
     setRpCards(getStoredRpCards());
     setMechCards(getStoredMechCards());
@@ -252,6 +283,7 @@ export default function AdminPage() {
     setCaseCards(cases);
     setClueCards(getStoredClueCards());
     setStudents(getNaAccounts());
+    setStudentsLoadedAt(new Date());
 
     if (!selectedCaseForPairing && cases.length > 0) {
       const c05 = cases.find(c => c.id === "C-05") || cases[0];
@@ -1508,15 +1540,82 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ====================================================
+                    {/* ====================================================
               TAB 4: นักเรียน (STUDENTS)
              ==================================================== */}
           {activeTab === "students" && (
             <div className="space-y-4 max-w-6xl mx-auto">
+              
+              {/* Leaderboard Section */}
+              <div className="bg-black/35 backdrop-blur-md p-4 rounded-2xl border border-amber-500/30 shadow-xl">
+                <h3 className="text-base font-black font-game text-white mb-3">Leaderboard ลำดับคะแนนเหรียญสูงสุด</h3>
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full text-left text-xs border-collapse min-w-[700px]">
+                    <thead>
+                      <tr className="bg-black/60 border-b border-amber-900/60 text-amber-300 font-game font-bold">
+                        <th className="p-3 w-16 text-center">อันดับ</th>
+                        <th className="p-3">ชื่อ</th>
+                        <th className="p-3 w-32">รหัสนักศึกษา</th>
+                        <th className="p-3 w-28 text-center">เหรียญ</th>
+                        <th className="p-3 w-28 text-center">ข้อถูก</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 font-medium">
+                      {(() => {
+                        const sorted = [...students].sort((a,b) => b.coins - a.coins);
+                        if (sorted.length === 0) {
+                          return <tr><td colSpan={5} className="p-8 text-center text-amber-300/60 italic">ยังไม่มีบัญชีในเบราว์เซอร์นี้</td></tr>;
+                        }
+                        return sorted.map((acc, idx) => {
+                          let rankStyle = "text-slate-400";
+                          let rankBg = "";
+                          if (idx === 0) { rankStyle = "text-amber-900 font-black"; rankBg = "bg-yellow-400 shadow-[0_0_10px_#facc15]"; }
+                          else if (idx === 1) { rankStyle = "text-slate-900 font-black"; rankBg = "bg-slate-300 shadow-[0_0_10px_#cbd5e1]"; }
+                          else if (idx === 2) { rankStyle = "text-orange-950 font-black"; rankBg = "bg-orange-400 shadow-[0_0_10px_#fb923c]"; }
+
+                          return (
+                            <tr key={`lb-${acc.studentId}`} className="hover:bg-amber-500/10 transition-colors">
+                              <td className="p-3 text-center">
+                                <div className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${rankBg} ${rankStyle}`}>
+                                  {idx + 1}
+                                </div>
+                              </td>
+                              <td className="p-3 font-bold text-white">{acc.displayName}</td>
+                              <td className="p-3 font-mono text-amber-200">{acc.studentId}</td>
+                              <td className="p-3 text-center font-mono font-bold text-[#E6A100]">
+                                <div className="flex items-center justify-center gap-1">
+                                  <div className="w-3.5 h-3.5 bg-yellow-400 rounded-full border border-yellow-600 shadow-[inset_0_-1px_2px_rgba(0,0,0,0.5)] flex items-center justify-center">
+                                    <span className="text-[8px] font-black text-yellow-900 leading-none">N</span>
+                                  </div>
+                                  {acc.coins}
+                                </div>
+                              </td>
+                              <td className="p-3 text-center font-mono font-bold text-[#2EAD4B]">{acc.correctCount || 0}</td>
+                            </tr>
+                          );
+                        });
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Student Table Controls */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-black/35 backdrop-blur-md p-4 rounded-2xl border border-amber-500/30">
-                <div>
-                  <h3 className="text-base font-black font-game text-white">รายชื่อนักศึกษาและบัญชีผู้เล่น</h3>
-                  <p className="text-xs text-amber-300/80">คลิกที่แถวเพื่อปรับเหรียญ, รีเซ็ตยอด, หรือระงับบัญชี</p>
+                <div className="flex items-center gap-4">
+                  <div>
+                    <h3 className="text-base font-black font-game text-white">รายชื่อนักศึกษาและบัญชีผู้เล่น</h3>
+                    <p className="text-xs text-amber-300/80">คลิกที่แถวเพื่อปรับเหรียญ, รีเซ็ตยอด, หรือระงับบัญชี</p>
+                  </div>
+                  <button 
+                    onClick={handleManualRefresh}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/40 border border-amber-500/50 rounded-lg text-amber-300 font-bold text-xs transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    รีเฟรชรายชื่อ
+                  </button>
                 </div>
 
                 <div className="relative w-full sm:w-64">
@@ -1550,7 +1649,7 @@ export default function AdminPage() {
                       {filteredStudents.length === 0 ? (
                         <tr>
                           <td colSpan={7} className="p-8 text-center text-amber-300/60 italic">
-                            ไม่พบข้อมูลนักศึกษาที่ค้นหา
+                            ยังไม่มีบัญชีในเบราว์เซอร์นี้
                           </td>
                         </tr>
                       ) : (
@@ -1588,7 +1687,6 @@ export default function AdminPage() {
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       if (revealedPasswords[acc.studentId]) {
-                                        // hide if already revealed
                                         setRevealedPasswords(prev => {
                                           const next = { ...prev };
                                           delete next[acc.studentId];
@@ -1600,15 +1698,19 @@ export default function AdminPage() {
                                         setShowPasswordModal({ isOpen: true, studentId: acc.studentId, studentName: acc.displayName });
                                       }
                                     }}
-                                    className="p-1 hover:bg-white/10 rounded cursor-pointer text-slate-400 hover:text-amber-300 transition-colors"
-                                    title={revealedPasswords[acc.studentId] ? "ซ่อนรหัสผ่าน" : "ดูรหัสผ่าน"}
+                                    className="px-2 py-1 bg-amber-900/40 hover:bg-amber-500/30 border border-amber-500/40 rounded text-[10px] font-bold text-amber-300 transition-colors"
                                   >
-                                    {revealedPasswords[acc.studentId] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                    {revealedPasswords[acc.studentId] ? "ซ่อน" : "ดูรหัส"}
                                   </button>
                                 </div>
                               </td>
                               <td className="p-3 text-center font-mono font-bold text-[#E6A100]">
-                                {acc.coins}
+                                <div className="flex items-center justify-center gap-1">
+                                  <div className="w-3.5 h-3.5 bg-yellow-400 rounded-full border border-yellow-600 shadow-[inset_0_-1px_2px_rgba(0,0,0,0.5)] flex items-center justify-center">
+                                    <span className="text-[8px] font-black text-yellow-900 leading-none">N</span>
+                                  </div>
+                                  {acc.coins}
+                                </div>
                               </td>
                               <td className="p-3 text-center font-mono font-bold text-[#2EAD4B]">
                                 {acc.correctCount || 0}
@@ -1632,9 +1734,21 @@ export default function AdminPage() {
                     </tbody>
                   </table>
                 </div>
+                
+                {/* Footer loading info */}
+                <div className="p-3 border-t border-amber-900/60 bg-black/40 flex justify-between items-center">
+                  <div className="text-xs text-amber-300/60">
+                    โหลดเมื่อ: {studentsLoadedAt ? studentsLoadedAt.toLocaleTimeString("th-TH") : "ยังไม่ได้โหลด"}
+                  </div>
+                  <div className="text-xs text-amber-300/60 font-bold">
+                    จำนวนบัญชีทั้งหมด: {students.length} บัญชี
+                  </div>
+                </div>
+
               </div>
             </div>
           )}
+
         </main>
       </div>
 
