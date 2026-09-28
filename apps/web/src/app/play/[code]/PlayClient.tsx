@@ -526,36 +526,62 @@ export function PlayClient() {
               คำตอบของคุณ (YOUR MATCH)
             </span>
 
-            {/* Selected RP & Mech Mini Cards */}
-            <div className="flex space-x-2 my-2">
-              {/* Selected RP */}
+            {/* Selected RP & Mech Mini Cards (Authentic Prototype Replicas) */}
+            <div className="flex space-x-3 my-2">
+              {/* Selected RP Card */}
               <div className="flex flex-col items-center">
-                <span className="text-[9px] text-blue-300 font-bold mb-0.5">สารรังสี (RP)</span>
+                <span className="text-[9px] text-blue-300 font-bold mb-1">สารรังสี (RP)</span>
                 {selectedRp ? (
-                  <div className="w-20 h-28 rounded-xl bg-gradient-to-b from-blue-600 to-blue-800 border-2 border-blue-300 p-1 flex flex-col justify-between text-center shadow-lg">
-                    <span className="text-[9px] font-bold text-white bg-blue-900 rounded">{selectedRp.id}</span>
-                    <span className="text-[10px] font-black font-nuclide text-white leading-tight">{selectedRp.nuclide}</span>
-                    <span className="text-[7px] text-blue-100 truncate">{selectedRp.titleEn}</span>
-                  </div>
+                  <motion.div
+                    initial={{ scale: 0.8, y: -5 }}
+                    animate={{ scale: 1, y: 0 }}
+                    className="w-24 h-34 rounded-2xl bg-[#1B70BF] p-1 flex flex-col justify-between shadow-2xl border-2 border-blue-300 transform hover:scale-105 transition-transform select-none"
+                  >
+                    <div className="w-full flex-1 bg-white rounded-xl p-1.5 flex flex-col justify-between items-center text-center">
+                      <div className="w-full flex justify-between items-center">
+                        <span className="text-[7.5px] font-black bg-blue-100 text-[#1B70BF] px-1 py-0.5 rounded">☢️ {selectedRp.id}</span>
+                        <span className="text-[7.5px] font-bold bg-[#2EB8E6] text-white px-1 py-0.5 rounded">{selectedRp.modality}</span>
+                      </div>
+                      <div className="font-nuclide font-black text-xs md:text-sm text-slate-900 leading-tight">{selectedRp.nuclide}</div>
+                      <div className="text-[7.5px] text-slate-500 font-medium truncate max-w-full">{selectedRp.subtitle || selectedRp.titleEn}</div>
+                    </div>
+                    <div className="text-center py-0.5 text-[8px] font-black text-white uppercase tracking-wider">
+                      RP Card
+                    </div>
+                  </motion.div>
                 ) : (
-                  <div className="w-20 h-28 rounded-xl border-2 border-dashed border-blue-400/60 bg-blue-950/20 flex flex-col items-center justify-center p-1 text-center">
-                    <span className="text-[9px] text-blue-300/60">เลือกจากมือ</span>
+                  <div className="w-24 h-34 rounded-2xl border-2 border-dashed border-blue-400/50 bg-blue-950/20 flex flex-col items-center justify-center p-2 text-center">
+                    <span className="text-xl mb-1 opacity-60">🃏</span>
+                    <span className="text-[8.5px] text-blue-200/80 font-bold">เลือก 1 ใบจากมือ</span>
                   </div>
                 )}
               </div>
 
-              {/* Selected Mechanism */}
+              {/* Selected Mechanism Card */}
               <div className="flex flex-col items-center">
-                <span className="text-[9px] text-amber-300 font-bold mb-0.5">กลไก (MECH)</span>
+                <span className="text-[9px] text-amber-300 font-bold mb-1">กลไก (MECH)</span>
                 {selectedMech ? (
-                  <div className="w-20 h-28 rounded-xl bg-gradient-to-b from-amber-600 to-amber-800 border-2 border-amber-300 p-1 flex flex-col justify-between text-center shadow-lg">
-                    <span className="text-[9px] font-bold text-white bg-amber-900 rounded">{selectedMech.id}</span>
-                    <span className="text-[9px] font-black text-white leading-tight">{selectedMech.titleEn}</span>
-                    <span className="text-[7px] text-amber-100 truncate">{selectedMech.titleTh}</span>
-                  </div>
+                  <motion.div
+                    initial={{ scale: 0.8, y: -5 }}
+                    animate={{ scale: 1, y: 0 }}
+                    className="w-24 h-34 rounded-2xl bg-[#EFA316] p-1 flex flex-col justify-between shadow-2xl border-2 border-amber-300 transform hover:scale-105 transition-transform select-none"
+                  >
+                    <div className="w-full flex-1 bg-white rounded-xl p-1.5 flex flex-col justify-between items-center text-center">
+                      <div className="w-full flex justify-between items-center">
+                        <span className="text-[7.5px] font-black bg-amber-100 text-[#D97706] px-1 py-0.5 rounded">{selectedMech.id}</span>
+                        <span className="text-xs">⚙️</span>
+                      </div>
+                      <div className="font-bold text-[10px] text-slate-900 leading-tight">{selectedMech.titleEn}</div>
+                      <div className="text-[7.5px] text-amber-800 font-medium truncate max-w-full">{selectedMech.titleTh}</div>
+                    </div>
+                    <div className="text-center py-0.5 text-[8px] font-black text-white uppercase tracking-wider">
+                      Mechanism
+                    </div>
+                  </motion.div>
                 ) : (
-                  <div className="w-20 h-28 rounded-xl border-2 border-dashed border-amber-400/60 bg-amber-950/20 flex flex-col items-center justify-center p-1 text-center">
-                    <span className="text-[9px] text-amber-300/60">เลือกจากแถบ</span>
+                  <div className="w-24 h-34 rounded-2xl border-2 border-dashed border-amber-400/50 bg-amber-950/20 flex flex-col items-center justify-center p-2 text-center">
+                    <span className="text-xl mb-1 opacity-60">⚙️</span>
+                    <span className="text-[8.5px] text-amber-200/80 font-bold">เลือก 1 อย่างจากแถบ</span>
                   </div>
                 )}
               </div>
