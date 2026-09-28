@@ -111,6 +111,7 @@ export function PlayClient() {
   const mechScrollRef = useRef<HTMLDivElement>(null);
   const handScrollRef = useRef<HTMLDivElement>(null);
   const swapScrollRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number | null>(null);
 
   const handleScrollMech = (direction: "left" | "right") => {
     sounds.playClick();
@@ -120,11 +121,49 @@ export function PlayClient() {
     }
   };
 
-  const handleScrollHand = (direction: "left" | "right") => {
-    sounds.playClick();
+  const handleSelectCard = (card: RadiopharmaceuticalCard, index: number) => {
+    sounds.playSelect();
+    setSelectedRp(card);
     if (handScrollRef.current) {
-      const scrollAmount = direction === "left" ? -220 : 220;
-      handScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      const cardElements = handScrollRef.current.querySelectorAll('.hand-card-slot');
+      if (cardElements[index]) {
+        cardElements[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  };
+
+  const handleCycleHand = (direction: "left" | "right") => {
+    sounds.playClick();
+    const currentIndex = hand.findIndex((c) => c.id === selectedRp?.id);
+    let nextIndex = 0;
+    if (currentIndex === -1) {
+      nextIndex = direction === "left" ? 0 : Math.min(1, hand.length - 1);
+    } else {
+      nextIndex = direction === "left"
+        ? Math.max(0, currentIndex - 1)
+        : Math.min(hand.length - 1, currentIndex + 1);
+    }
+    if (hand[nextIndex]) {
+      handleSelectCard(hand[nextIndex], nextIndex);
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diffX = touchEndX - touchStartX.current;
+    touchStartX.current = null;
+
+    if (Math.abs(diffX) > 35) {
+      if (diffX < 0) {
+        handleCycleHand("right");
+      } else {
+        handleCycleHand("left");
+      }
     }
   };
 
@@ -969,149 +1008,137 @@ export function PlayClient() {
           </div>
         </div>
 
-        {/* 3. Bottom: Player's 5-Card Hand */}
-        <div className="w-full flex flex-col items-center mt-0.5 sm:mt-2 pb-2 sm:pb-3">
-          <div className="text-[10px] sm:text-[11px] text-blue-200 font-bold uppercase tracking-wider mb-0.5 sm:mb-1 drop-shadow-md">
-            ไพ่สารเภสัชรังสีในมือคุณ (YOUR HAND - 5 CARDS)
+        {/* 3. Bottom: Player's 5-Card Hand (Authentic Playing Card Arc Fan with Touch Slide) */}
+        <div className="w-full flex flex-col items-center mt-1 sm:mt-2 pb-2 sm:pb-3 select-none">
+          {/* Header */}
+          <div className="text-[10.5px] sm:text-[11.5px] text-blue-200 font-bold uppercase tracking-wider mb-1 drop-shadow-md flex items-center space-x-2">
+            <span>🎴</span>
+            <span>ไพ่สารเภสัชรังสีในมือคุณ (5 CARDS IN HAND)</span>
+            {selectedRp && (
+              <span className="hidden xs:inline bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 text-[9px] font-black px-2 py-0.5 rounded-full border border-white shadow-xs">
+                เลือก {selectedRp.id} แล้ว
+              </span>
+            )}
           </div>
 
-          {/* MOBILE VIEW (< sm): Slidable & Scrollable Hand Carousel with Left/Right Buttons */}
-          <div className="flex sm:hidden relative w-full items-center px-1">
-            {/* Left Arcade Nav Button */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => handleScrollHand("left")}
-              className="shrink-0 w-8 h-8 rounded-full bg-gradient-to-b from-blue-400 via-blue-500 to-blue-700 text-white flex items-center justify-center border-2 border-blue-200 shadow-[0_2px_0_#1e3a8a,0_4px_10px_rgba(0,0,0,0.5)] cursor-pointer transition-all z-20 active:scale-90"
-              title="เลื่อนซ้าย"
-              aria-label="Scroll hand left"
-            >
-              <ChevronLeft className="w-5 h-5 stroke-[3]" />
-            </motion.button>
+          {/* Overlapping Playing Cards Fan Container with Momentum Touch-Pan */}
+          <div
+            ref={handScrollRef}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            className="w-full overflow-x-auto touch-pan-x scrollbar-none pt-7 pb-3 px-3 flex justify-start sm:justify-center items-end"
+            style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
+          >
+            <div className="flex items-end justify-center mx-auto scale-[0.74] xs:scale-[0.82] sm:scale-90 md:scale-100 origin-bottom transition-transform">
+              {hand.map((card, index) => {
+                const offsetFromCenter = index - 2; // -2, -1, 0, 1, 2
+                const baseRotation = offsetFromCenter * 5; // Arc angles: -10, -5, 0, 5, 10
+                const baseSag = Math.abs(offsetFromCenter) * 7; // Arc sag: 14, 7, 0, 7, 14
+                const isSelected = selectedRp?.id === card.id;
 
-            {/* Scrollable Hand Track */}
-            <div
-              ref={handScrollRef}
-              className="flex-1 overflow-x-auto py-2 px-2 flex space-x-3 scrollbar-none scroll-smooth touch-pan-x snap-x snap-mandatory"
-              style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
+                return (
+                  <motion.div
+                    key={`${card.id}_${index}`}
+                    className="hand-card-slot relative -mx-4 xs:-mx-4.5 sm:-mx-3.5 md:-mx-4 cursor-pointer select-none"
+                    style={{
+                      transformOrigin: "bottom center",
+                    }}
+                    animate={{
+                      rotate: isSelected ? 0 : baseRotation,
+                      y: isSelected ? -38 : baseSag,
+                      scale: isSelected ? 1.08 : 1.0,
+                      zIndex: isSelected ? 50 : 10 + index,
+                    }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 380,
+                      damping: 24,
+                    }}
+                    whileHover={{
+                      scale: 1.12,
+                      y: -42,
+                      rotate: 0,
+                      zIndex: 55,
+                    }}
+                    onClick={() => handleSelectCard(card, index)}
+                  >
+                    {/* Top Index Badge peeking out */}
+                    <div className={`absolute -top-3.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[8.5px] font-game font-bold flex items-center space-x-1 shadow-md pointer-events-none transition-all z-20 ${
+                      isSelected
+                        ? "bg-amber-400 text-amber-950 font-black border border-white scale-110 shadow-[0_0_12px_rgba(251,191,36,0.9)]"
+                        : "bg-black/85 text-blue-200 border border-blue-400/50"
+                    }`}>
+                      <span>#{index + 1}</span>
+                      {isSelected ? <span>★</span> : <span>{card.id}</span>}
+                    </div>
+
+                    <RpCard
+                      card={card}
+                      size="sm"
+                      isSelected={isSelected}
+                      isHoverable={false}
+                      className={`shadow-2xl transition-all duration-200 ${
+                        isSelected
+                          ? "ring-4 ring-amber-400 shadow-[0_0_28px_rgba(251,191,36,0.9),0_12px_24px_rgba(0,0,0,0.6)]"
+                          : "hover:ring-2 hover:ring-blue-300"
+                      }`}
+                    />
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Interactive Playing-Card Slot Strip & Quick Nudge Controls */}
+          <div className="flex items-center justify-center space-x-1.5 mt-0.5 sm:mt-1 px-2 max-w-md w-full">
+            {/* Left Nudge Button */}
+            <button
+              type="button"
+              onClick={() => handleCycleHand("left")}
+              className="p-1.5 rounded-full bg-amber-950/85 hover:bg-amber-900 border border-amber-500/50 text-amber-200 shadow-md hover:scale-105 active:scale-95 cursor-pointer shrink-0"
+              title="ไพ่ใบก่อนหน้า"
+              aria-label="Previous card"
             >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+
+            {/* 5 Card Mini Chips (Matching Playing Card Indices) */}
+            <div className="flex items-center space-x-1 sm:space-x-1.5 overflow-x-auto no-scrollbar py-0.5">
               {hand.map((card, index) => {
                 const isSelected = selectedRp?.id === card.id;
                 return (
-                  <div
-                    key={`${card.id}_${index}`}
-                    className="shrink-0 snap-center flex flex-col items-center cursor-pointer transition-transform active:scale-95"
-                    onClick={() => {
-                      sounds.playSelect();
-                      setSelectedRp(card);
-                    }}
+                  <button
+                    key={card.id}
+                    type="button"
+                    onClick={() => handleSelectCard(card, index)}
+                    className={`px-2 py-1 rounded-xl text-[9.5px] sm:text-[10.5px] font-game font-bold flex items-center space-x-1 transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-amber-950 font-black border-2 border-white shadow-[0_0_12px_rgba(245,158,11,0.8)] scale-105"
+                        : "bg-black/60 hover:bg-black/80 text-blue-200 border border-blue-400/40"
+                    }`}
                   >
-                    {/* Slot badge */}
-                    <div className={`mb-1 px-2.5 py-0.5 rounded-full text-[9px] font-game font-bold flex items-center space-x-1 shadow-xs ${
-                      isSelected
-                        ? "bg-amber-400 text-amber-950 font-black border border-white"
-                        : "bg-black/60 text-blue-200 border border-blue-400/40"
-                    }`}>
-                      <span>#{index + 1}</span>
-                      {isSelected ? <span>✓ เลือกแล้ว</span> : <span>{card.id}</span>}
-                    </div>
-
-                    <div className={`transition-all rounded-[18px] ${
-                      isSelected
-                        ? "ring-4 ring-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.9)] -translate-y-1"
-                        : "opacity-95"
-                    }`}>
-                      <RpCard
-                        card={card}
-                        size="sm"
-                        isSelected={isSelected}
-                        isHoverable={false}
-                        className="shadow-xl"
-                      />
-                    </div>
-                  </div>
+                    <span>{isSelected ? "★" : `#${index + 1}`}</span>
+                    <span>{card.id}</span>
+                  </button>
                 );
               })}
             </div>
 
-            {/* Right Arcade Nav Button */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => handleScrollHand("right")}
-              className="shrink-0 w-8 h-8 rounded-full bg-gradient-to-b from-blue-400 via-blue-500 to-blue-700 text-white flex items-center justify-center border-2 border-blue-200 shadow-[0_2px_0_#1e3a8a,0_4px_10px_rgba(0,0,0,0.5)] cursor-pointer transition-all z-20 active:scale-90"
-              title="เลื่อนขวา"
-              aria-label="Scroll hand right"
+            {/* Right Nudge Button */}
+            <button
+              type="button"
+              onClick={() => handleCycleHand("right")}
+              className="p-1.5 rounded-full bg-amber-950/85 hover:bg-amber-900 border border-amber-500/50 text-amber-200 shadow-md hover:scale-105 active:scale-95 cursor-pointer shrink-0"
+              title="ไพ่ใบถัดไป"
+              aria-label="Next card"
             >
-              <ChevronRight className="w-5 h-5 stroke-[3]" />
-            </motion.button>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
 
-          {/* Mobile Swipe Hint & Slot Navigation Dots (< sm) */}
-          <div className="flex sm:hidden items-center justify-center space-x-2 mt-1">
-            <span className="text-[10px] text-blue-200/90 font-medium">◀ เลื่อนซ้าย-ขวา เพื่อเลือกไพ่ในมือ ▶</span>
-            <div className="flex space-x-1.5 ml-1">
-              {hand.map((c, i) => (
-                <button
-                  type="button"
-                  key={i}
-                  onClick={() => {
-                    sounds.playSelect();
-                    setSelectedRp(c);
-                    if (handScrollRef.current) {
-                      handScrollRef.current.scrollTo({ left: i * 215, behavior: "smooth" });
-                    }
-                  }}
-                  className={`h-2 rounded-full cursor-pointer transition-all ${
-                    selectedRp?.id === c.id
-                      ? "bg-amber-400 w-4 shadow-[0_0_8px_#fbbf24]"
-                      : "bg-blue-300/40 w-2 hover:bg-blue-200"
-                  }`}
-                  title={`ไปที่การ์ดใบที่ ${i + 1}`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* TABLET & DESKTOP VIEW (>= sm): Classic Arcade Fan Layout */}
-          <div className="hidden sm:flex relative justify-center items-end h-44 md:h-56 w-full max-w-2xl px-2 sm:px-4 scale-90 md:scale-100 origin-bottom mb-2 sm:mb-0">
-            {hand.map((card, index) => {
-              const offsetFromCenter = index - 2; // -2, -1, 0, 1, 2
-              const rotation = offsetFromCenter * 5; // Arc degrees
-              const yOffset = Math.abs(offsetFromCenter) * 8; // Arc sag
-              const isSelected = selectedRp?.id === card.id;
-
-              return (
-                <motion.div
-                  key={`${card.id}_${index}`}
-                  className="relative -mx-3 md:-mx-4 cursor-pointer"
-                  style={{
-                    transformOrigin: "bottom center",
-                  }}
-                  animate={{
-                    rotate: rotation,
-                    y: isSelected ? -30 : yOffset,
-                    zIndex: isSelected ? 40 : 10 + index,
-                  }}
-                  whileHover={{
-                    scale: 1.15,
-                    y: -35,
-                    zIndex: 50,
-                  }}
-                  onClick={() => {
-                    sounds.playSelect();
-                    setSelectedRp(card);
-                  }}
-                >
-                  <RpCard
-                    card={card}
-                    size="sm"
-                    isSelected={isSelected}
-                    className="shadow-2xl"
-                  />
-                </motion.div>
-              );
-            })}
+          {/* Swipe Hint */}
+          <div className="text-[9.5px] text-blue-200/70 mt-1 flex items-center space-x-1 sm:hidden">
+            <span>แตะหรือปัดนิ้วซ้าย-ขวาบนไพ่เพื่อเลือกใบที่จะลง</span>
           </div>
         </div>
       </main>

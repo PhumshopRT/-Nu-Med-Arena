@@ -109,10 +109,12 @@ export const RpCard = React.memo(function RpCard({
 
         {/* 3. Illustration Area (Chemical + Organ / PET scan) */}
         <div className={clsx(
-          "w-full flex items-center justify-center my-0.5 shrink-0",
-          size === "sm" ? "h-[30px] scale-85" : "h-[56px] md:h-16 py-0.5"
+          "w-full flex items-center justify-center my-0.5 shrink-0 rounded-xl bg-gradient-to-b from-blue-50/70 via-white to-slate-50/60 border border-blue-100/70 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden",
+          size === "sm" ? "h-[72px] px-2 py-1" : "h-[94px] md:h-[108px] px-3 py-1.5"
         )}>
-          {renderIllustration()}
+          <div className="w-full h-full flex items-center justify-center">
+            {renderIllustration()}
+          </div>
         </div>
 
         {/* 4. Specification Table (4 Key-Value Rows matching prototype, guaranteed fit without banner overlap) */}

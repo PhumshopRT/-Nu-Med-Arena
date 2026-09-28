@@ -86,10 +86,12 @@ export const MechCard = React.memo(function MechCard({
 
         {/* 3. Illustration Area (Cross-section with callouts) */}
         <div className={clsx(
-          "w-full flex items-center justify-center my-0.5 shrink-0",
-          size === "sm" ? "h-[30px] scale-85" : "h-[60px] md:h-18 py-0.5"
+          "w-full flex items-center justify-center my-0.5 shrink-0 rounded-xl bg-gradient-to-b from-amber-50/70 via-white to-orange-50/50 border border-amber-100 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden",
+          size === "sm" ? "h-[64px] px-2 py-0.5" : "h-[88px] md:h-[100px] px-3 py-1.5"
         )}>
-          {renderIllustration()}
+          <div className="w-full h-full flex items-center justify-center">
+            {renderIllustration()}
+          </div>
         </div>
 
         {/* 4. Bullet Points List (Matching card-prototype.jpg) */}
