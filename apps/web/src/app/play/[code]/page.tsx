@@ -12,7 +12,7 @@ export function generateStaticParams() {
 
 export default function PlayPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-felt-table" />}>
+    <Suspense fallback={<div className="min-h-screen bg-slate-950" />}>
       <PlayClient />
     </Suspense>
   );

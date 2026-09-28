@@ -46,6 +46,7 @@ import { CardBack } from "@/components/cards/CardBack";
 import { getLocalUser, addRewards, saveLocalUser } from "@/lib/user";
 import { sounds } from "@/lib/sound";
 import { createRoomSync, RoomSyncHandle, SyncMessage } from "@/lib/sync";
+import { getAssetPath } from "@/lib/assets";
 
 export function PlayClient() {
   const params = useParams();
@@ -454,12 +455,16 @@ export function PlayClient() {
   };
 
   return (
-    <div className="relative min-h-screen bg-felt-table text-amber-50 flex flex-col justify-between overflow-x-hidden select-none">
-      {/* Felt Vignette */}
-      <div className="fixed inset-0 pointer-events-none bg-radial-vignette opacity-80 z-0" />
+    <div className="relative min-h-screen text-amber-50 flex flex-col justify-between overflow-x-hidden select-none">
+      {/* Fullscreen Casino Felt Table Background Layer */}
+      <img
+        src={getAssetPath("/scene/play-table.webp")}
+        alt="Play Table Arena"
+        className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none"
+      />
 
-      {/* 1. Top HUD Ribbon */}
-      <header className="relative z-20 w-full flex justify-between items-center px-4 md:px-8 py-2.5 bg-amber-950/90 border-b-4 border-amber-900 shadow-2xl backdrop-blur-md">
+      {/* 1. Top HUD Ribbon - Translucent Sleek HUD (~72% transparent) */}
+      <header className="relative z-20 w-full flex justify-between items-center px-4 md:px-8 py-2.5 bg-black/28 border-b border-amber-600/30 shadow-xl backdrop-blur-xs">
         {/* Left: Round & Exit */}
         <div className="flex items-center space-x-3">
           <button
@@ -469,20 +474,20 @@ export function PlayClient() {
                 router.push("/");
               }
             }}
-            className="p-1.5 bg-amber-900/80 hover:bg-amber-800 rounded-xl text-amber-200 border border-amber-600 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            className="p-1.5 bg-amber-900/70 hover:bg-amber-800 rounded-xl text-amber-200 border border-amber-600/80 transition-all hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-xs"
             title="ออกจากเกม"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
 
-          <div className="bg-amber-900/90 border-2 border-amber-500/80 px-3 py-1 rounded-xl shadow-inner flex items-center space-x-2">
+          <div className="bg-amber-950/60 border border-amber-500/60 px-3 py-1 rounded-xl shadow-inner flex items-center space-x-2 backdrop-blur-xs">
             <span className="text-[10px] text-amber-300 font-game uppercase font-bold">รอบที่</span>
             <span className="font-mono font-black text-amber-100 text-sm md:text-base">
               {currentRound} / {totalRounds}
             </span>
           </div>
 
-          <div className="hidden md:flex bg-amber-950/80 px-3 py-1 rounded-full text-xs font-bold text-amber-200 border border-amber-700/60 items-center space-x-1.5">
+          <div className="hidden md:flex bg-amber-950/50 px-3 py-1 rounded-full text-xs font-bold text-amber-200 border border-amber-700/50 items-center space-x-1.5 backdrop-blur-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
             <span>โจทย์: {currentCase.difficulty} ({currentCase.points} คะแนน)</span>
           </div>
@@ -509,7 +514,7 @@ export function PlayClient() {
         {/* Right: Sound & Score Summary */}
         <div className="flex items-center space-x-2">
           {/* My Score Badge */}
-          <div className="bg-amber-900/90 border-2 border-amber-500/80 px-3 py-1 rounded-full flex items-center space-x-1.5 shadow-inner">
+          <div className="bg-amber-950/60 border border-amber-500/60 px-3 py-1 rounded-full flex items-center space-x-1.5 shadow-inner backdrop-blur-xs">
             <Trophy className="w-4 h-4 text-amber-400" />
             <span className="font-mono font-bold text-xs md:text-sm text-white">
               {players.find((p) => p.studentId === user?.studentId)?.score || 0} PTS
@@ -521,7 +526,7 @@ export function PlayClient() {
               const muted = sounds.toggleMute();
               setIsMuted(muted);
             }}
-            className="p-1.5 bg-black/50 hover:bg-black/70 rounded-full text-white border border-amber-500/40 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            className="p-1.5 bg-black/40 hover:bg-black/60 rounded-full text-white border border-amber-500/40 transition-all hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-xs"
             title={isMuted ? "เปิดเสียง" : "ปิดเสียง"}
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-rose-300" /> : <Volume2 className="w-4 h-4 text-emerald-300" />}
@@ -529,17 +534,17 @@ export function PlayClient() {
         </div>
       </header>
 
-      {/* Players Quick Ribbon */}
-      <div className="relative z-10 w-full flex justify-center items-center py-1.5 bg-amber-950/60 border-b border-amber-900/60 gap-2 md:gap-4 overflow-x-auto px-4">
+      {/* Players Quick Ribbon - Translucent (72% transparent backdrop) */}
+      <div className="relative z-10 w-full flex justify-center items-center py-1.5 bg-black/28 border-b border-amber-900/30 gap-2 md:gap-4 overflow-x-auto px-4 backdrop-blur-xs">
         {players.map((p) => {
           const isMe = p.studentId === user?.studentId;
           return (
             <div
               key={p.id}
-              className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full border text-[11px] font-bold ${
+              className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full border text-[11px] font-bold backdrop-blur-xs ${
                 isMe
-                  ? "bg-amber-900/90 border-amber-400 text-amber-100 shadow-md"
-                  : "bg-black/40 border-amber-800/50 text-amber-200/80"
+                  ? "bg-amber-900/70 border-amber-400 text-amber-100 shadow-md"
+                  : "bg-black/35 border-amber-800/40 text-amber-200/80"
               }`}
             >
               <span>{p.avatar || "👨‍🎓"}</span>
@@ -561,7 +566,7 @@ export function PlayClient() {
         <div className="flex flex-col md:flex-row items-center justify-center gap-6 my-auto">
           {/* Clue Slot */}
           <div className="flex flex-col items-center">
-            <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider mb-1">
+            <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider mb-1 drop-shadow-md">
               คำใบ้ / เป้าหมาย (CLUE)
             </span>
             {isClueRevealed && currentClue ? (
@@ -574,18 +579,18 @@ export function PlayClient() {
                   sounds.playSelect();
                   setIsClueRevealed(true);
                 }}
-                className="w-44 h-62 rounded-2xl border-2 border-dashed border-emerald-500/60 bg-emerald-950/20 hover:bg-emerald-950/40 p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:scale-102 shadow-lg group"
+                className="w-44 h-62 rounded-2xl border-2 border-dashed border-emerald-500/60 bg-black/28 hover:bg-emerald-950/40 backdrop-blur-xs p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:scale-102 shadow-lg group"
               >
                 <HelpCircle className="w-8 h-8 text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />
                 <span className="text-xs font-bold text-emerald-200">แตะเพื่อเปิดคำใบ้</span>
-                <span className="text-[9px] text-emerald-300/70 mt-1">(เปิดอัตโนมัติเมื่อเหลือเวลาครึ่งหนึ่ง)</span>
+                <span className="text-[9px] text-emerald-300/80 mt-1">(เปิดอัตโนมัติเมื่อเหลือเวลาครึ่งหนึ่ง)</span>
               </div>
             )}
           </div>
 
           {/* Clinical Case Card */}
           <div className="flex flex-col items-center">
-            <span className="text-[10px] text-rose-300 font-bold uppercase tracking-wider mb-1">
+            <span className="text-[10px] text-rose-300 font-bold uppercase tracking-wider mb-1 drop-shadow-md">
               โจทย์ทางคลินิก (CLINICAL CASE)
             </span>
             <motion.div initial={{ scale: 0.9, y: 10 }} animate={{ scale: 1, y: 0 }} transition={{ duration: 0.4 }}>
@@ -593,9 +598,9 @@ export function PlayClient() {
             </motion.div>
           </div>
 
-          {/* Current Selection Slot & Giant LOCK Button */}
-          <div className="flex flex-col items-center bg-black/40 p-4 rounded-3xl border-2 border-amber-600/60 shadow-2xl min-w-[220px]">
-            <span className="text-[10px] text-amber-300 font-bold uppercase tracking-wider mb-2">
+          {/* Current Selection Slot & Giant LOCK Button - 72% Translucent Frame */}
+          <div className="flex flex-col items-center bg-black/28 backdrop-blur-xs p-4 rounded-3xl border border-amber-500/40 shadow-2xl min-w-[220px]">
+            <span className="text-[10px] text-amber-300 font-bold uppercase tracking-wider mb-2 drop-shadow-md">
               คำตอบของคุณ (YOUR MATCH)
             </span>
 
@@ -623,7 +628,7 @@ export function PlayClient() {
                     </div>
                   </motion.div>
                 ) : (
-                  <div className="w-24 h-34 rounded-2xl border-2 border-dashed border-blue-400/50 bg-blue-950/20 flex flex-col items-center justify-center p-2 text-center">
+                  <div className="w-24 h-34 rounded-2xl border-2 border-dashed border-blue-400/50 bg-black/25 backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center">
                     <span className="text-xl mb-1 opacity-60">🃏</span>
                     <span className="text-[8.5px] text-blue-200/80 font-bold">เลือก 1 ใบจากมือ</span>
                   </div>
@@ -652,7 +657,7 @@ export function PlayClient() {
                     </div>
                   </motion.div>
                 ) : (
-                  <div className="w-24 h-34 rounded-2xl border-2 border-dashed border-amber-400/50 bg-amber-950/20 flex flex-col items-center justify-center p-2 text-center">
+                  <div className="w-24 h-34 rounded-2xl border-2 border-dashed border-amber-400/50 bg-black/25 backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center">
                     <span className="text-xl mb-1 opacity-60">⚙️</span>
                     <span className="text-[8.5px] text-amber-200/80 font-bold">เลือก 1 อย่างจากแถบ</span>
                   </div>
@@ -668,10 +673,10 @@ export function PlayClient() {
               disabled={isLocked || !selectedRp || !selectedMech}
               className={`w-full mt-3 py-3 px-4 rounded-2xl font-game font-black text-sm md:text-base tracking-wider flex items-center justify-center space-x-2 transition-all shadow-xl cursor-pointer ${
                 isLocked
-                  ? "bg-slate-700 border-2 border-slate-500 text-slate-300 cursor-default opacity-80"
+                  ? "bg-slate-700/80 border-2 border-slate-500 text-slate-300 cursor-default opacity-80"
                   : selectedRp && selectedMech
                   ? "bg-gradient-to-b from-amber-400 via-amber-500 to-amber-700 hover:from-amber-300 hover:to-amber-600 text-amber-950 border-3 border-amber-200 shadow-[0_6px_0_#78350f,0_10px_20px_rgba(0,0,0,0.5)] animate-pulse"
-                  : "bg-amber-950/60 border border-amber-800/40 text-amber-300/40 cursor-not-allowed"
+                  : "bg-black/40 border border-amber-800/40 text-amber-300/40 cursor-not-allowed"
               }`}
             >
               <Lock className="w-4 h-4" />
@@ -682,12 +687,12 @@ export function PlayClient() {
 
         {/* Middle Rack: 12 Shared Mechanism Cards Bar */}
         <div className="w-full flex flex-col items-center my-2">
-          <div className="flex items-center space-x-1.5 text-xs text-amber-200 font-bold mb-1">
+          <div className="flex items-center space-x-1.5 text-xs text-amber-200 font-bold mb-1 drop-shadow-md">
             <span>⚙️ แถบกลไกการสะสมกลางโต๊ะ (MECHANISMS)</span>
-            <span className="text-[10px] text-amber-300/70 font-normal">(คลิก 1 อย่างที่ตรงกับเคส)</span>
+            <span className="text-[10px] text-amber-300/80 font-normal">(คลิก 1 อย่างที่ตรงกับเคส)</span>
           </div>
 
-          <div className="w-full overflow-x-auto py-1 px-2 flex space-x-2 scrollbar-thin">
+          <div className="w-full max-w-5xl overflow-x-auto py-2 px-3 flex space-x-2 scrollbar-thin bg-black/28 backdrop-blur-xs rounded-2xl border border-amber-500/25 shadow-lg">
             {ALL_MECH_CARDS.map((mech) => {
               const isSelected = selectedMech?.id === mech.id;
               return (
@@ -697,10 +702,10 @@ export function PlayClient() {
                     sounds.playSelect();
                     setSelectedMech(mech);
                   }}
-                  className={`flex-shrink-0 px-3 py-2 rounded-xl text-left border-2 transition-all hover:scale-104 cursor-pointer ${
+                  className={`flex-shrink-0 px-3 py-2 rounded-xl text-left border transition-all hover:scale-104 cursor-pointer backdrop-blur-xs ${
                     isSelected
                       ? "bg-gradient-to-r from-amber-500 to-amber-600 border-amber-200 text-amber-950 font-black shadow-lg scale-104"
-                      : "bg-amber-950/80 hover:bg-amber-900 border-amber-700/60 text-amber-100 font-bold"
+                      : "bg-black/35 hover:bg-amber-950/50 border-amber-700/40 text-amber-100 font-bold"
                   }`}
                 >
                   <div className="text-[10px] font-mono text-amber-300">{mech.id}</div>
@@ -713,7 +718,7 @@ export function PlayClient() {
 
         {/* 3. Bottom: Player's 5-Card Hand */}
         <div className="w-full flex flex-col items-center mt-2">
-          <div className="text-[11px] text-blue-200 font-bold uppercase tracking-wider mb-1">
+          <div className="text-[11px] text-blue-200 font-bold uppercase tracking-wider mb-1 drop-shadow-md">
             ไพ่สารเภสัชรังสีในมือคุณ (YOUR HAND - 5 CARDS)
           </div>
 
