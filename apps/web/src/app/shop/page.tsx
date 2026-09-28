@@ -20,6 +20,7 @@ import {
 import { StudentUser, ShopItem } from "@nucmed/shared";
 import { SHOP_CATALOG, getLocalUser, saveLocalUser } from "@/lib/user";
 import { sounds } from "@/lib/sound";
+import { jev } from "@/lib/jev-engine";
 import { CardFrame } from "@/components/cards/CardFrame";
 import { CardBack } from "@/components/cards/CardBack";
 import { RpCard } from "@/components/cards/RpCard";
@@ -27,32 +28,45 @@ import { ALL_RP_CARDS } from "@nucmed/shared";
 
 type ShopTab = "frame" | "cardback" | "avatar" | "fx" | "title";
 
+const DEFAULT_OWNED = [
+  "frame_graphite",
+  "back_navy",
+  "av_fdg",
+  "fx_confetti",
+  "title_blockader"
+];
+
 export default function ShopPage() {
   const router = useRouter();
   const [user, setUser] = useState<StudentUser | null>(null);
   const [activeTab, setActiveTab] = useState<ShopTab>("frame");
   const [previewItem, setPreviewItem] = useState<ShopItem | null>(null);
-  const [ownedItems, setOwnedItems] = useState<string[]>([
-    "frame_graphite",
-    "back_navy",
-    "av_fdg",
-    "fx_confetti",
-    "title_blockader"
-  ]);
+  const [ownedItems, setOwnedItems] = useState<string[]>(DEFAULT_OWNED);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const loaded = getLocalUser();
+    // Ensure new player has at least 120 initial coins
+    if (loaded && (typeof loaded.coins !== "number" || (loaded.coins === 0 && !localStorage.getItem(`nucmed_inventory_${loaded.studentId}`)))) {
+      loaded.coins = 120;
+      saveLocalUser(loaded);
+    }
     setUser(loaded);
 
     // Retrieve owned items from storage if available
     try {
       const savedOwned = localStorage.getItem(`nucmed_inventory_${loaded.studentId}`);
       if (savedOwned) {
-        setOwnedItems(JSON.parse(savedOwned));
+        const parsed = JSON.parse(savedOwned);
+        const merged = Array.from(new Set([...DEFAULT_OWNED, ...parsed]));
+        setOwnedItems(merged);
+        localStorage.setItem(`nucmed_inventory_${loaded.studentId}`, JSON.stringify(merged));
+      } else {
+        setOwnedItems(DEFAULT_OWNED);
+        localStorage.setItem(`nucmed_inventory_${loaded.studentId}`, JSON.stringify(DEFAULT_OWNED));
       }
     } catch {
-      // ignore
+      setOwnedItems(DEFAULT_OWNED);
     }
   }, []);
 
@@ -65,16 +79,17 @@ export default function ShopPage() {
 
   const handleBuy = (item: ShopItem) => {
     if (!user) return;
-    if (user.coins < item.price) {
+    const check = jev.validateShopPurchase(user.coins, item.price);
+    if (!check.canAfford) {
       sounds.playWrong();
-      showToast("❌ NucCoin ไม่เพียงพอ! เล่นเกมเพื่อเก็บเหรียญเพิ่ม");
+      showToast(`❌ ${check.reason}`);
       return;
     }
 
     sounds.playWin();
     const updatedUser: StudentUser = {
       ...user,
-      coins: user.coins - item.price,
+      coins: check.remainingCoins,
       equipped: {
         ...user.equipped,
         [item.kind]: item.id
@@ -86,7 +101,7 @@ export default function ShopPage() {
     setOwnedItems(nextOwned);
     saveLocalUser(updatedUser);
     localStorage.setItem(`nucmed_inventory_${user.studentId}`, JSON.stringify(nextOwned));
-    showToast(`🎉 ปลดล็อกและสวมใส่ "${item.nameTh}" เรียบร้อยแล้ว!`);
+    showToast(`🎉 ปลดล็อกและสวมใส่ "${item.nameTh}" เรียบร้อยแล้ว! (คงเหลือ ${check.remainingCoins} 🪙)`);
   };
 
   const handleEquip = (item: ShopItem) => {

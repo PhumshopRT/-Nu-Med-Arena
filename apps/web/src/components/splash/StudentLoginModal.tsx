@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, UserCheck, ShieldCheck, Sparkles, BookOpen, AlertCircle, CheckCircle2 } from "lucide-react";
 import { StudentUser } from "@nucmed/shared";
 import { jev } from "@/lib/jev-engine";
+import { createDefaultUser } from "@/lib/user";
 
 interface StudentLoginModalProps {
   isOpen: boolean;
@@ -71,19 +72,7 @@ export function StudentLoginModal({ isOpen, onClose, onLoginSuccess }: StudentLo
   };
 
   function createNewUser(id: string, name: string): StudentUser {
-    return {
-      studentId: id,
-      displayName: name.trim() || `นักศึกษา ${id.slice(-4)}`,
-      xp: 0,
-      coins: 0,
-      equipped: {
-        frame: "frame_graphite",
-        cardback: "back_navy",
-        avatar: "av_fdg",
-        fx: "fx_confetti",
-        title: "title_blockader",
-      },
-    };
+    return createDefaultUser(id, name);
   }
 
   return (

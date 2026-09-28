@@ -229,6 +229,25 @@ class JevEngine {
       confidence: 1.0,
     };
   }
+
+  /**
+   * Validate Shop Transaction
+   * Evaluates if student has sufficient NucCoins for unlocking cosmetics
+   */
+  validateShopPurchase(userCoins: number, itemPrice: number): { canAfford: boolean; remainingCoins: number; reason: string } {
+    if (userCoins < itemPrice) {
+      return {
+        canAfford: false,
+        remainingCoins: userCoins,
+        reason: `เหรียญ NucCoin ไม่เพียงพอ (มี ${userCoins} เหรียญ, ต้องการ ${itemPrice} เหรียญ)`,
+      };
+    }
+    return {
+      canAfford: true,
+      remainingCoins: userCoins - itemPrice,
+      reason: `อนุมัติการซื้อ สำเร็จคงเหลือ ${userCoins - itemPrice} เหรียญ`,
+    };
+  }
 }
 
 export const jev = new JevEngine();

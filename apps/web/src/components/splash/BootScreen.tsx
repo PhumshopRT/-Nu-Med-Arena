@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { LabWorldBackground } from "./LabWorldBackground";
 import { FloatingCardIcons } from "./FloatingCardIcons";
 import { Volume2, VolumeX, Sparkles, Zap, Radio, Activity, ShieldCheck } from "lucide-react";
+import { getAssetPath } from "@/lib/assets";
 
 interface BootScreenProps {
   onComplete: () => void;
@@ -54,8 +54,14 @@ export function BootScreen({ onComplete }: BootScreenProps) {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden flex flex-col justify-between items-center z-50 select-none">
-      {/* Game World Background */}
-      <LabWorldBackground />
+      {/* Game World Background: splash-bg.webp full screen object-fit cover [z-0] */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
+        <img
+          src={getAssetPath("/scene/splash-bg.webp")}
+          alt="Loading Background"
+          className="w-full h-full object-cover object-center"
+        />
+      </div>
 
       {/* Floating 4-Color Prototype Cards */}
       <FloatingCardIcons />

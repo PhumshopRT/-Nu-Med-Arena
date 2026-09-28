@@ -2,10 +2,8 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { LabWorldBackground } from "./LabWorldBackground";
+import { motion } from "framer-motion";
 import { AmbientMotes } from "./FloatingCardIcons";
-import { CyclotronReactorStage } from "./CyclotronReactorStage";
 import { StudentLoginModal } from "./StudentLoginModal";
 import { Play, LogIn, ShoppingBag, BookOpen, Volume2, VolumeX, Image as ImageIcon } from "lucide-react";
 import { StudentUser, PROTOTYPE_4_CARDS } from "@nucmed/shared";
@@ -16,6 +14,7 @@ import { ClueCard } from "@/components/cards/ClueCard";
 import { sounds } from "@/lib/sound";
 import { getLocalUser } from "@/lib/user";
 import { jev } from "@/lib/jev-engine";
+import { getAssetPath } from "@/lib/assets";
 
 interface TitleSplashProps {
   onLoginSuccess: (user: StudentUser) => void;
@@ -52,25 +51,47 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
 
   return (
     <div className="relative w-screen h-screen overflow-hidden select-none z-0">
-      {/* 1. Background game world: Sky (0-58%) & Wooden Deck Table (58-100%) [z-0] */}
-      <LabWorldBackground />
+      {/* --------------------------------------------------------
+          LAYER 1: splash-bg.webp เต็มจอ object-fit cover [z-0]
+          -------------------------------------------------------- */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
+        <img
+          src={getAssetPath("/scene/splash-bg.webp")}
+          alt="NucMed Arena Laboratory Background"
+          className="w-full h-full object-cover object-center"
+        />
+      </div>
 
-      {/* 2. Ambient Drifting Glowing Radiation Motes [z-10] */}
+      {/* Ambient Drifting Glowing Radiation Motes [z-5] */}
       <AmbientMotes />
+
+      {/* --------------------------------------------------------
+          LAYER 2: mascots.webp วางกึ่งกลาง ยืนบนเคาน์เตอร์ เหนือปุ่ม PLAY [z-10]
+          Counter horizon is at ~71.5% from top. Mascots stand on the wood surface!
+          -------------------------------------------------------- */}
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-[26%] sm:bottom-[27%] md:bottom-[27.5%] lg:bottom-[28%] pointer-events-none z-10 flex flex-col items-center">
+        <motion.img
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          src={getAssetPath("/scene/mascots.webp")}
+          alt="NucMed Arena Mascots"
+          className="h-[210px] sm:h-[240px] md:h-[275px] lg:h-[305px] xl:h-[325px] w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]"
+        />
+      </div>
 
       {/* ========================================================
           3-ZONE CSS GRID FOREGROUND [z-20]
           Column 1: [ cards-left ]   (R-01 & M-03)
-          Column 2: [ center stage ] (Sky + Deck, Mascots, PLAY)
+          Column 2: [ center stage ] (Logo on sky, PLAY on deck)
           Column 3: [ cards-right ]  (C-05 & T-03)
           Guaranteed zero overlap between cards, mascots, and buttons
           ======================================================== */}
-      <div className="absolute inset-0 grid grid-cols-1 md:grid-cols-[210px_1fr_210px] lg:grid-cols-[230px_1fr_230px] xl:grid-cols-[250px_1fr_250px] h-full w-full pointer-events-none z-20">
-        {/* ======================================================
-            ZONE 1: [ cards-left ] Left Column (R-01 & M-03)
-            Strictly bounded inside left grid column
-            ====================================================== */}
-        <div className="hidden md:flex flex-col justify-center items-center gap-3 lg:gap-4 h-full py-4 pointer-events-auto z-20 overflow-visible scale-[0.78] lg:scale-[0.85] xl:scale-[0.92] origin-center">
+      <div className="absolute inset-0 grid grid-cols-1 md:grid-cols-[210px_1fr_210px] lg:grid-cols-[240px_1fr_240px] xl:grid-cols-[260px_1fr_260px] h-full w-full pointer-events-none z-20">
+        {/* ------------------------------------------------------
+            LAYER 5: ZONE 1 [ cards-left ] Left Column (R-01 & M-03) [z-25]
+            ------------------------------------------------------ */}
+        <div className="hidden md:flex flex-col justify-center items-center gap-3 lg:gap-4 h-full py-4 pointer-events-auto z-25 overflow-visible scale-[0.78] lg:scale-[0.85] xl:scale-[0.92] origin-center">
           {/* Upper Card: R-01 18F-FDG */}
           <motion.div
             animate={{ y: [-4, 4, -4] }}
@@ -96,20 +117,14 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
           </motion.div>
         </div>
 
-        {/* ======================================================
-            ZONE 2: Center Stage (Sky 0-58% + Deck 58-100%)
-            Mascots sit strictly ABOVE 58% horizon & PLAY button
-            ====================================================== */}
-        <div className="flex flex-col h-full w-full pointer-events-none z-20">
-          {/* ----------------------------------------------------
-              ZONE: [ sky 0–58% ]
-              - Top status & controls bar [z-40]
-              - 3D Game title & wooden subtitle plaque [z-30]
-              - Mascots with 22px pill name tags [z-30]
-              ---------------------------------------------------- */}
-          <div className="w-full h-[58%] flex flex-col justify-between items-center px-4 md:px-8 pt-3 pb-2 z-20 pointer-events-none">
+        {/* ------------------------------------------------------
+            ZONE 2: Center Column
+            ------------------------------------------------------ */}
+        <div className="flex flex-col h-full w-full justify-between pointer-events-none z-20 pb-3">
+          {/* LAYER 3: โลโก้ NucMed Arena และป้ายจับคู่สารเป็น HTML ทับฟ้า [z-20] */}
+          <div className="w-full flex flex-col items-center px-4 md:px-8 pt-3 pointer-events-none">
             {/* Top Bar: Mode status & quick links [z-40] */}
-            <div className="w-full flex justify-between items-center pointer-events-auto z-40">
+            <div className="w-full flex justify-between items-center pointer-events-auto z-40 mb-1">
               {/* Left Mode Indicator */}
               <div className="bg-amber-950/85 backdrop-blur-md text-amber-200 text-xs px-4 py-1.5 rounded-full border-2 border-amber-500/60 flex items-center space-x-2.5 shadow-2xl">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
@@ -140,56 +155,48 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
               </div>
             </div>
 
-            {/* Central Logo & Wooden Subtitle Plaque [z-30] */}
-            <div className="flex flex-col items-center text-center my-auto pointer-events-auto z-30">
-              <motion.div
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, type: "spring", bounce: 0.3 }}
-                className="relative flex flex-col items-center"
-              >
-                {/* Radioactive Badge on top */}
-                <div className="relative mb-[-10px] z-30">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 border-2 md:border-3 border-amber-800 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
-                    <span className="text-lg md:text-xl filter drop-shadow">☢️</span>
-                  </div>
+            {/* Central Logo & Wooden Subtitle Plaque [z-20] */}
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, type: "spring", bounce: 0.3 }}
+              className="relative flex flex-col items-center text-center mt-0.5 pointer-events-auto"
+            >
+              {/* Radioactive Trefoil Badge on top */}
+              <div className="relative mb-[-10px] z-30">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 border-2 md:border-3 border-amber-800 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                  <span className="text-lg md:text-xl filter drop-shadow">☢️</span>
                 </div>
+              </div>
 
-                <h1 className="text-4xl md:text-6xl lg:text-7xl font-black font-game text-amber-300 text-shadow-gold-title tracking-tight filter drop-shadow-[0_12px_16px_rgba(0,0,0,0.7)] select-none">
-                  NucMed Arena
-                </h1>
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-black font-game text-amber-300 text-shadow-gold-title tracking-tight filter drop-shadow-[0_12px_16px_rgba(0,0,0,0.7)] select-none">
+                NucMed Arena
+              </h1>
 
-                {/* Wooden Subtitle Plaque */}
-                <div className="wood-panel px-4 md:px-6 py-1 md:py-1.5 rounded-xl mt-0.5 text-center shadow-xl border-2 border-amber-950 flex flex-col items-center">
-                  <div className="text-amber-100 font-black text-xs md:text-sm font-game tracking-wider">
-                    จับคู่สาร · จับคู่กลไก · รอบโต๊ะไพ่
-                  </div>
-                  <div className="text-amber-300/90 text-[8.5px] md:text-[10px] font-black tracking-widest uppercase mt-0.5">
-                    LEARN • MATCH • PLAY • NUCLEAR MEDICINE
-                  </div>
+              {/* Wooden Subtitle Plaque */}
+              <div className="wood-panel px-4 md:px-6 py-1 md:py-1.5 rounded-xl mt-0.5 text-center shadow-xl border-2 border-amber-950 flex flex-col items-center">
+                <div className="text-amber-100 font-black text-xs md:text-sm font-game tracking-wider">
+                  จับคู่สาร · จับคู่กลไก · รอบโต๊ะไพ่
                 </div>
-              </motion.div>
-
-            </div>
-
-            {/* Cyclotron Reactor Stage Centerpiece (Zero mascots, high-tech particle accelerator dais) [z-30] */}
-            <div className="w-full flex justify-center pointer-events-auto z-30 mb-2 md:mb-4">
-              <CyclotronReactorStage />
-            </div>
+                <div className="text-amber-300/90 text-[8.5px] md:text-[10px] font-black tracking-widest uppercase mt-0.5">
+                  LEARN • MATCH • PLAY • NUCLEAR MEDICINE
+                </div>
+              </div>
+            </motion.div>
           </div>
 
+          {/* Spacer pushing controls down to counter table area */}
+          <div className="flex-1 pointer-events-none min-h-[40px]" />
+
           {/* ----------------------------------------------------
-              ZONE: [ deck 58–100% ]
-              - Green 3D PLAY button sitting on wooden horizon [z-40]
-              - 3 Secondary action buttons [z-40]
-              - Credits plaque at bottom [z-40]
+              LAYER 4 & 6: บนเคาน์เตอร์ไม้ (PLAY สี #2EAD4B + 3 ปุ่มใต้ PLAY) [z-30]
               ---------------------------------------------------- */}
-          <div className="w-full h-[42%] flex flex-col justify-between items-center pt-1 pb-3 z-30 pointer-events-none">
-            {/* PLAY Button: Straddling deck horizon [z-40] */}
+          <div className="w-full flex flex-col items-center pointer-events-none z-30 space-y-2.5">
+            {/* 4) ปุ่ม PLAY สี #2EAD4B วางบนเคาน์เตอร์ไม้ [z-40] */}
             <motion.div
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.96 }}
-              className="pointer-events-auto z-40 mt-3 md:mt-4"
+              className="pointer-events-auto z-40"
             >
               <button
                 onClick={() => {
@@ -197,15 +204,15 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
                   setIsLoginOpen(true);
                 }}
                 onMouseEnter={() => sounds.playSelect()}
-                className="px-14 md:px-24 py-3.5 md:py-4.5 bg-gradient-to-b from-[#34D399] via-[#10B981] to-[#047857] hover:from-[#4ade80] hover:to-[#059669] border-4 border-[#A7F3D0] rounded-2xl text-white font-game font-black text-2xl md:text-4xl tracking-widest shadow-[0_8px_0_#064e3b,0_14px_24px_rgba(0,0,0,0.65)] active:translate-y-2 active:shadow-[0_2px_0_#064e3b,0_6px_10px_rgba(0,0,0,0.4)] transition-all flex items-center space-x-3.5 cursor-pointer group"
+                className="px-14 md:px-24 py-3.5 md:py-4.5 bg-[#2EAD4B] hover:bg-[#25943f] border-4 border-[#86EFAC] rounded-2xl text-white font-game font-black text-2xl md:text-4xl tracking-widest shadow-[0_8px_0_#1b632c,0_14px_24px_rgba(0,0,0,0.65)] active:translate-y-2 active:shadow-[0_2px_0_#1b632c,0_6px_10px_rgba(0,0,0,0.4)] transition-all flex items-center space-x-3.5 cursor-pointer group"
               >
                 <Play className="w-7 h-7 md:w-8 md:h-8 fill-white text-white group-hover:translate-x-1.5 transition-transform filter drop-shadow" />
                 <span className="text-shadow-sub">PLAY</span>
               </button>
             </motion.div>
 
-            {/* 3 Secondary Action Buttons below PLAY [z-40] */}
-            <div className="flex flex-wrap items-center justify-center gap-3 pointer-events-auto z-40 my-auto">
+            {/* 6) ปุ่มเข้าห้อง / ร้านค้า / วิธีเล่น อยู่ใต้ PLAY [z-40] */}
+            <div className="flex flex-wrap items-center justify-center gap-2.5 md:gap-3 pointer-events-auto z-40">
               <button
                 onClick={handleOpenJoinRoom}
                 className="wood-panel px-4 py-2 rounded-xl text-amber-100 hover:text-white text-xs md:text-sm font-bold flex items-center space-x-1.5 hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer border border-amber-600/50"
@@ -243,8 +250,8 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
 
             {/* Bottom Credits Plaque [z-40] */}
             <div className="w-full flex justify-center pointer-events-auto z-40">
-              <div className="wood-panel px-6 py-1.5 rounded-lg border-2 border-amber-950 text-center shadow-lg">
-                <span className="text-xs md:text-sm font-bold text-amber-200">
+              <div className="wood-panel px-6 py-1 rounded-lg border border-amber-950 text-center shadow-lg">
+                <span className="text-[11px] md:text-xs font-bold text-amber-200/90">
                   พัฒนาสำหรับรายวิชานิวเคลียร์เมดิซีน (Nuclear Medicine Educational Card Game)
                 </span>
               </div>
@@ -252,11 +259,10 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
           </div>
         </div>
 
-        {/* ======================================================
-            ZONE 3: [ cards-right ] Right Column (C-05 & T-03)
-            Strictly bounded inside right grid column
-            ====================================================== */}
-        <div className="hidden md:flex flex-col justify-center items-center gap-3 lg:gap-4 h-full py-4 pointer-events-auto z-20 overflow-visible scale-[0.78] lg:scale-[0.85] xl:scale-[0.92] origin-center">
+        {/* ------------------------------------------------------
+            LAYER 5: ZONE 3 [ cards-right ] Right Column (C-05 & T-03) [z-25]
+            ------------------------------------------------------ */}
+        <div className="hidden md:flex flex-col justify-center items-center gap-3 lg:gap-4 h-full py-4 pointer-events-auto z-25 overflow-visible scale-[0.78] lg:scale-[0.85] xl:scale-[0.92] origin-center">
           {/* Upper Card: C-05 Suspected PE */}
           <motion.div
             animate={{ y: [4, -4, 4] }}

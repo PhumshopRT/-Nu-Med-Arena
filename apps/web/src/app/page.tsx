@@ -5,6 +5,7 @@ import { BootScreen } from "@/components/splash/BootScreen";
 import { TitleSplash } from "@/components/splash/TitleSplash";
 import { HomeHub } from "@/components/hub/HomeHub";
 import { StudentUser } from "@nucmed/shared";
+import { createDefaultUser } from "@/lib/user";
 import { useRouter } from "next/navigation";
 
 type ScreenState = "boot" | "splash" | "hub";
@@ -69,21 +70,7 @@ export default function HomePage() {
 
   return (
     <HomeHub
-      user={
-        user || {
-          studentId: "68208307001",
-          displayName: "นักศึกษาใหม่",
-          xp: 0,
-          coins: 0,
-          equipped: {
-            frame: "frame_graphite",
-            cardback: "back_navy",
-            avatar: "av_fdg",
-            fx: "fx_confetti",
-            title: "title_blockader",
-          },
-        }
-      }
+      user={user || createDefaultUser("68208307001", "นักศึกษาใหม่")}
       onLogout={handleLogout}
       onOpenGallery={handleOpenGallery}
     />
