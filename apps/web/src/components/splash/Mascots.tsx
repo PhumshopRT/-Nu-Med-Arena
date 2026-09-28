@@ -66,10 +66,6 @@ export function MascotNew({ className = "w-32 h-44" }: { className?: string }) {
       {/* Right Arm */}
       <path d="M114 100 Q128 115 130 135" stroke="#f8fafc" strokeWidth="14" strokeLinecap="round" />
       <circle cx="130" cy="136" r="7" fill="#fed7aa" />
-
-      {/* Name tag */}
-      <rect x="62" y="185" width="36" height="14" rx="4" fill="#0B3B36" stroke="#2EAD4B" strokeWidth="1" />
-      <text x="80" y="195" fill="#ffffff" fontSize="9" fontWeight="bold" textAnchor="middle">นิว</text>
     </svg>
   );
 }
@@ -133,21 +129,17 @@ export function MascotMed({ className = "w-32 h-44" }: { className?: string }) {
 
       {/* Miniature C-05 Card */}
       <g transform="translate(118, 120) rotate(15)">
-        <rect width="26" height="36" rx="4" fill="#E23B4A" stroke="#ffffff" strokeWidth="1.5" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.3))" />
-        <rect x="2" y="2" width="22" height="8" rx="2" fill="#C81E33" />
+        <rect width="26" height="36" rx="4" fill="#C81E33" stroke="#ffffff" strokeWidth="1.5" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.3))" />
+        <rect x="2" y="2" width="22" height="8" rx="2" fill="#991B1B" />
         <text x="13" y="8" fill="#ffffff" fontSize="5" fontWeight="bold" textAnchor="middle">C-05</text>
         <rect x="3" y="12" width="20" height="16" rx="2" fill="#FFE8EA" />
         <text x="13" y="18" fill="#C81E33" fontSize="4" fontWeight="bold" textAnchor="middle">PE Case</text>
-        <circle cx="13" cy="23" r="2.5" fill="#E23B4A" />
+        <circle cx="13" cy="23" r="2.5" fill="#C81E33" />
       </g>
 
       {/* Left Arm waving */}
       <path d="M52 105 Q36 95 32 82" stroke="#f8fafc" strokeWidth="12" strokeLinecap="round" />
       <circle cx="31" cy="80" r="6" fill="#fed7aa" />
-
-      {/* Name tag */}
-      <rect x="62" y="185" width="36" height="14" rx="4" fill="#0B3B36" stroke="#E23B4A" strokeWidth="1" />
-      <text x="80" y="195" fill="#ffffff" fontSize="9" fontWeight="bold" textAnchor="middle">เมด</text>
     </svg>
   );
 }
@@ -195,10 +187,6 @@ export function MascotGamma({ className = "w-24 h-28" }: { className?: string })
       <circle cx="50" cy="46" r="1.5" fill="#ffffff" />
       <ellipse cx="72" cy="48" rx="4" ry="5" fill="#0f172a" />
       <circle cx="74" cy="46" r="1.5" fill="#ffffff" />
-
-      {/* Name tag */}
-      <rect x="42" y="118" width="36" height="12" rx="3" fill="#0B3B36" stroke="#2EAD4B" strokeWidth="1" />
-      <text x="60" y="127" fill="#ffffff" fontSize="8" fontWeight="bold" textAnchor="middle">แกมม่า</text>
     </svg>
   );
 }

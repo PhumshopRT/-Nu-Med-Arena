@@ -69,7 +69,7 @@ export function RpCard({
         <div>
           <div className="flex justify-between items-center mb-0.5">
             {/* Left ID Badge */}
-            <div className="bg-[#E3EFFB] text-[#1B70BF] px-2 py-0.5 rounded-full flex items-center space-x-1 shadow-xs border border-blue-200">
+            <div className="bg-[#E8F1FF] text-[#2F6FED] px-2 py-0.5 rounded-full flex items-center space-x-1 shadow-xs border border-blue-200">
               <span className="text-xs">☢️</span>
               <span className="font-game font-bold text-[10px] md:text-[11px] tracking-wide">{card.id}</span>
             </div>
@@ -85,47 +85,47 @@ export function RpCard({
             <h3 className="text-base md:text-lg font-black font-nuclide text-slate-900 leading-tight tracking-tight">
               {card.titleEn}
             </h3>
-            <div className="text-[9px] md:text-[11px] text-slate-500 font-medium">
+            <div className="text-[9px] md:text-[10.5px] text-slate-600 font-medium font-nuclide">
               ({card.subtitle || card.titleTh})
             </div>
           </div>
         </div>
 
         {/* 3. Illustration Area (Chemical + Organ / PET scan) */}
-        <div className="my-auto w-full h-20 md:h-24 flex items-center justify-center py-1">
+        <div className="my-auto w-full h-[62px] md:h-18 flex items-center justify-center py-0.5">
           {renderIllustration()}
         </div>
 
-        {/* 4. Specification Table (Key-Value Rows matching prototype) */}
-        <div className="border-t border-slate-200/90 pt-1 space-y-0.5 text-[9px] md:text-[10.5px] leading-tight text-slate-800">
+        {/* 4. Specification Table (4 Key-Value Rows matching prototype, no truncation) */}
+        <div className="border-t border-slate-200/90 pt-0.5 space-y-[2px] text-[8px] md:text-[9.5px] leading-tight text-slate-800">
           {/* Target */}
-          <div className="grid grid-cols-[68px_8px_1fr] items-baseline">
+          <div className="grid grid-cols-[56px_6px_1fr] items-baseline">
             <span className="font-bold text-slate-900">Target</span>
             <span className="text-slate-400 font-bold">:</span>
-            <span className="text-slate-700 font-medium truncate">{card.target}</span>
+            <span className="text-slate-700 font-medium leading-tight">{card.target}</span>
           </div>
 
           {/* Transporter */}
-          {card.transporter && (
-            <div className="grid grid-cols-[68px_8px_1fr] items-baseline">
-              <span className="font-bold text-slate-900">Transporter</span>
-              <span className="text-slate-400 font-bold">:</span>
-              <span className="text-slate-700 font-medium truncate">{card.transporter}</span>
-            </div>
-          )}
+          <div className="grid grid-cols-[56px_6px_1fr] items-baseline">
+            <span className="font-bold text-slate-900">Transporter</span>
+            <span className="text-slate-400 font-bold">:</span>
+            <span className="text-slate-700 font-medium leading-tight">{card.transporter || "—"}</span>
+          </div>
 
           {/* Mechanism */}
-          <div className="grid grid-cols-[68px_8px_1fr] items-baseline">
+          <div className="grid grid-cols-[56px_6px_1fr] items-baseline">
             <span className="font-bold text-slate-900">Mechanism</span>
             <span className="text-slate-400 font-bold">:</span>
-            <span className="text-slate-700 font-medium truncate">{mechName}</span>
+            <span className="text-slate-700 font-medium leading-tight">{mechName}</span>
           </div>
 
           {/* Application */}
-          <div className="grid grid-cols-[68px_8px_1fr] items-baseline">
+          <div className="grid grid-cols-[56px_6px_1fr] items-baseline">
             <span className="font-bold text-slate-900">Application</span>
             <span className="text-slate-400 font-bold">:</span>
-            <span className="text-slate-700 font-medium truncate">{card.application}</span>
+            <span className="text-slate-700 font-medium leading-tight">
+              {card.id === "R-01" ? "Tumor imaging (whole body PET/CT)" : card.application}
+            </span>
           </div>
         </div>
       </div>

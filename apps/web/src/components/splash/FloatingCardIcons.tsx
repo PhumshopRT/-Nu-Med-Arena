@@ -11,7 +11,7 @@ import { ClueCard } from "@/components/cards/ClueCard";
 
 export function FloatingCardIcons() {
   return (
-    <div className="absolute inset-0 pointer-events-none select-none overflow-hidden z-10">
+    <div className="absolute inset-0 pointer-events-none select-none overflow-visible z-10">
       {/* Ambient Drifting Glowing Radiation Motes */}
       {[
         { x: "12%", y: "22%", size: 6, color: "bg-blue-400", duration: 7, delay: 0 },
@@ -30,10 +30,10 @@ export function FloatingCardIcons() {
             height: p.size,
           }}
           animate={{
-            y: [-18, 18, -18],
-            x: [-10, 10, -10],
-            opacity: [0.3, 0.9, 0.3],
-            scale: [0.8, 1.3, 0.8],
+            y: [-12, 12, -12],
+            x: [-8, 8, -8],
+            opacity: [0.3, 0.85, 0.3],
+            scale: [0.85, 1.2, 0.85],
           }}
           transition={{
             duration: p.duration,
@@ -44,88 +44,100 @@ export function FloatingCardIcons() {
         />
       ))}
 
-      {/* 1. Left Upper: R-01 18F-FDG (Exact Prototype Replica) */}
-      <motion.div
-        className="hidden md:block absolute top-14 left-4 lg:left-12 pointer-events-auto cursor-pointer"
-        animate={{
-          y: [-8, 8, -8],
-          rotate: [-7, -2, -7],
-        }}
-        transition={{
-          duration: 4.5,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        whileHover={{ scale: 1.08, rotate: 0 }}
-        onHoverStart={() => sounds.playSelect()}
+      {/* ========================================================
+          ZONE: [ cards-left ]  x 24–210
+          Two cards arranged vertically (R-01 & M-03), rotation <= 6 deg
+          Zero overlap guarantee via flex column with explicit gap
+          Height constrained to guarantee 100% on-screen visibility
+          ======================================================== */}
+      <div 
+        className="hidden md:flex absolute left-4 lg:left-8 top-[6%] max-h-[88vh] w-[210px] flex-col justify-start gap-4 lg:gap-5 items-center pointer-events-auto overflow-visible z-10 scale-[0.80] lg:scale-[0.88] xl:scale-[0.95] origin-top-left"
       >
-        <div className="transform scale-90 lg:scale-100 origin-top-left drop-shadow-[0_15px_25px_rgba(27,112,191,0.5)]">
+        {/* Upper Card: R-01 ¹⁸F-FDG */}
+        <motion.div
+          animate={{
+            y: [-4, 4, -4],
+          }}
+          transition={{
+            duration: 4.8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          style={{ rotate: -2 }}
+          whileHover={{ scale: 1.05, rotate: 0 }}
+          onHoverStart={() => sounds.playSelect()}
+          className="cursor-pointer drop-shadow-[0_12px_22px_rgba(47,111,237,0.45)] overflow-visible shrink-0"
+        >
           <RpCard card={PROTOTYPE_4_CARDS.rp} size="sm" isHoverable={false} />
-        </div>
-      </motion.div>
+        </motion.div>
 
-      {/* 2. Left Lower: M-03 Capillary Blockade (Exact Prototype Replica) */}
-      <motion.div
-        className="hidden md:block absolute top-[310px] left-6 lg:left-16 pointer-events-auto cursor-pointer"
-        animate={{
-          y: [8, -8, 8],
-          rotate: [5, 9, 5],
-        }}
-        transition={{
-          duration: 5.2,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 0.8,
-        }}
-        whileHover={{ scale: 1.08, rotate: 0 }}
-        onHoverStart={() => sounds.playSelect()}
-      >
-        <div className="transform scale-90 lg:scale-100 origin-top-left drop-shadow-[0_15px_25px_rgba(239,163,22,0.5)]">
+        {/* Lower Card: M-03 Capillary Blockade */}
+        <motion.div
+          animate={{
+            y: [4, -4, 4],
+          }}
+          transition={{
+            duration: 5.2,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 0.8,
+          }}
+          style={{ rotate: 2 }}
+          whileHover={{ scale: 1.05, rotate: 0 }}
+          onHoverStart={() => sounds.playSelect()}
+          className="cursor-pointer drop-shadow-[0_12px_22px_rgba(230,161,0,0.45)] overflow-visible shrink-0"
+        >
           <MechCard card={PROTOTYPE_4_CARDS.mech} size="sm" isHoverable={false} />
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
 
-      {/* 3. Right Upper: C-05 Pulmonary Embolism (Exact Prototype Replica) */}
-      <motion.div
-        className="hidden md:block absolute top-14 right-4 lg:right-12 pointer-events-auto cursor-pointer"
-        animate={{
-          y: [8, -8, 8],
-          rotate: [6, 2, 6],
-        }}
-        transition={{
-          duration: 4.8,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 0.4,
-        }}
-        whileHover={{ scale: 1.08, rotate: 0 }}
-        onHoverStart={() => sounds.playSelect()}
+      {/* ========================================================
+          ZONE: [ cards-right ] x 1230–1416
+          Two cards arranged vertically (C-05 & T-03), rotation <= 6 deg
+          Zero overlap guarantee via flex column with explicit gap
+          Height constrained to guarantee 100% on-screen visibility
+          ======================================================== */}
+      <div 
+        className="hidden md:flex absolute right-4 lg:right-8 top-[6%] max-h-[88vh] w-[210px] flex-col justify-start gap-4 lg:gap-5 items-center pointer-events-auto overflow-visible z-10 scale-[0.80] lg:scale-[0.88] xl:scale-[0.95] origin-top-right"
       >
-        <div className="transform scale-90 lg:scale-100 origin-top-right drop-shadow-[0_15px_25px_rgba(224,62,62,0.5)]">
+        {/* Upper Card: C-05 Suspected PE */}
+        <motion.div
+          animate={{
+            y: [4, -4, 4],
+          }}
+          transition={{
+            duration: 5.0,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 0.4,
+          }}
+          style={{ rotate: 2 }}
+          whileHover={{ scale: 1.05, rotate: 0 }}
+          onHoverStart={() => sounds.playSelect()}
+          className="cursor-pointer drop-shadow-[0_12px_22px_rgba(200,30,51,0.45)] overflow-visible shrink-0"
+        >
           <CaseCard card={PROTOTYPE_4_CARDS.caseCard} size="sm" isHoverable={false} />
-        </div>
-      </motion.div>
+        </motion.div>
 
-      {/* 4. Right Lower: T-03 Target Thyroid (Exact Prototype Replica) */}
-      <motion.div
-        className="hidden md:block absolute top-[310px] right-6 lg:right-16 pointer-events-auto cursor-pointer"
-        animate={{
-          y: [-7, 9, -7],
-          rotate: [-4, -8, -4],
-        }}
-        transition={{
-          duration: 5.5,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 1.2,
-        }}
-        whileHover={{ scale: 1.08, rotate: 0 }}
-        onHoverStart={() => sounds.playSelect()}
-      >
-        <div className="transform scale-90 lg:scale-100 origin-top-right drop-shadow-[0_15px_25px_rgba(0,168,107,0.5)]">
+        {/* Lower Card: T-03 Target: Thyroid */}
+        <motion.div
+          animate={{
+            y: [-4, 4, -4],
+          }}
+          transition={{
+            duration: 5.4,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1.2,
+          }}
+          style={{ rotate: -2 }}
+          whileHover={{ scale: 1.05, rotate: 0 }}
+          onHoverStart={() => sounds.playSelect()}
+          className="cursor-pointer drop-shadow-[0_12px_22px_rgba(14,138,88,0.45)] overflow-visible shrink-0"
+        >
           <ClueCard card={PROTOTYPE_4_CARDS.clue} size="sm" isHoverable={false} />
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }

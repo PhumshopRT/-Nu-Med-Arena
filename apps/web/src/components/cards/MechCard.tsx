@@ -53,12 +53,12 @@ export function MechCard({
         <div>
           <div className="flex justify-between items-center mb-0.5">
             {/* Left ID Badge */}
-            <div className="bg-[#FEF3C7] text-[#D97706] px-2 py-0.5 rounded-full flex items-center space-x-1 shadow-xs border border-amber-300">
+            <div className="bg-[#FFF6D9] text-[#B45309] px-2 py-0.5 rounded-full flex items-center space-x-1 shadow-xs border border-amber-300">
               <span className="font-game font-bold text-[10px] md:text-[11px] tracking-wide">{card.id}</span>
             </div>
 
             {/* Right Cog/Gear Icon */}
-            <div className="w-5 h-5 rounded-full bg-[#FEF3C7] text-[#D97706] flex items-center justify-center text-xs shadow-xs border border-amber-300">
+            <div className="w-5 h-5 rounded-full bg-[#FFF6D9] text-[#B45309] flex items-center justify-center text-xs shadow-xs border border-amber-300">
               ⚙️
             </div>
           </div>
@@ -72,15 +72,15 @@ export function MechCard({
         </div>
 
         {/* 3. Illustration Area (Cross-section with callouts) */}
-        <div className="my-auto w-full h-20 md:h-24 flex items-center justify-center py-1">
+        <div className="my-auto w-full h-[60px] md:h-18 flex items-center justify-center py-0.5">
           {renderIllustration()}
         </div>
 
         {/* 4. Bullet Points List (Matching card-prototype.jpg) */}
-        <div className="border-t border-slate-200/90 pt-1 space-y-1 text-[9px] md:text-[10px] leading-snug text-slate-800">
+        <div className="border-t border-slate-200/90 pt-0.5 space-y-[2px] text-[8px] md:text-[9.5px] leading-tight text-slate-800">
           {card.body.map((bullet, i) => (
-            <div key={i} className="flex items-start space-x-1.5">
-              <span className="text-slate-900 font-black mt-0.5">•</span>
+            <div key={i} className="flex items-start space-x-1">
+              <span className="text-amber-800 font-black mt-0.5">•</span>
               <span className="text-slate-700 font-medium leading-tight">{bullet}</span>
             </div>
           ))}

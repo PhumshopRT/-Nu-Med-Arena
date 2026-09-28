@@ -26,40 +26,40 @@ export function CardFrame({
 }: CardFrameProps) {
   // Size presets respecting standard 63/88 trading card ratio
   const sizeClasses = {
-    sm: "w-48 h-[268px]",
-    md: "w-64 h-[357px]",
-    lg: "w-80 h-[447px]",
+    sm: "w-[196px] h-[274px]",
+    md: "w-[252px] h-[352px]",
+    lg: "w-[297px] h-[415px]",
   };
 
   const getThemeConfig = () => {
     switch (type) {
       case "RP":
         return {
-          bg: "bg-[#1B70BF]", // Vibrant Medical Cobalt Blue from card-prototype.jpg
-          border: "border-[#155A9C]",
+          bg: "bg-[#2F6FED]", // Locked RP Blue
+          border: "border-[#1E4FD7]",
           categoryLabel: "Radiopharmaceutical",
-          selectedGlow: "ring-4 ring-white shadow-[0_0_25px_rgba(27,112,191,0.9)]",
+          selectedGlow: "ring-4 ring-white shadow-[0_0_25px_rgba(47,111,237,0.9)]",
         };
       case "MECH":
         return {
-          bg: "bg-[#EFA316]", // Warm Golden Amber from card-prototype.jpg
-          border: "border-[#C7850D]",
+          bg: "bg-[#E6A100]", // Locked MECH Gold
+          border: "border-[#B45309]",
           categoryLabel: "Mechanism",
-          selectedGlow: "ring-4 ring-white shadow-[0_0_25px_rgba(239,163,22,0.9)]",
+          selectedGlow: "ring-4 ring-white shadow-[0_0_25px_rgba(230,161,0,0.9)]",
         };
       case "CASE":
         return {
-          bg: "bg-[#E03E3E]", // Clinical Crimson Red from card-prototype.jpg
-          border: "border-[#B92B2B]",
+          bg: "bg-[#C81E33]", // Locked CASE Red
+          border: "border-[#991B1B]",
           categoryLabel: "Clinical Case",
-          selectedGlow: "ring-4 ring-white shadow-[0_0_25px_rgba(224,62,62,0.9)]",
+          selectedGlow: "ring-4 ring-white shadow-[0_0_25px_rgba(200,30,51,0.9)]",
         };
       case "CLUE":
         return {
-          bg: "bg-[#00A86B]", // Target Clue Emerald Green from card-prototype.jpg
-          border: "border-[#008755]",
+          bg: "bg-[#0E8A58]", // Locked CLUE Green
+          border: "border-[#065F46]",
           categoryLabel: "Target / Clue",
-          selectedGlow: "ring-4 ring-white shadow-[0_0_25px_rgba(0,168,107,0.9)]",
+          selectedGlow: "ring-4 ring-white shadow-[0_0_25px_rgba(14,138,88,0.9)]",
         };
     }
   };
@@ -70,7 +70,7 @@ export function CardFrame({
     <div
       onClick={onClick}
       className={clsx(
-        "relative rounded-[22px] p-[6px] pb-[4px] flex flex-col justify-between select-none overflow-hidden transition-all duration-200 shadow-xl",
+        "relative rounded-[18px] p-[5px] pb-[3px] flex flex-col justify-between select-none overflow-visible transition-all duration-200 shadow-xl",
         sizeClasses[size],
         theme.bg,
         isHoverable && "hover:-translate-y-2 hover:shadow-2xl hover:scale-[1.02] cursor-pointer",
@@ -82,13 +82,13 @@ export function CardFrame({
       }}
     >
       {/* 1. Inner White Card Container (Houses all contents exactly as in prototype) */}
-      <div className="relative z-10 w-full flex-1 min-h-0 bg-white rounded-[16px] p-2 md:p-2.5 flex flex-col justify-between overflow-hidden shadow-inner text-slate-900">
+      <div className="relative z-10 w-full flex-1 min-h-0 bg-white rounded-[13px] p-2 md:p-2.5 flex flex-col justify-between overflow-hidden shadow-inner text-slate-900">
         {children}
       </div>
 
       {/* 2. Bottom Colored Footer with White Category Title (matching card-prototype.jpg) */}
-      <div className="w-full h-[22px] shrink-0 flex items-center justify-center pointer-events-none select-none">
-        <span className="text-white font-black text-[9px] md:text-[11px] tracking-wider font-sans uppercase drop-shadow-xs">
+      <div className="w-full h-[20px] md:h-[22px] shrink-0 flex items-center justify-center pointer-events-none select-none">
+        <span className="text-white font-black text-[9px] md:text-[10.5px] tracking-wider font-game uppercase drop-shadow-xs">
           {theme.categoryLabel}
         </span>
       </div>

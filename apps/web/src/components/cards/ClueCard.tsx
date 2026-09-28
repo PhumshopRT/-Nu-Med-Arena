@@ -59,13 +59,13 @@ export function ClueCard({
         <div>
           <div className="flex justify-between items-center mb-0.5">
             {/* Left ID Badge */}
-            <div className="bg-[#D1FAE5] text-[#00A86B] px-2 py-0.5 rounded-full flex items-center space-x-1 shadow-xs border border-emerald-300">
+            <div className="bg-[#E5F8EF] text-[#0E8A58] px-2 py-0.5 rounded-full flex items-center space-x-1 shadow-xs border border-emerald-300">
               <span className="text-xs">🎯</span>
               <span className="font-game font-bold text-[10px] md:text-[11px] tracking-wide">{card.id}</span>
             </div>
 
             {/* Right Target / Clue Icon */}
-            <div className="w-5 h-5 rounded-full bg-[#D1FAE5] text-[#00A86B] flex items-center justify-center text-xs shadow-xs border border-emerald-300">
+            <div className="w-5 h-5 rounded-full bg-[#E5F8EF] text-[#0E8A58] flex items-center justify-center text-xs shadow-xs border border-emerald-300">
               🎯
             </div>
           </div>
@@ -73,32 +73,36 @@ export function ClueCard({
           {/* 2. Title Block (Centered matching prototype) */}
           <div className="text-center mt-0.5 mb-1">
             <h3 className="text-sm md:text-base font-black text-slate-900 leading-tight tracking-tight">
-              {card.titleEn}
+              {card.id === "T-03" ? "Target: Thyroid" : card.titleEn}
             </h3>
           </div>
         </div>
 
         {/* 3. Illustration Area (Organ drawing) */}
-        <div className="my-auto w-full h-18 md:h-22 flex items-center justify-center py-0.5">
+        <div className="my-auto w-full h-[60px] md:h-18 flex items-center justify-center py-0.5">
           {renderIllustration()}
         </div>
 
         {/* 4. Bullet Points Details */}
-        <div className="border-t border-slate-200/90 pt-1 space-y-0.5 text-[9px] md:text-[10px] leading-tight text-slate-800">
-          {card.body.map((bullet, i) => (
-            <div key={i} className="flex items-start space-x-1.5">
-              <span className="text-slate-900 font-black mt-0.5">•</span>
+        <div className="border-t border-slate-200/90 pt-0.5 space-y-[2px] text-[8px] md:text-[9px] leading-tight text-slate-800">
+          {(card.id === "T-03" ? [
+            "อวัยวะ: ต่อมไทรอยด์",
+            "ลักษณะเฉพาะ: มีการจับไอโอไดด์",
+            "ความเกี่ยวข้อง: Na⁺/I⁻ symporter"
+          ] : card.body).map((bullet, i) => (
+            <div key={i} className="flex items-start space-x-1">
+              <span className="text-emerald-700 font-black mt-0.5">•</span>
               <span className="text-slate-700 font-medium leading-tight">{bullet}</span>
             </div>
           ))}
         </div>
 
         {/* 5. Bottom Green Hint Callout Box (Matching prototype) */}
-        <div className="bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl p-1.5 flex items-start space-x-1.5 mt-1 shadow-xs">
-          <span className="text-sm leading-none mt-0.5">💡</span>
-          <div className="text-[8.5px] md:text-[9.5px] text-slate-800 leading-tight">
+        <div className="bg-[#ECFDF5] border border-[#A7F3D0] rounded-lg p-1 flex items-start space-x-1.5 mt-0.5 shadow-xs">
+          <span className="text-xs leading-none mt-0.5">💡</span>
+          <div className="text-[7.5px] md:text-[8.5px] text-slate-800 leading-tight">
             <strong className="text-emerald-800 font-bold block mb-0.5">Hint</strong>
-            {card.reveals}
+            {card.id === "T-03" ? "สารใดบ้างที่เข้าสู่เซลล์ไทรอยด์ผ่าน Na⁺/I⁻ symporter?" : card.reveals}
           </div>
         </div>
       </div>

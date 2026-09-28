@@ -136,42 +136,92 @@ export function LungIllustration({ className = "w-full h-full" }: { className?: 
   );
 }
 
-// 4. Thyroid (for T-03 & 123I-NaI)
+// 4. Thyroid (for T-03 & 123I-NaI) - Authentic Butterfly Gland on Human Neck
 export function ThyroidIllustration({ className = "w-full h-full" }: { className?: string }) {
   return (
     <svg viewBox="0 0 160 120" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Neck & Jawline outline */}
-      <path d="M40 10 L40 40 Q80 50 120 40 L120 10" stroke="#FDBA74" strokeWidth="2" strokeDasharray="3 3" />
-      <path d="M45 40 L45 110 M115 40 L115 110" stroke="#FED7AA" strokeWidth="1.5" strokeDasharray="4 4" />
+      {/* Background Soft Glow */}
+      <rect width="160" height="120" rx="8" fill="#F0FDF4" />
 
-      {/* Larynx / Trachea cartilages */}
-      <rect x="72" y="25" width="16" height="8" rx="2" fill="#E2E8F0" stroke="#94A3B8" />
-      <rect x="70" y="36" width="20" height="10" rx="3" fill="#CBD5E1" stroke="#94A3B8" />
-      
-      {/* Butterfly-shaped Thyroid Gland */}
-      {/* Right Lobe */}
+      {/* Human Neck & Shoulders Silhouette (Peach / Skin tone) */}
       <path 
-        d="M74 65 C74 48 56 42 48 55 C40 68 40 92 50 102 C58 110 72 98 74 82 Z" 
-        fill="#FB923C" 
-        stroke="#EA580C" 
-        strokeWidth="2.5" 
+        d="M48 5 L48 30 C48 58 32 80 18 105 L142 105 C128 80 112 58 112 30 L112 5 Z" 
+        fill="#FFEDD5" 
+        stroke="#FDBA74" 
+        strokeWidth="1.5" 
       />
-      {/* Left Lobe */}
-      <path 
-        d="M86 65 C86 48 104 42 112 55 C120 68 120 92 110 102 C102 110 88 98 86 82 Z" 
-        fill="#FB923C" 
-        stroke="#EA580C" 
-        strokeWidth="2.5" 
-      />
-      {/* Isthmus Connecting Bridge */}
-      <path d="M72 75 Q80 82 88 75" stroke="#EA580C" strokeWidth="8" strokeLinecap="round" />
 
-      {/* Iodide trapping sparkles */}
-      <circle cx="56" cy="72" r="3" fill="#FACC15" />
-      <circle cx="104" cy="72" r="3" fill="#FACC15" />
-      <text x="80" y="112" fill="#047857" fontSize="8" fontWeight="bold" textAnchor="middle">
-        Na⁺/I⁻ Symporter
-      </text>
+      {/* Jawline & Chin Contour at Top */}
+      <path 
+        d="M44 12 Q80 32 116 12" 
+        stroke="#FB923C" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        fill="none" 
+      />
+      <ellipse cx="80" cy="18" rx="8" ry="3" fill="#FED7AA" />
+
+      {/* Clavicle / Collarbone Base Lines */}
+      <path d="M26 100 Q50 92 74 100" stroke="#FDBA74" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+      <path d="M86 100 Q110 92 134 100" stroke="#FDBA74" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+
+      {/* Trachea (Windpipe) cartilage rings down midline */}
+      <g>
+        <rect x="71" y="32" width="18" height="58" rx="2" fill="#E2E8F0" stroke="#94A3B8" strokeWidth="1" />
+        <line x1="71" y1="38" x2="89" y2="38" stroke="#94A3B8" strokeWidth="1" />
+        <line x1="71" y1="44" x2="89" y2="44" stroke="#94A3B8" strokeWidth="1" />
+        <line x1="71" y1="50" x2="89" y2="50" stroke="#94A3B8" strokeWidth="1" />
+        <line x1="71" y1="56" x2="89" y2="56" stroke="#94A3B8" strokeWidth="1" />
+        <line x1="71" y1="62" x2="89" y2="62" stroke="#94A3B8" strokeWidth="1" />
+        <line x1="71" y1="68" x2="89" y2="68" stroke="#94A3B8" strokeWidth="1" />
+        <line x1="71" y1="74" x2="89" y2="74" stroke="#94A3B8" strokeWidth="1" />
+        <line x1="71" y1="80" x2="89" y2="80" stroke="#94A3B8" strokeWidth="1" />
+        <line x1="71" y1="86" x2="89" y2="86" stroke="#94A3B8" strokeWidth="1" />
+      </g>
+
+      {/* Butterfly-shaped Thyroid Gland wrapped over Trachea */}
+      {/* Right Lobe (Viewer's left) */}
+      <path 
+        d="M73 54 C72 40 55 35 46 48 C37 62 39 84 49 92 C58 98 70 88 73 74 Z" 
+        fill="#FB923C" 
+        stroke="#C2410C" 
+        strokeWidth="2" 
+      />
+      {/* Right Lobe inner soft shading */}
+      <path 
+        d="M68 57 C68 46 56 42 50 51 C43 62 44 78 52 85 C58 89 66 81 68 71 Z" 
+        fill="#F97316" 
+        opacity="0.5" 
+      />
+
+      {/* Left Lobe (Viewer's right) */}
+      <path 
+        d="M87 54 C88 40 105 35 114 48 C123 62 121 84 111 92 C102 98 90 88 87 74 Z" 
+        fill="#FB923C" 
+        stroke="#C2410C" 
+        strokeWidth="2" 
+      />
+      {/* Left Lobe inner soft shading */}
+      <path 
+        d="M92 57 C92 46 104 42 110 51 C117 62 116 78 108 85 C102 89 94 81 92 71 Z" 
+        fill="#F97316" 
+        opacity="0.5" 
+      />
+
+      {/* Isthmus (Connecting Bridge across 2nd-4th tracheal rings) */}
+      <path 
+        d="M71 66 Q80 72 89 66 L89 74 Q80 80 71 74 Z" 
+        fill="#EA580C" 
+        stroke="#C2410C" 
+        strokeWidth="1.5" 
+      />
+
+      {/* Iodide Trapping (I⁻ ions accumulating) */}
+      <g>
+        <circle cx="52" cy="62" r="3.5" fill="#FACC15" stroke="#CA8A04" strokeWidth="1" />
+        <circle cx="108" cy="62" r="3.5" fill="#FACC15" stroke="#CA8A04" strokeWidth="1" />
+        <circle cx="80" cy="71" r="2.5" fill="#FACC15" />
+      </g>
     </svg>
   );
 }
