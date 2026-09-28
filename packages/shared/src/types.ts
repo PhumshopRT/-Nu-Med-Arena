@@ -35,7 +35,7 @@ export interface CaseCard extends CardBase {
   acceptedRpIds: string[];
   acceptedMechIds: string[];
   explanationTh: string;
-  points: 2 | 4;
+  points: 8 | 16;
   clueId?: string; // Mapped specific clue card ID from CLUE_DECK
 }
 
@@ -92,6 +92,8 @@ export interface PublicPlayer {
   };
   isBot?: boolean;
   avatar?: string;
+  title?: string;
+  frame?: string;
 }
 
 export interface PublicRoomState {

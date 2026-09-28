@@ -371,46 +371,194 @@ export function clearNaPreview(): void {
   localStorage.removeItem("na_preview");
 }
 
-export interface RegisteredAccount {
-  studentId: string;
-  displayName: string;
-  avatarId: string;
-  coins: number;
-  xp: number;
-  registeredAt: string;
-  lastLoginAt: string;
-  rememberMe: boolean;
+export interface NaCoinLog {
+  timestamp: string;
+  delta: number;
+  reason: string;
 }
 
-export function getRegisteredAccounts(): RegisteredAccount[] {
-  if (typeof window === "undefined") return [];
+export interface NaAccount {
+  studentId: string;
+  displayName: string;
+  password: string;
+  coins: number;
+  xp: number;
+  correctCount: number;
+  createdAt: string;
+  lastLoginAt: string;
+  lastPlayedAt?: string;
+  disabled?: boolean;
+  avatarId?: string;
+  inventory?: string[];
+  equipped?: NaEquipped;
+  coinHistory?: NaCoinLog[];
+}
+
+const DEFAULT_SEED_ACCOUNTS: NaAccount[] = [
+  {
+    studentId: "68208307037",
+    displayName: "ภูมิ ภูวนาถ",
+    password: "ภูมิ",
+    coins: 120,
+    xp: 60,
+    correctCount: 0,
+    createdAt: new Date().toISOString(),
+    lastLoginAt: new Date().toISOString(),
+    disabled: false,
+    avatarId: "avatar-default",
+    inventory: DEFAULT_OWNED_IDS,
+    equipped: DEFAULT_EQUIPPED
+  },
+  {
+    studentId: "67208307015",
+    displayName: "นศ. ธันวา",
+    password: "1234",
+    coins: 120,
+    xp: 60,
+    correctCount: 0,
+    createdAt: new Date().toISOString(),
+    lastLoginAt: new Date().toISOString(),
+    disabled: false,
+    avatarId: "avatar-thyroid",
+    inventory: DEFAULT_OWNED_IDS,
+    equipped: { ...DEFAULT_EQUIPPED, avatar: "avatar-thyroid" }
+  },
+  {
+    studentId: "66208307052",
+    displayName: "นักศึกษา 7052",
+    password: "7052",
+    coins: 120,
+    xp: 60,
+    correctCount: 0,
+    createdAt: new Date().toISOString(),
+    lastLoginAt: new Date().toISOString(),
+    disabled: false,
+    avatarId: "avatar-lung",
+    inventory: DEFAULT_OWNED_IDS,
+    equipped: { ...DEFAULT_EQUIPPED, avatar: "avatar-lung" }
+  }
+];
+
+export function getNaAccounts(): NaAccount[] {
+  if (typeof window === "undefined") return DEFAULT_SEED_ACCOUNTS;
   try {
-    const raw = localStorage.getItem("nucmed_registered_accounts");
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    const raw = localStorage.getItem("na_accounts");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+
+    // Migrate from legacy registered accounts if present
+    const legacyRaw = localStorage.getItem("nucmed_registered_accounts");
+    if (legacyRaw) {
+      try {
+        const legacy = JSON.parse(legacyRaw);
+        if (Array.isArray(legacy) && legacy.length > 0) {
+          const migrated: NaAccount[] = legacy.map((acc: any) => ({
+            studentId: acc.studentId,
+            displayName: acc.displayName || `นักศึกษา ${acc.studentId.slice(-4)}`,
+            password: acc.displayName || acc.studentId.slice(-4),
+            coins: typeof acc.coins === "number" ? acc.coins : 120,
+            xp: typeof acc.xp === "number" ? acc.xp : 60,
+            correctCount: 0,
+            createdAt: acc.registeredAt || new Date().toISOString(),
+            lastLoginAt: acc.lastLoginAt || new Date().toISOString(),
+            disabled: false,
+            avatarId: acc.avatarId || "avatar-default",
+            inventory: DEFAULT_OWNED_IDS,
+            equipped: { ...DEFAULT_EQUIPPED, avatar: acc.avatarId || "avatar-default" }
+          }));
+          localStorage.setItem("na_accounts", JSON.stringify(migrated));
+          return migrated;
+        }
+      } catch {}
+    }
+
+    // Seed defaults
+    localStorage.setItem("na_accounts", JSON.stringify(DEFAULT_SEED_ACCOUNTS));
+    return DEFAULT_SEED_ACCOUNTS;
   } catch {
-    return [];
+    return DEFAULT_SEED_ACCOUNTS;
   }
 }
 
-export function saveRegisteredAccounts(accounts: RegisteredAccount[]): void {
+export function saveNaAccounts(accounts: NaAccount[]): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem("nucmed_registered_accounts", JSON.stringify(accounts));
+  localStorage.setItem("na_accounts", JSON.stringify(accounts));
 }
 
-export function registerAccount(params: {
+export function findNaAccount(studentId: string): NaAccount | undefined {
+  const clean = studentId.trim().toUpperCase();
+  return getNaAccounts().find(a => a.studentId === clean);
+}
+
+export interface RegisterResult {
+  success: boolean;
+  error?: string;
+  user?: StudentUser;
+}
+
+export function registerNaAccount(params: {
   studentId: string;
-  displayName?: string;
+  displayName: string;
+  password: string;
   avatarId?: string;
   rememberMe?: boolean;
-}): StudentUser {
+}): RegisterResult {
   const cleanId = params.studentId.trim().toUpperCase();
+  const name = params.displayName.trim();
+  const password = params.password.trim();
   const avatarId = params.avatarId || "avatar-default";
-  const name = params.displayName?.trim() || `นักศึกษา ${cleanId.slice(-4)}`;
-  const rememberMe = params.rememberMe ?? true;
 
-  // New registered student gets 120 NucCoin welcome bonus
+  if (!cleanId) {
+    return { success: false, error: "กรุณากรอกรหัสนักศึกษา" };
+  }
+  if (!name) {
+    return { success: false, error: "กรุณากรอกชื่อที่ต้องการแสดง" };
+  }
+  if (!password) {
+    return { success: false, error: "กรุณาตั้งรหัสผ่าน" };
+  }
+
+  const accounts = getNaAccounts();
+  const existing = accounts.find(a => a.studentId === cleanId);
+  if (existing) {
+    return {
+      success: false,
+      error: "รหัสนักศึกษานี้ได้ลงทะเบียนไว้แล้ว กรุณาเข้าสู่ระบบด้วยรหัสผ่านเดิม"
+    };
+  }
+
+  const newAccount: NaAccount = {
+    studentId: cleanId,
+    displayName: name,
+    password: password,
+    coins: 120, // New student starting balance
+    xp: 60,
+    correctCount: 0,
+    createdAt: new Date().toISOString(),
+    lastLoginAt: new Date().toISOString(),
+    disabled: false,
+    avatarId: avatarId,
+    inventory: [...DEFAULT_OWNED_IDS, avatarId],
+    equipped: {
+      ...DEFAULT_EQUIPPED,
+      avatar: avatarId
+    },
+    coinHistory: [
+      {
+        timestamp: new Date().toISOString(),
+        delta: 120,
+        reason: "โบนัสนักศึกษาใหม่เริ่มต้น (Welcome bonus)"
+      }
+    ]
+  };
+
+  accounts.unshift(newAccount);
+  saveNaAccounts(accounts);
+
   const user: StudentUser = {
     studentId: cleanId,
     displayName: name,
@@ -427,102 +575,305 @@ export function registerAccount(params: {
 
   if (typeof window !== "undefined") {
     localStorage.setItem(`nucmed_user_${cleanId}`, JSON.stringify(user));
-
-    const accounts = getRegisteredAccounts().filter(a => a.studentId !== cleanId);
-    const newAccount: RegisteredAccount = {
-      studentId: cleanId,
-      displayName: name,
-      avatarId: avatarId,
-      coins: 120,
-      xp: 60,
-      registeredAt: new Date().toISOString(),
-      lastLoginAt: new Date().toISOString(),
-      rememberMe
-    };
-    accounts.unshift(newAccount);
-    saveRegisteredAccounts(accounts);
-
     localStorage.setItem("nucmed_current_user", JSON.stringify(user));
-
-    if (rememberMe) {
+    if (params.rememberMe ?? true) {
       localStorage.setItem("nucmed_remembered_id", cleanId);
+    }
+    setNaWallet({ coins: 120 });
+    setNaInventory({ ownedIds: [...DEFAULT_OWNED_IDS, avatarId] });
+    setNaEquipped(newAccount.equipped!);
+  }
+
+  return { success: true, user };
+}
+
+export interface LoginResult {
+  success: boolean;
+  isAdmin?: boolean;
+  error?: string;
+  user?: StudentUser;
+}
+
+export function loginNaAccount(studentId: string, password: string, rememberMe: boolean = true): LoginResult {
+  const cleanId = studentId.trim();
+  const cleanPass = password.trim();
+
+  // Admin login check (username "admin" and password "rtkmpht")
+  if (cleanId.toLowerCase() === "admin" && cleanPass === "rtkmpht") {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("na_admin_auth", "true");
+    }
+    return { success: true, isAdmin: true };
+  }
+
+  if (cleanId.toLowerCase() === "admin") {
+    return { success: false, error: "รหัสผ่านแอดมินไม่ถูกต้อง" };
+  }
+
+  const accounts = getNaAccounts();
+  const account = accounts.find(a => a.studentId === cleanId.toUpperCase());
+
+  if (!account) {
+    return {
+      success: false,
+      error: "ไม่พบรหัสนักศึกษานี้ในระบบ กรุณากดแท็บ 'สมัครใหม่' เพื่อลงทะเบียน"
+    };
+  }
+
+  if (account.disabled) {
+    return {
+      success: false,
+      error: "บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่ออาจารย์ผู้สอน"
+    };
+  }
+
+  // Strictly check password - DO NOT OVERWRITE!
+  if (account.password !== cleanPass) {
+    return {
+      success: false,
+      error: "รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง"
+    };
+  }
+
+  // Successful login
+  account.lastLoginAt = new Date().toISOString();
+  saveNaAccounts(accounts);
+
+  const user: StudentUser = {
+    studentId: account.studentId,
+    displayName: account.displayName,
+    xp: account.xp,
+    coins: account.coins,
+    equipped: {
+      frame: account.equipped?.frame || "frame-graphite",
+      cardback: account.equipped?.back || "back-default",
+      avatar: account.equipped?.avatar || account.avatarId || "avatar-default",
+      fx: account.equipped?.fx || "fx-none",
+      title: account.equipped?.title || "title-none"
+    }
+  };
+
+  if (typeof window !== "undefined") {
+    localStorage.setItem(`nucmed_user_${account.studentId}`, JSON.stringify(user));
+    localStorage.setItem("nucmed_current_user", JSON.stringify(user));
+    if (rememberMe) {
+      localStorage.setItem("nucmed_remembered_id", account.studentId);
     } else {
       localStorage.removeItem("nucmed_remembered_id");
     }
 
-    setNaWallet({ coins: 120 });
-    const owned = ["frame-graphite", "back-default", avatarId, "fx-none", "title-none"];
-    setNaInventory({ ownedIds: owned });
-    setNaEquipped({
-      frame: "frame-graphite",
-      back: "back-default",
-      avatar: avatarId,
-      fx: "fx-none",
-      title: "title-none"
-    });
+    setNaWallet({ coins: account.coins });
+    if (account.inventory) {
+      setNaInventory({ ownedIds: account.inventory });
+    }
+    if (account.equipped) {
+      setNaEquipped(account.equipped);
+    }
   }
 
-  return user;
+  return { success: true, user };
 }
 
-export function loginAccount(studentId: string, rememberMe: boolean = true): StudentUser {
-  const cleanId = studentId.trim().toUpperCase();
-  let user: StudentUser | null = null;
+export function isAdminAuthenticated(): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem("na_admin_auth") === "true";
+}
 
+export function setAdminAuthenticated(auth: boolean): void {
+  if (typeof window === "undefined") return;
+  if (auth) {
+    localStorage.setItem("na_admin_auth", "true");
+  } else {
+    localStorage.removeItem("na_admin_auth");
+  }
+}
+
+export function adminUpdateCoins(studentId: string, delta: number, reason: string): { success: boolean; error?: string } {
+  if (!reason.trim()) {
+    return { success: false, error: "กรุณาระบุเหตุผลในการปรับยอดเหรียญ" };
+  }
+  const accounts = getNaAccounts();
+  const idx = accounts.findIndex(a => a.studentId === studentId);
+  if (idx < 0) {
+    return { success: false, error: "ไม่พบข้อมูลนักศึกษา" };
+  }
+
+  const account = accounts[idx];
+  account.coins = Math.max(0, account.coins + delta);
+  if (!account.coinHistory) account.coinHistory = [];
+  account.coinHistory.unshift({
+    timestamp: new Date().toISOString(),
+    delta,
+    reason: reason.trim()
+  });
+
+  saveNaAccounts(accounts);
+
+  // Sync if this student is currently active session
   if (typeof window !== "undefined") {
-    const raw = localStorage.getItem(`nucmed_user_${cleanId}`);
-    if (raw) {
+    const currentRaw = localStorage.getItem("nucmed_current_user");
+    if (currentRaw) {
       try {
-        user = JSON.parse(raw);
+        const cur = JSON.parse(currentRaw);
+        if (cur.studentId === studentId) {
+          cur.coins = account.coins;
+          localStorage.setItem("nucmed_current_user", JSON.stringify(cur));
+          setNaWallet({ coins: account.coins });
+        }
       } catch {}
     }
   }
 
-  if (!user) {
-    user = createDefaultUser(cleanId);
+  return { success: true };
+}
+
+export function adminResetCoins(studentId: string): { success: boolean; error?: string } {
+  const accounts = getNaAccounts();
+  const idx = accounts.findIndex(a => a.studentId === studentId);
+  if (idx < 0) {
+    return { success: false, error: "ไม่พบข้อมูลนักศึกษา" };
   }
+
+  const account = accounts[idx];
+  const oldCoins = account.coins;
+  account.coins = 120;
+  if (!account.coinHistory) account.coinHistory = [];
+  account.coinHistory.unshift({
+    timestamp: new Date().toISOString(),
+    delta: 120 - oldCoins,
+    reason: "อาจารย์รีเซ็ตยอดเหรียญเริ่มต้น (120)"
+  });
+
+  saveNaAccounts(accounts);
 
   if (typeof window !== "undefined") {
-    const wallet = getNaWallet();
-    if (wallet && typeof wallet.coins === "number") {
-      user.coins = wallet.coins;
-    } else {
-      setNaWallet({ coins: user.coins });
-    }
-
-    localStorage.setItem(`nucmed_user_${cleanId}`, JSON.stringify(user));
-    localStorage.setItem("nucmed_current_user", JSON.stringify(user));
-
-    const accounts = getRegisteredAccounts();
-    const existingIdx = accounts.findIndex(a => a.studentId === cleanId);
-    const updatedAccount: RegisteredAccount = {
-      studentId: cleanId,
-      displayName: user.displayName,
-      avatarId: user.equipped.avatar || "avatar-default",
-      coins: user.coins,
-      xp: user.xp,
-      registeredAt: existingIdx >= 0 ? accounts[existingIdx].registeredAt : new Date().toISOString(),
-      lastLoginAt: new Date().toISOString(),
-      rememberMe
-    };
-
-    const newAccounts = accounts.filter(a => a.studentId !== cleanId);
-    newAccounts.unshift(updatedAccount);
-    saveRegisteredAccounts(newAccounts);
-
-    if (rememberMe) {
-      localStorage.setItem("nucmed_remembered_id", cleanId);
-    } else {
-      localStorage.removeItem("nucmed_remembered_id");
+    const currentRaw = localStorage.getItem("nucmed_current_user");
+    if (currentRaw) {
+      try {
+        const cur = JSON.parse(currentRaw);
+        if (cur.studentId === studentId) {
+          cur.coins = 120;
+          localStorage.setItem("nucmed_current_user", JSON.stringify(cur));
+          setNaWallet({ coins: 120 });
+        }
+      } catch {}
     }
   }
 
-  return user;
+  return { success: true };
+}
+
+export function adminToggleDisable(studentId: string): { success: boolean; error?: string } {
+  if (studentId.toLowerCase() === "admin") {
+    return { success: false, error: "ไม่อนุญาตให้ระงับบัญชีผู้ดูแลระบบ (admin)" };
+  }
+
+  const accounts = getNaAccounts();
+  const idx = accounts.findIndex(a => a.studentId === studentId);
+  if (idx < 0) {
+    return { success: false, error: "ไม่พบข้อมูลนักศึกษา" };
+  }
+
+  accounts[idx].disabled = !accounts[idx].disabled;
+  saveNaAccounts(accounts);
+  return { success: true };
+}
+
+export function recordMatchPlayed(params: {
+  studentId: string;
+  coinsEarned: number;
+  correctCases: number;
+  reason: string;
+}): void {
+  const accounts = getNaAccounts();
+  const idx = accounts.findIndex(a => a.studentId === params.studentId);
+  if (idx >= 0) {
+    const acc = accounts[idx];
+    acc.coins += params.coinsEarned;
+    acc.correctCount = (acc.correctCount || 0) + params.correctCases;
+    acc.lastPlayedAt = new Date().toISOString();
+    if (!acc.coinHistory) acc.coinHistory = [];
+    acc.coinHistory.unshift({
+      timestamp: new Date().toISOString(),
+      delta: params.coinsEarned,
+      reason: params.reason
+    });
+    saveNaAccounts(accounts);
+
+    setNaWallet({ coins: acc.coins });
+    if (typeof window !== "undefined") {
+      const currentRaw = localStorage.getItem("nucmed_current_user");
+      if (currentRaw) {
+        try {
+          const cur = JSON.parse(currentRaw);
+          cur.coins = acc.coins;
+          localStorage.setItem("nucmed_current_user", JSON.stringify(cur));
+        } catch {}
+      }
+    }
+  }
+}
+
+// Backward-compatible adapters
+export interface RegisteredAccount {
+  studentId: string;
+  displayName: string;
+  avatarId: string;
+  coins: number;
+  xp: number;
+  registeredAt: string;
+  lastLoginAt: string;
+  rememberMe: boolean;
+}
+
+export function getRegisteredAccounts(): RegisteredAccount[] {
+  return getNaAccounts().map(a => ({
+    studentId: a.studentId,
+    displayName: a.displayName,
+    avatarId: a.avatarId || a.equipped?.avatar || "avatar-default",
+    coins: a.coins,
+    xp: a.xp,
+    registeredAt: a.createdAt,
+    lastLoginAt: a.lastLoginAt,
+    rememberMe: true
+  }));
+}
+
+export function saveRegisteredAccounts(accounts: RegisteredAccount[]): void {
+  // na_accounts is source of truth
+}
+
+export function registerAccount(params: {
+  studentId: string;
+  displayName?: string;
+  avatarId?: string;
+  rememberMe?: boolean;
+}): StudentUser {
+  const name = params.displayName?.trim() || `นักศึกษา ${params.studentId.slice(-4)}`;
+  const res = registerNaAccount({
+    studentId: params.studentId,
+    displayName: name,
+    password: name, // default password to display name
+    avatarId: params.avatarId,
+    rememberMe: params.rememberMe
+  });
+  if (res.user) return res.user;
+  return createDefaultUser(params.studentId, params.displayName);
+}
+
+export function loginAccount(studentId: string, rememberMe: boolean = true): StudentUser {
+  const account = findNaAccount(studentId);
+  if (account) {
+    const res = loginNaAccount(studentId, account.password, rememberMe);
+    if (res.user) return res.user;
+  }
+  return createDefaultUser(studentId);
 }
 
 export function logoutAccount(): void {
   if (typeof window !== "undefined") {
     localStorage.removeItem("nucmed_current_user");
+    localStorage.removeItem("na_admin_auth");
   }
 }
 
@@ -559,8 +910,8 @@ export function getRememberedUser(): StudentUser | null {
 export function removeRegisteredAccount(studentId: string): void {
   if (typeof window === "undefined") return;
   const cleanId = studentId.trim().toUpperCase();
-  const accounts = getRegisteredAccounts().filter(a => a.studentId !== cleanId);
-  saveRegisteredAccounts(accounts);
+  const accounts = getNaAccounts().filter(a => a.studentId !== cleanId);
+  saveNaAccounts(accounts);
 
   const rememberedId = localStorage.getItem("nucmed_remembered_id");
   if (rememberedId === cleanId) {
@@ -583,7 +934,24 @@ export function getLocalUser(): StudentUser {
   if (remembered) {
     return remembered;
   }
-  const newUser = createDefaultUser("68208307052", "นักศึกษา 7052");
+  const accounts = getNaAccounts();
+  const first = accounts[0];
+  if (first) {
+    return {
+      studentId: first.studentId,
+      displayName: first.displayName,
+      xp: first.xp,
+      coins: first.coins,
+      equipped: {
+        frame: first.equipped?.frame || "frame-graphite",
+        cardback: first.equipped?.back || "back-default",
+        avatar: first.equipped?.avatar || first.avatarId || "avatar-default",
+        fx: first.equipped?.fx || "fx-none",
+        title: first.equipped?.title || "title-none"
+      }
+    };
+  }
+  const newUser = createDefaultUser("68208307037", "ภูมิ ภูวนาถ");
   saveLocalUser(newUser);
   return newUser;
 }
@@ -594,14 +962,14 @@ export function saveLocalUser(user: StudentUser) {
     localStorage.setItem("nucmed_current_user", JSON.stringify(user));
     setNaWallet({ coins: user.coins });
 
-    // Update in registered accounts list if exists
-    const accounts = getRegisteredAccounts();
+    // Update in na_accounts if exists
+    const accounts = getNaAccounts();
     const idx = accounts.findIndex(a => a.studentId === user.studentId);
     if (idx >= 0) {
       accounts[idx].coins = user.coins;
       accounts[idx].xp = user.xp;
       accounts[idx].displayName = user.displayName;
-      saveRegisteredAccounts(accounts);
+      saveNaAccounts(accounts);
     }
   }
 }

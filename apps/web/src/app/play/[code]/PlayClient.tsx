@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import clsx from "clsx";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -44,10 +45,45 @@ import { MechCard } from "@/components/cards/MechCard";
 import { CaseCard as CaseCardComponent } from "@/components/cards/CaseCard";
 import { ClueCard as ClueCardComponent } from "@/components/cards/ClueCard";
 import { CardBack } from "@/components/cards/CardBack";
-import { getLocalUser, addRewards, saveLocalUser } from "@/lib/user";
+import { 
+  getLocalUser, 
+  addRewards, 
+  saveLocalUser, 
+  getNaEquipped, 
+  recordMatchPlayed, 
+  getNaWallet 
+} from "@/lib/user";
 import { sounds } from "@/lib/sound";
 import { createRoomSync, RoomSyncHandle, SyncMessage } from "@/lib/sync";
 import { getAssetPath } from "@/lib/assets";
+import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
+
+const getAvatarIcon = (avatarId?: string) => {
+  switch (avatarId) {
+    case "avatar-thyroid": return "🦋";
+    case "avatar-lung": return "🫁";
+    case "av_bone": return "🦴";
+    case "avatar-default":
+    default: return "☢️";
+  }
+};
+
+const getTitleBadge = (titleId?: string) => {
+  if (titleId === "title-capillary") return "Capillary Blockader";
+  return null;
+};
+
+const getFrameStyle = (frameId?: string) => {
+  switch (frameId) {
+    case "frame-gold":
+      return "border-amber-300 ring-2 ring-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.6)]";
+    case "frame-reactor":
+      return "border-cyan-400 ring-2 ring-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.8)] animate-pulse";
+    case "frame-graphite":
+    default:
+      return "border-amber-600/60 shadow-md";
+  }
+};
 
 export function PlayClient() {
   const params = useParams();
@@ -87,6 +123,14 @@ export function PlayClient() {
   const [lastRoundResult, setLastRoundResult] = useState<any>(null);
   const [isMuted, setIsMuted] = useState(sounds.getMuted());
   const [showExplanation, setShowExplanation] = useState(false);
+  const [matchReward, setMatchReward] = useState<{
+    coinsEarned: number;
+    totalCoins: number;
+    reason: string;
+    isWinner: boolean;
+    isTie: boolean;
+  } | null>(null);
+  const userCorrectCountRef = useRef(0);
   const syncRef = useRef<RoomSyncHandle | null>(null);
   const mechScrollRef = useRef<HTMLDivElement>(null);
 
@@ -102,6 +146,11 @@ export function PlayClient() {
   useEffect(() => {
     const localUser = getLocalUser();
     setUser(localUser);
+
+    const equipped = getNaEquipped();
+    const myAvatar = getAvatarIcon(localUser.equipped?.avatar || equipped.avatar);
+    const myTitle = getTitleBadge(localUser.equipped?.title || equipped.title);
+    const myFrame = localUser.equipped?.frame || equipped.frame;
 
     // Shuffle RP deck and deal 5 cards to player
     const shuffledRp = [...ALL_RP_CARDS].sort(() => Math.random() - 0.5);
@@ -139,7 +188,9 @@ export function PlayClient() {
           locked: false,
           score: 0,
           handCount: 5,
-          avatar: "☢️"
+          avatar: myAvatar,
+          title: myTitle || undefined,
+          frame: myFrame
         },
         {
           id: "bot_1",
@@ -384,6 +435,7 @@ export function PlayClient() {
     setLastRoundResult(result);
 
     if (result.scoreAwarded > 0) {
+      userCorrectCountRef.current += 1;
       sounds.playCorrect();
       confetti({
         particleCount: 80,
@@ -469,12 +521,52 @@ export function PlayClient() {
     sounds.playWin();
     setPhase("RESULT");
 
-    // Add match rewards to local user
-    if (user) {
-      const myScore = players.find((p) => p.studentId === user.studentId)?.score || 0;
-      const updated = addRewards(user, myScore);
-      setUser(updated);
+    if (!user) return;
+
+    // Calculate match reward based on final standings:
+    // "เข้าเส้นได้ 5 NucCoin, ชนะได้ 20, เสมออันดับ 1 ได้ 10"
+    const sorted = [...players].sort((a, b) => b.score - a.score);
+    const topScore = sorted[0]?.score || 0;
+    const winners = sorted.filter((p) => p.score === topScore);
+    const myScore = players.find((p) => p.studentId === user.studentId)?.score || 0;
+    const isWinner = winners.some((p) => p.studentId === user.studentId);
+    const isTie = isWinner && winners.length > 1;
+
+    let coinsEarned = 5; // เข้าเส้นได้ 5 NucCoin
+    let reason = "เข้าเส้นชัยจบการแข่งขัน (+5 NucCoin)";
+    if (isWinner && !isTie) {
+      coinsEarned = 20; // ชนะได้ 20
+      reason = "ชนะเลิศอันดับ 1 (+20 NucCoin)";
+    } else if (isTie) {
+      coinsEarned = 10; // เสมออันดับ 1 ได้ 10
+      reason = "เสมออันดับ 1 (+10 NucCoin)";
     }
+
+    const correctCases = userCorrectCountRef.current || 0;
+
+    recordMatchPlayed({
+      studentId: user.studentId,
+      coinsEarned,
+      correctCases,
+      reason
+    });
+
+    const wallet = getNaWallet();
+    const totalRemaining = wallet.coins;
+
+    setMatchReward({
+      coinsEarned,
+      totalCoins: totalRemaining,
+      reason,
+      isWinner: isWinner && !isTie,
+      isTie
+    });
+
+    setUser({
+      ...user,
+      coins: totalRemaining,
+      xp: (user.xp || 0) + myScore * 10
+    });
   };
 
   return (
@@ -561,20 +653,26 @@ export function PlayClient() {
       <div className="relative z-10 w-full flex justify-center items-center py-1 sm:py-1.5 bg-black/28 border-b border-amber-900/30 gap-1.5 sm:gap-3 overflow-x-auto px-2 sm:px-4 backdrop-blur-xs scrollbar-none">
         {players.map((p) => {
           const isMe = p.studentId === user?.studentId;
+          const frameClass = isMe && p.frame ? getFrameStyle(p.frame) : isMe ? "border-amber-400" : "border-amber-800/40";
           return (
             <div
               key={p.id}
-              className={`flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border text-[10px] sm:text-[11px] font-bold backdrop-blur-xs shrink-0 ${
+              className={`flex items-center space-x-1.5 px-2.5 sm:px-3 py-1 rounded-full border text-[10px] sm:text-[11px] font-bold backdrop-blur-xs shrink-0 transition-all ${
                 isMe
-                  ? "bg-amber-900/70 border-amber-400 text-amber-100 shadow-md"
+                  ? `bg-amber-900/85 text-amber-100 shadow-md ${frameClass}`
                   : "bg-black/35 border-amber-800/40 text-amber-200/80"
               }`}
             >
-              <span>{p.avatar || "👨‍🎓"}</span>
-              <span className="truncate max-w-[70px] sm:max-w-[85px]">{p.name}</span>
+              <span className="text-sm">{p.avatar || "👨‍🎓"}</span>
+              <span className="truncate max-w-[75px] sm:max-w-[95px]">{p.name}</span>
+              {p.title && (
+                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/25 text-amber-300 border border-amber-400/40 truncate max-w-[100px]">
+                  {p.title}
+                </span>
+              )}
               <span className="font-mono text-amber-300">({p.score})</span>
               {p.locked ? (
-                <span className="w-2 h-2 rounded-full bg-emerald-400" title="ตอบแล้ว" />
+                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" title="ตอบแล้ว" />
               ) : (
                 <span className="w-2 h-2 rounded-full bg-amber-500/50 animate-pulse" title="กำลังคิด" />
               )}
@@ -1055,45 +1153,117 @@ export function PlayClient() {
         )}
       </AnimatePresence>
 
-      {/* 5. Swap Phase Modal */}
+      {/* 5. Swap Phase Modal (Arcade Card Swap Table) */}
       <AnimatePresence>
         {phase === "SWAP" && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs"
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md overflow-y-auto"
           >
-            <div className="relative w-full max-w-lg wood-panel p-6 rounded-3xl border-4 border-amber-950 shadow-2xl flex flex-col items-center text-center">
-              <RefreshCw className="w-12 h-12 text-cyan-400 mb-2 animate-spin" />
-              <h2 className="font-game font-black text-2xl text-amber-200">
-                ช่วงผลัดเปลี่ยนไพ่ (HAND SWAP PHASE)
-              </h2>
-              <p className="text-xs text-amber-300/80 mt-1 mb-4">
-                คุณสามารถเลือกทิ้งการ์ด RP ในมือเพื่อจั่วการ์ดใหม่จากสำรับก่อนเริ่มรอบต่อไป
-              </p>
-
-              {/* Cards in hand to swap */}
-              <div className="grid grid-cols-5 gap-2 my-2 w-full">
-                {hand.map((c, i) => (
-                  <div key={i} className="flex flex-col items-center">
-                    <RpCard card={c} size="sm" isHoverable={false} />
-                    <button
-                      onClick={() => handleSwapCard(i)}
-                      className="mt-2 px-2 py-1 bg-rose-700 hover:bg-rose-600 rounded-lg text-[10px] text-white font-bold cursor-pointer"
-                    >
-                      แลกใบนี้
-                    </button>
-                  </div>
-                ))}
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="relative w-full max-w-5xl wood-panel p-5 md:p-6 rounded-[28px] border-4 border-amber-950 shadow-[0_25px_60px_rgba(0,0,0,0.85)] ring-2 ring-amber-500/30 flex flex-col items-center text-center select-none my-auto"
+            >
+              {/* Animated Header Badge */}
+              <div className="relative mb-2">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500/20 via-blue-600/30 to-amber-500/20 border-2 border-cyan-400/60 shadow-[0_0_20px_rgba(34,211,238,0.4)] flex items-center justify-center">
+                  <RefreshCw className="w-7 h-7 text-cyan-300 animate-spin" style={{ animationDuration: "8s" }} />
+                </div>
+                <div className="absolute -top-1 -right-2 px-2 py-0.5 rounded-full bg-amber-500 text-amber-950 font-game font-black text-[9px] tracking-wider uppercase border border-amber-200 shadow-md">
+                  SWAP
+                </div>
               </div>
 
-              <button
-                onClick={handleCompleteSwap}
-                className="mt-6 w-full py-3 bg-play hover:bg-play-hover border-3 border-play-border rounded-2xl font-game font-black text-base text-white tracking-wider shadow-play-btn cursor-pointer"
-              >
-                เสร็จสิ้นการสับเปลี่ยนไพ่
-              </button>
-            </div>
+              {/* Title */}
+              <h2 className="font-game font-black text-2xl sm:text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-amber-300 to-yellow-500 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] tracking-wide">
+                ช่วงผลัดเปลี่ยนไพ่ (HAND SWAP PHASE)
+              </h2>
+
+              {/* Subtitle & Deck HUD */}
+              <div className="flex flex-wrap items-center justify-center gap-2.5 mt-1.5 mb-4 text-xs">
+                <span className="text-amber-200/90 font-medium">
+                  เลือกทิ้งการ์ด RP ในมือที่ไม่ต้องการ เพื่อสุ่มจั่วการ์ดใหม่จากสำรับกลางก่อนเริ่มรอบต่อไป
+                </span>
+                <div className="bg-emerald-950/90 border border-emerald-400/60 text-emerald-300 px-3 py-1 rounded-full text-xs font-mono font-bold flex items-center space-x-1.5 shadow-inner">
+                  <span>🎴 ไพ่ในสำรับคงเหลือ:</span>
+                  <span className="text-amber-300 font-black">{deck.length} ใบ</span>
+                </div>
+              </div>
+
+              {/* Cards in Hand Tray (Arcade Green Felt Table) */}
+              <div className="w-full bg-[#0a2318]/90 border-2 border-emerald-700/60 rounded-2xl p-3 sm:p-5 shadow-[inset_0_4px_24px_rgba(0,0,0,0.7)]">
+                <div className="flex overflow-x-auto lg:grid lg:grid-cols-5 gap-3 sm:gap-4 pb-2 pt-1 px-1 justify-start lg:justify-items-center no-scrollbar">
+                  {hand.map((c, i) => (
+                    <motion.div
+                      key={`${c.id}_${i}`}
+                      initial={{ scale: 0.95, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: i * 0.05 }}
+                      className="flex flex-col items-center shrink-0"
+                    >
+                      {/* Slot Badge */}
+                      <div className="mb-1.5 px-2.5 py-0.5 rounded-full bg-emerald-900/90 border border-emerald-500/50 text-[10px] font-game font-bold text-emerald-300 tracking-wider flex items-center space-x-1 shadow-xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>ช่องที่ {i + 1}</span>
+                      </div>
+
+                      {/* Card with Click & Hover to Swap */}
+                      <div
+                        onClick={() => deck.length > 0 && handleSwapCard(i)}
+                        className="group relative cursor-pointer transition-transform duration-200 hover:-translate-y-1.5"
+                        title={deck.length > 0 ? "คลิกเพื่อสลับการ์ดใบนี้" : "สำรับหมดแล้ว"}
+                      >
+                        <RpCard card={c} size="sm" isHoverable={false} className="shadow-2xl" />
+
+                        {/* Hover Overlay Hint */}
+                        {deck.length > 0 && (
+                          <div className="absolute inset-0 rounded-[18px] bg-cyan-900/25 opacity-0 group-hover:opacity-100 transition-opacity duration-200 border-2 border-cyan-400/80 flex items-center justify-center pointer-events-none">
+                            <div className="bg-black/85 text-cyan-200 px-3 py-1 rounded-full text-xs font-game font-bold flex items-center space-x-1.5 shadow-xl backdrop-blur-xs">
+                              <RefreshCw className="w-3.5 h-3.5 text-cyan-300 animate-spin" />
+                              <span>แตะเพื่อสลับ</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Swap Button */}
+                      <button
+                        onClick={() => handleSwapCard(i)}
+                        disabled={deck.length === 0}
+                        className={clsx(
+                          "mt-2.5 w-full max-w-[196px] py-2 px-3 rounded-xl font-game font-bold text-xs flex items-center justify-center space-x-1.5 transition-all shadow-md active:translate-y-0.5",
+                          deck.length > 0
+                            ? "bg-gradient-to-b from-rose-500 via-rose-600 to-red-700 hover:from-rose-400 hover:to-red-600 text-white border border-rose-300/40 shadow-rose-950/50 cursor-pointer"
+                            : "bg-slate-700 text-slate-400 border border-slate-600 cursor-not-allowed"
+                        )}
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>{deck.length > 0 ? "สลับใบนี้" : "สำรับหมด"}</span>
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Complete Swap Footer Button */}
+              <div className="mt-5 w-full flex flex-col items-center">
+                <button
+                  onClick={handleCompleteSwap}
+                  className="w-full sm:w-auto min-w-[300px] py-3.5 px-8 bg-play hover:bg-play-hover border-3 border-play-border rounded-2xl font-game font-black text-base text-white tracking-wider shadow-play-btn active:shadow-play-btn-pressed transition-all flex items-center justify-center space-x-2.5 cursor-pointer"
+                >
+                  <CheckCircle className="w-5 h-5 text-emerald-200" />
+                  <span>เสร็จสิ้นการสับเปลี่ยนไพ่ (พร้อมลุยต่อ)</span>
+                  <ChevronRight className="w-5 h-5 text-emerald-200" />
+                </button>
+                <p className="text-[11px] text-amber-200/70 mt-2 font-medium">
+                  แตะที่ตัวการ์ดหรือกดปุ่ม &quot;สลับใบนี้&quot; ได้ตามต้องการ เมื่อพอใจแล้วกดปุ่มเพื่อเริ่มรอบถัดไป
+                </p>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1152,21 +1322,47 @@ export function PlayClient() {
                   })}
               </div>
 
-              {/* Rewards Earned */}
-              <div className="w-full p-3 bg-amber-950/90 rounded-2xl border border-amber-500/60 flex justify-around items-center mb-5">
-                <div className="flex items-center space-x-2">
-                  <Coins className="w-5 h-5 text-amber-400" />
-                  <span className="text-xs font-bold text-amber-200">
-                    +{(players.find((p) => p.studentId === user?.studentId)?.score || 0) * 3} NucCoins
-                  </span>
+              {/* Rewards Earned & Balance Display */}
+              {matchReward && (
+                <div className="w-full p-3.5 bg-amber-950/95 rounded-2xl border-2 border-amber-500 shadow-xl space-y-2.5 mb-5">
+                  <div className="flex items-center justify-between text-xs font-game font-bold text-amber-200 border-b border-amber-700/60 pb-1.5">
+                    <span className="flex items-center space-x-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                      <span>{matchReward.reason}</span>
+                    </span>
+                    <span className="text-emerald-300 font-mono font-black text-sm">
+                      +{matchReward.coinsEarned} NucCoin
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5 pt-0.5">
+                    {/* 1. เหรียญที่ได้ในรอบนี้ */}
+                    <div className="p-2.5 rounded-xl bg-black/40 border border-amber-600/50 flex flex-col items-center">
+                      <span className="text-[10px] text-amber-300/90 font-bold uppercase tracking-wider mb-1">
+                        เหรียญที่ได้ในรอบนี้
+                      </span>
+                      <div className="flex items-center space-x-1.5 text-sm font-mono font-black text-amber-200">
+                        <NucCoinIcon size={18} />
+                        <span>+{matchReward.coinsEarned}</span>
+                      </div>
+                    </div>
+
+                    {/* 2. ยอดเหรียญคงเหลือทั้งหมด */}
+                    <div className="p-2.5 rounded-xl bg-black/40 border border-emerald-500/50 flex flex-col items-center">
+                      <span className="text-[10px] text-emerald-300/90 font-bold uppercase tracking-wider mb-1">
+                        ยอดเหรียญคงเหลือทั้งหมด
+                      </span>
+                      <div className="flex items-center space-x-1.5 text-sm font-mono font-black text-emerald-200">
+                        <NucCoinIcon size={18} />
+                        <span>{matchReward.totalCoins}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-[9.5px] text-amber-300/70 text-center">
+                    ✓ ข้อมูลบันทึกลง na_accounts แล้ว รีเฟรชหรือกลับมาเล่นใหม่ยอดเหรียญจะไม่หาย
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Sparkles className="w-5 h-5 text-emerald-400" />
-                  <span className="text-xs font-bold text-emerald-200">
-                    +{(players.find((p) => p.studentId === user?.studentId)?.score || 0) * 10} XP
-                  </span>
-                </div>
-              </div>
+              )}
 
               {/* Actions */}
               <div className="w-full flex space-x-3">

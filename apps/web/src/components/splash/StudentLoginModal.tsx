@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, 
@@ -14,17 +15,21 @@ import {
   Trash2, 
   LogIn, 
   KeyRound,
-  Check
+  Check,
+  Eye,
+  EyeOff,
+  Lock,
+  ShieldAlert
 } from "lucide-react";
 import { StudentUser } from "@nucmed/shared";
 import { jev } from "@/lib/jev-engine";
 import { 
-  createDefaultUser, 
-  getRegisteredAccounts, 
-  registerAccount, 
-  loginAccount, 
+  getNaAccounts, 
+  registerNaAccount, 
+  loginNaAccount, 
   removeRegisteredAccount, 
-  RegisteredAccount 
+  NaAccount,
+  setAdminAuthenticated
 } from "@/lib/user";
 import { sounds } from "@/lib/sound";
 import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
@@ -37,9 +42,9 @@ interface StudentLoginModalProps {
 }
 
 const SAMPLE_IDS = [
-  { id: "68208307037", label: "ปี 68 (เลขที่ 37)" },
-  { id: "67208307015", label: "ปี 67 (เลขที่ 15)" },
-  { id: "66208307052", label: "ปี 66 (เลขที่ 52)" },
+  { id: "68208307037", label: "ปี 68 (ภูมิ)" },
+  { id: "67208307015", label: "ปี 67 (ธันวา)" },
+  { id: "66208307052", label: "ปี 66 (นศ. 7052)" },
 ];
 
 const AVATAR_OPTIONS = [
@@ -55,48 +60,52 @@ export function StudentLoginModal({
   onLoginSuccess,
   initialMode = "login"
 }: StudentLoginModalProps) {
+  const router = useRouter();
   const [mode, setMode] = useState<"login" | "register">(initialMode);
   const [studentId, setStudentId] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState("avatar-default");
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [savedAccounts, setSavedAccounts] = useState<RegisteredAccount[]>([]);
+  const [savedAccounts, setSavedAccounts] = useState<NaAccount[]>([]);
   const [registeredSuccessUser, setRegisteredSuccessUser] = useState<StudentUser | null>(null);
 
   // Sync saved accounts whenever modal opens
   useEffect(() => {
     if (isOpen) {
-      const accounts = getRegisteredAccounts();
+      const accounts = getNaAccounts();
       setSavedAccounts(accounts);
       setError(null);
+      setPassword("");
       setRegisteredSuccessUser(null);
     }
   }, [isOpen]);
 
+  const isAdminInput = studentId.trim().toLowerCase() === "admin";
+
   // Live JEV validation
   const validation = useMemo(() => {
-    if (!studentId.trim()) return null;
+    if (!studentId.trim() || isAdminInput) return null;
     return jev.validateStudentId(studentId);
-  }, [studentId]);
+  }, [studentId, isAdminInput]);
 
   // Switch tab handler
   const handleTabSwitch = (newMode: "login" | "register") => {
     sounds.playSelect();
     setMode(newMode);
     setError(null);
+    setPassword("");
   };
 
-  // Quick login from saved account card
-  const handleQuickLogin = (account: RegisteredAccount) => {
+  // Quick select saved account
+  const handleSelectSavedAccount = (account: NaAccount) => {
     sounds.playSelect();
-    setLoading(true);
-    const user = loginAccount(account.studentId, true);
-    setTimeout(() => {
-      setLoading(false);
-      onLoginSuccess(user);
-    }, 300);
+    setStudentId(account.studentId);
+    setPassword("");
+    setError(null);
   };
 
   // Delete saved account from device
@@ -104,7 +113,22 @@ export function StudentLoginModal({
     e.stopPropagation();
     sounds.playClick();
     removeRegisteredAccount(idToDelete);
-    setSavedAccounts(getRegisteredAccounts());
+    setSavedAccounts(getNaAccounts());
+    if (studentId === idToDelete) {
+      setStudentId("");
+      setPassword("");
+    }
+  };
+
+  // Quick helper to use displayName as password
+  const handleUseDisplayNameAsPassword = () => {
+    sounds.playClick();
+    if (displayName.trim()) {
+      setPassword(displayName.trim());
+      setError(null);
+    } else {
+      setError("กรุณากรอกชื่อที่โชว์ด้านบนก่อนเพื่อนำมาตั้งเป็นรหัสผ่าน");
+    }
   };
 
   // Form submission (Login or Register)
@@ -113,33 +137,72 @@ export function StudentLoginModal({
     setError(null);
 
     const cleanId = studentId.trim();
-    const result = jev.validateStudentId(cleanId);
+    const cleanPass = password.trim();
 
-    if (!result.isValid) {
-      setError(result.error || "รหัสนักศึกษาไม่ถูกต้อง");
-      return;
+    // ---------------------------------------------------------
+    // ADMIN LOGIN CHECK (username "admin" & password "rtkmpht")
+    // ---------------------------------------------------------
+    if (cleanId.toLowerCase() === "admin") {
+      if (cleanPass === "rtkmpht") {
+        sounds.playWin();
+        setAdminAuthenticated(true);
+        setLoading(true);
+        setTimeout(() => {
+          setLoading(false);
+          onClose();
+          router.push("/admin");
+        }, 300);
+        return;
+      } else {
+        sounds.playWrong();
+        setError("รหัสผ่านผู้ดูแลระบบ (Admin) ไม่ถูกต้อง");
+        return;
+      }
     }
-
-    setLoading(true);
 
     if (mode === "register") {
       // ---------------------------------------------------------
       // REGISTER FLOW
       // ---------------------------------------------------------
+      const result = jev.validateStudentId(cleanId);
+      if (!result.isValid) {
+        setError(result.error || "รหัสนักศึกษาไม่ถูกต้อง");
+        return;
+      }
+
+      if (!displayName.trim()) {
+        setError("กรุณากรอกชื่อที่โชว์ด้านบน");
+        return;
+      }
+
+      if (!cleanPass) {
+        setError("กรุณาตั้งรหัสผ่านสำหรับเข้าสู่ระบบ");
+        return;
+      }
+
+      setLoading(true);
       try {
-        const newUser = registerAccount({
+        const res = registerNaAccount({
           studentId: cleanId,
-          displayName: displayName.trim() || undefined,
+          displayName: displayName.trim(),
+          password: cleanPass,
           avatarId: selectedAvatar,
           rememberMe
         });
 
+        if (!res.success) {
+          setLoading(false);
+          sounds.playWrong();
+          setError(res.error || "เกิดข้อผิดพลาดในการลงทะเบียน");
+          return;
+        }
+
         sounds.playWin();
-        setRegisteredSuccessUser(newUser);
+        setRegisteredSuccessUser(res.user!);
 
         setTimeout(() => {
           setLoading(false);
-          onLoginSuccess(newUser);
+          onLoginSuccess(res.user!);
         }, 1200);
       } catch (err) {
         setLoading(false);
@@ -149,13 +212,32 @@ export function StudentLoginModal({
       // ---------------------------------------------------------
       // LOGIN FLOW
       // ---------------------------------------------------------
+      const result = jev.validateStudentId(cleanId);
+      if (!result.isValid) {
+        setError(result.error || "รหัสนักศึกษาไม่ถูกต้อง (หรือพิมพ์ admin สำหรับอาจารย์)");
+        return;
+      }
+
+      if (!cleanPass) {
+        setError("กรุณากรอกรหัสผ่าน");
+        return;
+      }
+
+      setLoading(true);
       try {
-        const user = loginAccount(cleanId, rememberMe);
+        const res = loginNaAccount(cleanId, cleanPass, rememberMe);
+        if (!res.success) {
+          setLoading(false);
+          sounds.playWrong();
+          setError(res.error || "รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
+          return;
+        }
+
         sounds.playSelect();
         setTimeout(() => {
           setLoading(false);
-          onLoginSuccess(user);
-        }, 400);
+          onLoginSuccess(res.user!);
+        }, 350);
       } catch (err) {
         setLoading(false);
         setError("ไม่สามารถเข้าสู่ระบบได้ กรุณาลองใหม่อีกครั้ง");
@@ -166,7 +248,7 @@ export function StudentLoginModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/70 backdrop-blur-xs select-none">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/75 backdrop-blur-xs select-none">
           <motion.div
             initial={{ scale: 0.92, opacity: 0, y: 15 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -220,8 +302,8 @@ export function StudentLoginModal({
               </h3>
               <p className="text-[11.5px] text-amber-100/80 mt-0.5">
                 {mode === "login" 
-                  ? "เลือกรหัสที่จำไว้ หรือกรอกรหัสนักศึกษา 11 หลักเพื่อเข้าเล่น" 
-                  : "ลงทะเบียนรหัสนักศึกษาเพื่อบันทึกประวัติการเล่นและเหรียญ NucCoin"}
+                  ? "กรอกรหัสนักศึกษาและรหัสผ่านเพื่อเข้าเล่น (หรือ admin สำหรับอาจารย์)" 
+                  : "ลงทะเบียนรหัสนักศึกษา ตั้งรหัสผ่าน และรับ 120 NucCoin เริ่มต้น"}
               </p>
             </div>
 
@@ -268,7 +350,7 @@ export function StudentLoginModal({
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center space-x-1">
                         <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                        <span>บัญชีที่จำไว้บนเครื่องนี้ (คลิกเพื่อเข้าเล่น):</span>
+                        <span>บัญชีในเครื่องนี้ (คลิกเพื่อเลือกรหัส):</span>
                       </span>
                       <span className="text-[10px] text-amber-400/80">
                         {savedAccounts.length} บัญชี
@@ -278,11 +360,16 @@ export function StudentLoginModal({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto pr-1">
                       {savedAccounts.map((acc) => {
                         const avatarMatch = AVATAR_OPTIONS.find(a => a.id === acc.avatarId) || AVATAR_OPTIONS[0];
+                        const isSelected = studentId === acc.studentId;
                         return (
                           <div
                             key={acc.studentId}
-                            onClick={() => handleQuickLogin(acc)}
-                            className="group p-2.5 rounded-xl bg-amber-900/60 hover:bg-amber-800/90 border border-amber-600/60 hover:border-amber-400 transition-all flex items-center justify-between cursor-pointer shadow hover:scale-101 active:scale-98"
+                            onClick={() => handleSelectSavedAccount(acc)}
+                            className={`group p-2.5 rounded-xl border transition-all flex items-center justify-between cursor-pointer shadow hover:scale-101 active:scale-98 ${
+                              isSelected
+                                ? "bg-amber-800/90 border-amber-300 ring-2 ring-amber-400"
+                                : "bg-amber-900/60 hover:bg-amber-800/80 border-amber-600/60"
+                            }`}
                           >
                             <div className="flex items-center space-x-2.5 overflow-hidden">
                               <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${avatarMatch.color} border border-amber-300 flex items-center justify-center text-sm shadow shrink-0`}>
@@ -319,15 +406,16 @@ export function StudentLoginModal({
                   </div>
                 )}
 
-                {/* Section B: Standard Student ID Login Form */}
+                {/* Section B: Standard Student ID + Password Login Form */}
                 <form onSubmit={handleSubmit} className="space-y-3">
+                  {/* Student ID / Username */}
                   <div>
                     <div className="flex justify-between items-center mb-1">
                       <label className="block text-xs font-bold text-amber-200 uppercase tracking-wider">
-                        {savedAccounts.length > 0 ? "หรือกรอกรหัสนักศึกษา (11 หลัก)" : "รหัสนักศึกษา (11 หลัก) *"}
+                        รหัสนักศึกษา (11 หลัก) หรือ admin *
                       </label>
                       <span className="text-[10.5px] text-amber-400/90 font-mono">
-                        [ปี 2 หลัก] + 2083070 + [00-55]
+                        {isAdminInput ? "โหมดอาจารย์ผู้สอน" : "[ปี] + 2083070 + [00-55]"}
                       </span>
                     </div>
 
@@ -336,16 +424,18 @@ export function StudentLoginModal({
                         type="text"
                         value={studentId}
                         onChange={(e) => {
-                          setStudentId(e.target.value.replace(/\D/g, ""));
+                          setStudentId(e.target.value.trim());
                           setError(null);
                         }}
-                        placeholder="เช่น 68208307037"
+                        placeholder="เช่น 68208307037 หรือ admin"
                         maxLength={11}
                         autoFocus={savedAccounts.length === 0}
-                        className="w-full px-4 py-2.5 bg-amber-950/80 border-2 border-amber-600/80 rounded-xl text-white placeholder-amber-400/40 font-mono tracking-widest font-bold text-lg focus:outline-hidden focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-all"
+                        className="w-full px-4 py-2.5 bg-amber-950/80 border-2 border-amber-600/80 rounded-xl text-white placeholder-amber-400/40 font-mono tracking-wider font-bold text-base focus:outline-hidden focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-all"
                       />
                       <div className="absolute right-3 top-3">
-                        {validation?.isValid ? (
+                        {isAdminInput ? (
+                          <ShieldAlert className="w-5 h-5 text-amber-400" />
+                        ) : validation?.isValid ? (
                           <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                         ) : (
                           <ShieldCheck className="w-5 h-5 text-amber-400/60" />
@@ -354,7 +444,7 @@ export function StudentLoginModal({
                     </div>
 
                     {/* Live JEV Structural Breakdown Badge */}
-                    {studentId.length > 0 && (
+                    {!isAdminInput && studentId.length > 0 && (
                       <div className="mt-1.5 p-2 rounded-lg bg-black/40 border border-amber-500/30 text-[11px] font-mono grid grid-cols-3 gap-1 text-center">
                         <div className={`p-1 rounded ${studentId.length >= 2 ? "bg-amber-900/60 text-amber-200" : "text-amber-500/50"}`}>
                           <div className="text-[9px] uppercase text-amber-400/80">ปี (2 หลัก)</div>
@@ -391,6 +481,40 @@ export function StudentLoginModal({
                     </div>
                   </div>
 
+                  {/* Password Field */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-xs font-bold text-amber-200 uppercase tracking-wider flex items-center space-x-1">
+                        <Lock className="w-3.5 h-3.5 text-amber-400" />
+                        <span>รหัสผ่าน (PASSWORD) *</span>
+                      </label>
+                      <span className="text-[10.5px] text-amber-300/80">
+                        {isAdminInput ? "รหัสผ่านแอดมิน" : "รหัสผ่านที่ตั้งไว้"}
+                      </span>
+                    </div>
+
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          setError(null);
+                        }}
+                        placeholder={isAdminInput ? "กรอกรหัสผ่านผู้ดูแลระบบ" : "กรอกรหัสผ่านของคุณ"}
+                        className="w-full px-4 py-2.5 bg-amber-950/80 border-2 border-amber-600/80 rounded-xl text-white placeholder-amber-400/40 font-mono tracking-wider font-bold text-base focus:outline-hidden focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-all pr-11"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-amber-400/70 hover:text-amber-200 cursor-pointer"
+                        title={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Remember Me Checkbox */}
                   <div className="flex items-center space-x-2 pt-0.5">
                     <input
@@ -423,7 +547,12 @@ export function StudentLoginModal({
                     className="w-full py-3 bg-play hover:bg-play-hover border-4 border-play-border rounded-xl text-white font-game font-black text-lg tracking-wider shadow-play-btn active:shadow-play-btn-pressed active:translate-y-1 transition-all flex items-center justify-center space-x-2 mt-2 cursor-pointer"
                   >
                     {loading ? (
-                      <span>กำลังเชื่อมต่อห้องปฏิบัติการ...</span>
+                      <span>กำลังตรวจสอบข้อมูล...</span>
+                    ) : isAdminInput ? (
+                      <>
+                        <ShieldAlert className="w-5 h-5 text-amber-300" />
+                        <span>เข้าสู่แผงควบคุมอาจารย์ (ADMIN PANEL)</span>
+                      </>
                     ) : (
                       <>
                         <UserCheck className="w-5 h-5" />
@@ -525,7 +654,7 @@ export function StudentLoginModal({
                 {/* Display Name */}
                 <div>
                   <label className="block text-xs font-bold text-amber-200 uppercase tracking-wider mb-1">
-                    ชื่อเล่น / Display Name (เช่น หมอนิว หรือ นศ.ภูมิ)
+                    ชื่อที่โชว์ด้านบน (เช่น ภูมิ ภูวนาถ หรือ หมอนิว) *
                   </label>
                   <input
                     type="text"
@@ -535,6 +664,48 @@ export function StudentLoginModal({
                     maxLength={20}
                     className="w-full px-4 py-2 bg-amber-950/80 border-2 border-amber-600/80 rounded-xl text-white placeholder-amber-400/40 text-sm focus:outline-hidden focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-all font-bold"
                   />
+                </div>
+
+                {/* Password Setting with Quick Autofill Button */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-xs font-bold text-amber-200 uppercase tracking-wider flex items-center space-x-1">
+                      <Lock className="w-3.5 h-3.5 text-amber-400" />
+                      <span>ตั้งรหัสผ่าน (PASSWORD) *</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleUseDisplayNameAsPassword}
+                      className="text-[10.5px] text-emerald-300 hover:text-emerald-100 underline font-bold cursor-pointer"
+                      title="ใช้ชื่อที่โชว์ด้านบนเป็นรหัสผ่าน"
+                    >
+                      กดใช้ชื่อด้านบนเป็นรหัสผ่าน
+                    </button>
+                  </div>
+
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setError(null);
+                      }}
+                      placeholder="ตั้งรหัสผ่าน (เช่น ใช้ชื่อด้านบน หรือรหัสที่จำง่าย)"
+                      className="w-full px-4 py-2 bg-amber-950/80 border-2 border-amber-600/80 rounded-xl text-white placeholder-amber-400/40 font-mono tracking-wider font-bold text-sm focus:outline-hidden focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-all pr-11"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-2.5 text-amber-400/70 hover:text-amber-200 cursor-pointer"
+                      title={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  <span className="text-[10px] text-amber-300/70 mt-1 block">
+                    * รหัสผ่านตั้งเองได้ และสามารถใช้ชื่อด้านบนเป็นรหัสผ่านได้
+                  </span>
                 </div>
 
                 {/* Starting Avatar Selection */}
@@ -639,10 +810,10 @@ export function StudentLoginModal({
               </form>
             )}
 
-            {/* Quick Demo Info */}
+            {/* Quick Info */}
             <div className="mt-3.5 pt-2 border-t border-amber-800/60 flex items-center justify-center text-[11px] text-amber-300/70 space-x-1.5">
               <BookOpen className="w-3.5 h-3.5" />
-              <span>รหัสจะถูกผูกกับสถิติคะแนนและเหรียญ NucCoin ประจำตัวตลอดไป</span>
+              <span>บันทึกลงเบราว์เซอร์นี้ด้วยระบบคีย์ na_accounts ปลอดภัย</span>
             </div>
           </motion.div>
         </div>

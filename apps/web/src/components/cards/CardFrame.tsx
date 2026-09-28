@@ -24,9 +24,9 @@ export function CardFrame({
   onClick,
   size = "md",
 }: CardFrameProps) {
-  // Size presets respecting standard 63/88 trading card ratio
+  // Size presets respecting standard 63/88 trading card ratio with comfortable breathing room
   const sizeClasses = {
-    sm: "w-[196px] h-[274px]",
+    sm: "w-[196px] h-[282px]",
     md: "w-[252px] h-[352px]",
     lg: "w-[297px] h-[415px]",
   };
@@ -82,13 +82,22 @@ export function CardFrame({
       }}
     >
       {/* 1. Inner White Card Container (Houses all contents exactly as in prototype) */}
-      <div className="relative z-10 w-full flex-1 min-h-0 bg-white rounded-[13px] p-2 md:p-2.5 flex flex-col justify-between overflow-hidden shadow-inner text-slate-900">
+      <div className={clsx(
+        "relative z-10 w-full flex-1 min-h-0 bg-white rounded-[13px] flex flex-col justify-between overflow-hidden shadow-inner text-slate-900",
+        size === "sm" ? "p-2" : "p-2 md:p-2.5"
+      )}>
         {children}
       </div>
 
       {/* 2. Bottom Colored Footer with White Category Title (matching card-prototype.jpg) */}
-      <div className="w-full h-[20px] md:h-[22px] shrink-0 flex items-center justify-center pointer-events-none select-none">
-        <span className="text-white font-black text-[9px] md:text-[10.5px] tracking-wider font-game uppercase drop-shadow-xs">
+      <div className={clsx(
+        "w-full shrink-0 flex items-center justify-center pointer-events-none select-none",
+        size === "sm" ? "h-[18px]" : "h-[20px] md:h-[22px]"
+      )}>
+        <span className={clsx(
+          "text-white font-black tracking-wider font-game uppercase drop-shadow-xs",
+          size === "sm" ? "text-[8.5px]" : "text-[9px] md:text-[10.5px]"
+        )}>
           {theme.categoryLabel}
         </span>
       </div>
