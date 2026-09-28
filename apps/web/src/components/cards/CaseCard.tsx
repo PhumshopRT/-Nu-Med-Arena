@@ -55,7 +55,7 @@ export const CaseCard = React.memo(function CaseCard({
       <div className="flex flex-col h-full justify-between select-none">
         {/* 1. Top Header Capsule Bar (Matching card-prototype.jpg) */}
         <div>
-          <div className="flex justify-between items-center mb-0.5">
+          <div className="flex justify-between items-center mb-1.5">
             {/* Left ID Badge */}
             <div className="bg-[#FFE8EA] text-[#C81E33] px-2 py-0.5 rounded-full flex items-center space-x-1 shadow-xs border border-red-200">
               <span className="font-game font-bold text-[10px] md:text-[11px] tracking-wide">{card.id}</span>
@@ -68,11 +68,11 @@ export const CaseCard = React.memo(function CaseCard({
           </div>
 
           {/* 2. Headline Clinical Case Prompt */}
-          <div className="mt-0.5 mb-1 text-left">
-            <h3 className="text-[11px] md:text-xs font-black text-slate-900 leading-tight">
+          <div className="text-left mt-0.5 mb-1">
+            <h3 className="text-[11px] md:text-xs font-black text-slate-900 leading-snug pt-0.5">
               {card.titleTh}
             </h3>
-            <div className="text-[8.5px] md:text-[9.5px] text-slate-600 font-medium leading-tight mt-0.5">
+            <div className="text-[8px] md:text-[9.5px] text-slate-600 font-medium leading-tight mt-0.5 line-clamp-2">
               {card.id === "C-05" 
                 ? "ต้องการประเมินการกระจายของเลือดในปอด (Lung Perfusion Scan)" 
                 : card.promptTh}
@@ -83,7 +83,7 @@ export const CaseCard = React.memo(function CaseCard({
         {/* 3. Center Area: Organ Illustration + Question Callout Box */}
         <div className="my-auto grid grid-cols-2 gap-1.5 items-center py-0.5">
           {/* Left: Organ pathology drawing */}
-          <div className="w-full h-18 md:h-22 flex items-center justify-center">
+          <div className="w-full h-16 md:h-22 flex items-center justify-center">
             {renderIllustration()}
           </div>
 
