@@ -737,7 +737,7 @@ export function registerNaAccount(params: {
   if (existing) {
     return {
       success: false,
-      error: "รหัสนักศึกษานี้ได้ลงทะเบียนไว้แล้ว กรุณาเข้าสู่ระบบด้วยรหัสผ่านเดิม"
+      error: "มีบัญชีแล้ว ให้เข้าสู่ระบบ"
     };
   }
 
@@ -837,12 +837,8 @@ export function loginNaAccount(studentId: string, password: string, rememberMe: 
     };
   }
 
-  // Check password: allow configured password, or for existing accounts allow displayName, "1234", or last 4 digits
-  const isMatch =
-    account.password === cleanPass ||
-    cleanPass === account.displayName ||
-    cleanPass === "1234" ||
-    cleanPass === account.studentId.slice(-4);
+  // Check password strictly
+    const isMatch = account.password === cleanPass;
 
   if (!isMatch) {
     return {
@@ -1061,15 +1057,17 @@ export function saveRegisteredAccounts(accounts: RegisteredAccount[]): void {
 
 export function registerAccount(params: {
   studentId: string;
+  password?: string;
   displayName?: string;
   avatarId?: string;
   rememberMe?: boolean;
 }): StudentUser {
   const name = params.displayName?.trim() || `นักศึกษา ${params.studentId.slice(-4)}`;
+  const pass = params.password?.trim() || name;
   const res = registerNaAccount({
     studentId: params.studentId,
     displayName: name,
-    password: name, // default password to display name
+    password: pass,
     avatarId: params.avatarId,
     rememberMe: params.rememberMe
   });

@@ -63,7 +63,6 @@ export function StudentLoginModal({
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "register">(initialMode);
   const [studentId, setStudentId] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState("avatar-default");
@@ -124,16 +123,7 @@ export function StudentLoginModal({
     }
   };
 
-  // Quick helper to use displayName as password
-  const handleUseDisplayNameAsPassword = () => {
-    sounds.playClick();
-    if (displayName.trim()) {
-      setPassword(displayName.trim());
-      setError(null);
-    } else {
-      setError("กรุณากรอกชื่อที่โชว์ด้านบนก่อนเพื่อนำมาตั้งเป็นรหัสผ่าน");
-    }
-  };
+
 
   // Form submission (Login or Register)
   const handleSubmit = (e: React.FormEvent) => {
@@ -174,10 +164,7 @@ export function StudentLoginModal({
         return;
       }
 
-      if (!displayName.trim()) {
-        setError("กรุณากรอกชื่อที่โชว์ด้านบน");
-        return;
-      }
+
 
       if (!cleanPass) {
         setError("กรุณาตั้งรหัสผ่านสำหรับเข้าสู่ระบบ");
@@ -188,7 +175,7 @@ export function StudentLoginModal({
       try {
         const res = registerNaAccount({
           studentId: cleanId,
-          displayName: displayName.trim(),
+          displayName: `นักศึกษา ${cleanId.slice(-4)}`,
           password: cleanPass,
           avatarId: selectedAvatar,
           rememberMe
@@ -673,20 +660,7 @@ export function StudentLoginModal({
                   </div>
                 </div>
 
-                {/* Display Name */}
-                <div>
-                  <label className="block text-xs font-bold text-amber-200 uppercase tracking-wider mb-1">
-                    ชื่อที่โชว์ด้านบน (เช่น ภูมิ ภูวนาถ หรือ หมอนิว) *
-                  </label>
-                  <input
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="เช่น ภูมิ หรือ หมอนิว"
-                    maxLength={20}
-                    className="w-full px-4 py-2 bg-amber-950/80 border-2 border-amber-600/80 rounded-xl text-white placeholder-amber-400/40 text-sm focus:outline-hidden focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-all font-bold"
-                  />
-                </div>
+
 
                 {/* Password Setting with Quick Autofill Button */}
                 <div>
@@ -695,14 +669,7 @@ export function StudentLoginModal({
                       <Lock className="w-3.5 h-3.5 text-amber-400" />
                       <span>ตั้งรหัสผ่าน (PASSWORD) *</span>
                     </label>
-                    <button
-                      type="button"
-                      onClick={handleUseDisplayNameAsPassword}
-                      className="text-[10.5px] text-emerald-300 hover:text-emerald-100 underline font-bold cursor-pointer"
-                      title="ใช้ชื่อที่โชว์ด้านบนเป็นรหัสผ่าน"
-                    >
-                      กดใช้ชื่อด้านบนเป็นรหัสผ่าน
-                    </button>
+                    
                   </div>
 
                   <div className="relative">
@@ -726,7 +693,7 @@ export function StudentLoginModal({
                     </button>
                   </div>
                   <span className="text-[10px] text-amber-300/70 mt-1 block">
-                    * รหัสผ่านตั้งเองได้ และสามารถใช้ชื่อด้านบนเป็นรหัสผ่านได้
+                    * รหัสผ่านตั้งได้เอง ใช้อะไรก็ได้
                   </span>
                 </div>
 
