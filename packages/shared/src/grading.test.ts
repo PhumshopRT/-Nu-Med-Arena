@@ -7,10 +7,10 @@ describe("Rule Engine: Card Grading", () => {
   const cb06 = CASE_DECK.find((c) => c.id === "C-B06")!;
   const c02 = CASE_DECK.find((c) => c.id === "C-02")!;
 
-  it("PE case (C-05) + MAA (R-07) + Capillary Blockade (M-03) = 16 points", () => {
+  it("PE case (C-05) + MAA (R-07) + Capillary Blockade (M-03) = 4 points", () => {
     const res = grade("R-07", "M-03", c05);
     expect(res.correct).toBe(true);
-    expect(res.points).toBe(16);
+    expect(res.points).toBe(4);
     expect(res.rpOk).toBe(true);
     expect(res.mechOk).toBe(true);
   });
@@ -31,29 +31,29 @@ describe("Rule Engine: Card Grading", () => {
     expect(res.mechOk).toBe(false);
   });
 
-  it("BASIC Lung Perfusion (C-B06) + MAA (R-07) + Capillary Blockade (M-03) = 8 points", () => {
+  it("BASIC Lung Perfusion (C-B06) + MAA (R-07) + Capillary Blockade (M-03) = 2 points", () => {
     const res = grade("R-07", "M-03", cb06);
     expect(res.correct).toBe(true);
-    expect(res.points).toBe(8);
+    expect(res.points).toBe(2);
   });
 
-  it("Bone metastasis case (C-02) + MDP (R-05) + Chemisorption (M-06) = 16 points", () => {
+  it("Bone metastasis case (C-02) + MDP (R-05) + Chemisorption (M-06) = 4 points", () => {
     const res = grade("R-05", "M-06", c02);
     expect(res.correct).toBe(true);
-    expect(res.points).toBe(16);
+    expect(res.points).toBe(4);
   });
 
-  it("Clue penalty on C-05: without clue gives 16 points, with clue gives 15 points, wrong with clue gives 0 points", () => {
-    // 1. Without clue -> 16 points
+  it("Clue penalty on C-05: without clue gives 4 points, with clue gives 3 points, wrong with clue gives 0 points", () => {
+    // 1. Without clue -> 4 points
     const resNoClue = grade("R-07", "M-03", c05, false);
     expect(resNoClue.correct).toBe(true);
-    expect(resNoClue.points).toBe(16);
+    expect(resNoClue.points).toBe(4);
     expect(resNoClue.cluePenalty).toBe(0);
 
-    // 2. With clue -> 15 points (-1 penalty)
+    // 2. With clue -> 3 points (-1 penalty)
     const resWithClue = grade("R-07", "M-03", c05, true);
     expect(resWithClue.correct).toBe(true);
-    expect(resWithClue.points).toBe(15);
+    expect(resWithClue.points).toBe(3);
     expect(resWithClue.cluePenalty).toBe(1);
 
     // 3. With clue but wrong -> 0 points (penalty is 0)
@@ -63,15 +63,15 @@ describe("Rule Engine: Card Grading", () => {
     expect(resWrongWithClue.cluePenalty).toBe(0);
   });
 
-  it("Clue penalty on BASIC case (C-B06): without clue = 8, with clue = 7, wrong = 0", () => {
+  it("Clue penalty on BASIC case (C-B06): without clue = 2, with clue = 1, wrong = 0", () => {
     const resNoClue = grade("R-07", "M-03", cb06, false);
     expect(resNoClue.correct).toBe(true);
-    expect(resNoClue.points).toBe(8);
+    expect(resNoClue.points).toBe(2);
     expect(resNoClue.cluePenalty).toBe(0);
 
     const resWithClue = grade("R-07", "M-03", cb06, true);
     expect(resWithClue.correct).toBe(true);
-    expect(resWithClue.points).toBe(7);
+    expect(resWithClue.points).toBe(1);
     expect(resWithClue.cluePenalty).toBe(1);
 
     const resWrongWithClue = grade("R-01", "M-03", cb06, true);

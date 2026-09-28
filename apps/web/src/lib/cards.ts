@@ -85,12 +85,20 @@ export function getStoredCaseCards(): CaseCard[] {
       return initial;
     }
     const parsed: CaseCard[] = JSON.parse(raw);
+    let modified = false;
+    parsed.forEach(c => {
+      if (c.points === 8) { c.points = 2; modified = true; }
+      if (c.points === 16) { c.points = 4; modified = true; }
+    });
     // Guarantee C-05 integrity
     const c05 = parsed.find(c => c.id === "C-05");
     if (c05 && (!c05.acceptedRpIds.includes("R-07") || !c05.acceptedMechIds.includes("M-03") || c05.clueId !== "T-01")) {
       c05.acceptedRpIds = ["R-07"];
       c05.acceptedMechIds = ["M-03"];
       c05.clueId = "T-01";
+      modified = true;
+    }
+    if (modified) {
       saveStoredCaseCards(parsed);
     }
     return parsed;
