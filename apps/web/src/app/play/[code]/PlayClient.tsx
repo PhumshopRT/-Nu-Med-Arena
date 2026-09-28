@@ -1561,7 +1561,7 @@ export function PlayClient() {
             <motion.div
               initial={{ scale: 0.85, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              className="relative w-full max-w-xl wood-panel p-6 rounded-3xl border-4 border-amber-950 shadow-2xl flex flex-col items-center text-center"
+              className="relative w-full max-w-xl max-h-[95vh] overflow-y-auto wood-panel p-6 rounded-3xl border-4 border-amber-950 shadow-2xl flex flex-col items-center text-center scrollbar-none"
             >
               <Trophy className="w-16 h-16 text-amber-400 animate-bounce mb-2" />
               <h2 className="font-game font-black text-3xl md:text-4xl text-amber-200">

@@ -108,6 +108,12 @@ export default function AdminPage() {
   const [students, setStudents] = useState<NaAccount[]>([]);
   const [studentSearch, setStudentSearch] = useState("");
 
+  // Student Password Reveal states
+  const [showPasswordModal, setShowPasswordModal] = useState<{ isOpen: boolean; studentId: string; studentName: string; } | null>(null);
+  const [adminPasswordInput, setAdminPasswordInput] = useState("");
+  const [passwordRevealError, setPasswordRevealError] = useState("");
+  const [revealedPasswords, setRevealedPasswords] = useState<Record<string, string>>({});
+
   // Card Library Sub-tab: "RP" | "MECH" | "CASE" | "CLUE"
   const [librarySubTab, setLibrarySubTab] = useState<CardType>("RP");
   const [cardSearchQuery, setCardSearchQuery] = useState("");
@@ -281,6 +287,26 @@ export default function AdminPage() {
     setAdminAuthenticated(false);
     setIsAuthenticated(false);
     setPassword("");
+  };
+
+  const handleRevealPassword = () => {
+    if (adminPasswordInput.trim() !== "rtkmpht") {
+      setPasswordRevealError("รหัสผ่านแอดมินไม่ถูกต้อง");
+      sounds.playWrong();
+      return;
+    }
+    
+    if (showPasswordModal) {
+      const acc = students.find(s => s.studentId === showPasswordModal.studentId);
+      if (acc) {
+        setRevealedPasswords(prev => ({
+          ...prev,
+          [acc.studentId]: acc.password
+        }));
+        sounds.playCorrect();
+      }
+      setShowPasswordModal(null);
+    }
   };
 
   // Helper to toggle active/disabled on card
@@ -1513,6 +1539,7 @@ export default function AdminPage() {
                       <tr className="bg-black/60 border-b border-amber-900/60 text-amber-300 font-game font-bold">
                         <th className="p-3 w-32">รหัสนักศึกษา</th>
                         <th className="p-3">ชื่อ</th>
+                        <th className="p-3 w-32 text-center">รหัสผ่าน</th>
                         <th className="p-3 w-28 text-center">เหรียญ</th>
                         <th className="p-3 w-28 text-center">ข้อถูก</th>
                         <th className="p-3 w-44">เล่นล่าสุด</th>
@@ -1522,7 +1549,7 @@ export default function AdminPage() {
                     <tbody className="divide-y divide-white/5 font-medium">
                       {filteredStudents.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="p-8 text-center text-amber-300/60 italic">
+                          <td colSpan={7} className="p-8 text-center text-amber-300/60 italic">
                             ไม่พบข้อมูลนักศึกษาที่ค้นหา
                           </td>
                         </tr>
@@ -1545,6 +1572,40 @@ export default function AdminPage() {
                                     Admin
                                   </span>
                                 )}
+                              </td>
+                              <td className="p-3 text-center">
+                                <div className="flex justify-center items-center space-x-1.5">
+                                  {revealedPasswords[acc.studentId] ? (
+                                    <span className="font-mono text-amber-200 text-xs bg-amber-950/60 px-2 py-0.5 rounded border border-amber-500/30 select-text">
+                                      {revealedPasswords[acc.studentId]}
+                                    </span>
+                                  ) : (
+                                    <span className="font-mono text-slate-500 text-xs">
+                                      ••••••
+                                    </span>
+                                  )}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (revealedPasswords[acc.studentId]) {
+                                        // hide if already revealed
+                                        setRevealedPasswords(prev => {
+                                          const next = { ...prev };
+                                          delete next[acc.studentId];
+                                          return next;
+                                        });
+                                      } else {
+                                        setAdminPasswordInput("");
+                                        setPasswordRevealError("");
+                                        setShowPasswordModal({ isOpen: true, studentId: acc.studentId, studentName: acc.displayName });
+                                      }
+                                    }}
+                                    className="p-1 hover:bg-white/10 rounded cursor-pointer text-slate-400 hover:text-amber-300 transition-colors"
+                                    title={revealedPasswords[acc.studentId] ? "ซ่อนรหัสผ่าน" : "ดูรหัสผ่าน"}
+                                  >
+                                    {revealedPasswords[acc.studentId] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                  </button>
+                                </div>
                               </td>
                               <td className="p-3 text-center font-mono font-bold text-[#E6A100]">
                                 {acc.coins}
@@ -1576,6 +1637,67 @@ export default function AdminPage() {
           )}
         </main>
       </div>
+
+      {/* ----------------------------------------------------
+          MODAL: Reveal Student Password
+         ---------------------------------------------------- */}
+      <AnimatePresence>
+        {showPasswordModal?.isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs"
+          >
+            <div className="w-full max-w-sm bg-[#0B3B36] border-2 border-amber-500/60 rounded-3xl p-6 shadow-2xl text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-amber-900/60 border border-amber-400 mx-auto flex items-center justify-center text-amber-300">
+                <Lock className="w-6 h-6 text-amber-400" />
+              </div>
+              <h3 className="text-base font-black font-game text-white">
+                ยืนยันรหัสแอดมิน
+              </h3>
+              <p className="text-xs text-amber-200/90 leading-relaxed">
+                กรุณากรอกรหัสแอดมินอีกครั้งเพื่อดูรหัสผ่านของ<br/>
+                <span className="font-bold text-amber-400">{showPasswordModal.studentName} ({showPasswordModal.studentId})</span>
+              </p>
+              
+              <input
+                type="password"
+                value={adminPasswordInput}
+                onChange={(e) => setAdminPasswordInput(e.target.value)}
+                placeholder="รหัสผ่านแอดมิน"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleRevealPassword();
+                  }
+                }}
+                className="w-full px-4 py-2 bg-black/50 border border-amber-500/50 rounded-xl text-white text-center tracking-widest focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+              />
+              
+              {passwordRevealError && (
+                <div className="text-xs text-rose-400 font-bold bg-rose-950/50 py-1 px-2 rounded-lg border border-rose-500/30">
+                  {passwordRevealError}
+                </div>
+              )}
+
+              <div className="flex space-x-2 pt-2">
+                <button
+                  onClick={() => setShowPasswordModal(null)}
+                  className="flex-1 py-2 rounded-xl bg-black/40 hover:bg-black/60 text-slate-300 font-bold text-xs cursor-pointer transition-colors"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={handleRevealPassword}
+                  className="flex-1 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-amber-950 font-black text-xs cursor-pointer shadow-md transition-colors"
+                >
+                  ยืนยัน
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ----------------------------------------------------
           MODAL: Confirmation Dialog (e.g. Lung Case + Thyroid Clue)
