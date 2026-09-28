@@ -98,17 +98,18 @@ export function TitleSplash({
       <AmbientMotes />
 
       {/* --------------------------------------------------------
-          LAYER 2: mascots.webp วางกึ่งกลาง ยืนบนเคาน์เตอร์ เหนือปุ่ม PLAY [z-10]
-          Separate layer bottom-center, height <= 34vmin, shrunk if height < 700, never hidden in landscape
+          LAYER 2: mascots.webp วางกึ่งกลาง ยืนบนเคาน์เตอร์ เหนือปุ่ม PLAY [z-25]
+          บนมือถือ (portrait): ดันตำแหน่งขึ้นเหนือปุ่ม PLAY (bottom-[31%]) ป้องกันปุ่มทับ
+          ความสูงไม่เกิน 28% ของจอ และหัวอยู่ใต้ป้ายไม้ มีระยะห่างเกิน 12px
           -------------------------------------------------------- */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-[20%] sm:bottom-[21%] md:bottom-[21.5%] lg:bottom-[22%] pointer-events-none z-10 flex flex-col items-center">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-[31%] xs:bottom-[28%] sm:bottom-[24%] md:bottom-[21.5%] lg:bottom-[22%] pointer-events-none z-25 flex flex-col items-center">
         <motion.img
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
           src={getAssetPath("/scene/mascots.webp")}
           alt="NucMed Arena Mascots"
-          className="h-[20vmin] sm:h-[24vmin] md:h-[28vmin] lg:h-[32vmin] max-h-[34vmin] [@media(max-height:700px)]:max-h-[24vmin] [@media(max-height:600px)]:max-h-[19vmin] w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]"
+          className="h-[18vh] min-h-[110px] max-h-[26vh] sm:h-[24vmin] md:h-[28vmin] lg:h-[32vmin] [@media(max-height:700px)]:max-h-[22vh] [@media(max-height:600px)]:max-h-[18vh] w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.65)]"
         />
       </div>
 

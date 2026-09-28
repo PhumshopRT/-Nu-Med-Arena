@@ -85,7 +85,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
       {/* Central High-Tech Ionization Core & Title Section */}
       <div className="flex flex-col items-center text-center my-auto z-20 px-4">
         {/* Animated Concentric Cyclotron Energy Rings */}
-        <div className="relative w-28 h-28 md:w-32 md:h-32 flex items-center justify-center mb-2">
+        <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex items-center justify-center mb-1.5 sm:mb-2">
           {/* Ring 1 - Outer amber dashed counter-clockwise */}
           <motion.div
             animate={{ rotate: -360 }}
@@ -114,9 +114,9 @@ export function BootScreen({ onComplete }: BootScreenProps) {
           <motion.div
             animate={{ scale: [0.95, 1.08, 0.95] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 border-2 border-amber-600 flex items-center justify-center shadow-[0_0_25px_rgba(245,158,11,0.8)] z-10"
+            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 border-2 border-amber-600 flex items-center justify-center shadow-[0_0_25px_rgba(245,158,11,0.8)] z-10"
           >
-            <span className="text-2xl filter drop-shadow">☢️</span>
+            <span className="text-xl sm:text-2xl filter drop-shadow">☢️</span>
           </motion.div>
         </div>
 
@@ -125,23 +125,23 @@ export function BootScreen({ onComplete }: BootScreenProps) {
           initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className="text-5xl md:text-7xl font-black text-amber-300 tracking-tight font-game text-shadow-gold-title filter drop-shadow-[0_12px_16px_rgba(0,0,0,0.7)] select-none"
+          className="text-4xl sm:text-5xl md:text-7xl font-black text-amber-300 tracking-tight font-game text-shadow-gold-title filter drop-shadow-[0_12px_16px_rgba(0,0,0,0.7)] select-none"
         >
           NucMed Arena
         </motion.h1>
 
         {/* Mode & Subtitle Plaque */}
-        <div className="wood-panel px-6 py-2 rounded-xl mt-1.5 text-center max-w-lg shadow-2xl border-2 border-amber-950 flex flex-col items-center">
-          <div className="text-amber-100 font-black text-sm md:text-base font-game tracking-wider">
+        <div className="wood-panel px-4 sm:px-6 py-1.5 sm:py-2 rounded-xl mt-1.5 text-center max-w-lg shadow-2xl border-2 border-amber-950 flex flex-col items-center">
+          <div className="text-amber-100 font-black text-xs sm:text-sm md:text-base font-game tracking-wider">
             จับคู่สาร · จับคู่กลไก · รอบโต๊ะไพ่
           </div>
-          <div className="text-amber-300/90 text-[9px] md:text-[10px] font-black tracking-widest uppercase mt-0.5">
+          <div className="text-amber-300/90 text-[8.5px] sm:text-[9px] md:text-[10px] font-black tracking-widest uppercase mt-0.5">
             LEARN • MATCH • PLAY • NUCLEAR MEDICINE
           </div>
         </div>
 
         {/* High-Tech Telemetry Stats Grid */}
-        <div className="mt-3 px-4 py-1.5 rounded-xl bg-slate-950/80 border border-amber-500/40 backdrop-blur-md flex items-center space-x-3 text-[10px] md:text-[11px] font-mono text-amber-200">
+        <div className="mt-2 sm:mt-3 px-3 sm:px-4 py-1.5 rounded-xl bg-slate-950/80 border border-amber-500/40 backdrop-blur-md flex items-center space-x-2 sm:space-x-3 text-[9px] sm:text-[10px] md:text-[11px] font-mono text-amber-200">
           <div className="flex items-center space-x-1 text-cyan-300">
             <Radio className="w-3 h-3 animate-pulse" />
             <span>BEAM: 18 MeV</span>
@@ -159,15 +159,17 @@ export function BootScreen({ onComplete }: BootScreenProps) {
         </div>
       </div>
 
-      {/* Mascots Layer: separate layer bottom-center, <= 34vmin, shrunk when height < 700, never hidden in landscape */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-[16%] sm:bottom-[17%] md:bottom-[18%] pointer-events-none z-10 flex flex-col items-center">
+      {/* Mascots Layer: separate layer bottom-center [z-25]
+          บนมือถือ (portrait): ดันตำแหน่งขึ้นเหนือแถบโหลด (bottom-[25%]) ไม่ให้แถบโหลดและทิปทับตัวละคร
+          -------------------------------------------------------- */}
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-[25%] xs:bottom-[23%] sm:bottom-[20%] md:bottom-[18%] pointer-events-none z-25 flex flex-col items-center">
         <motion.img
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
           src={getAssetPath("/scene/mascots.webp")}
           alt="NucMed Arena Mascots"
-          className="h-[20vmin] sm:h-[24vmin] md:h-[28vmin] lg:h-[32vmin] max-h-[34vmin] [@media(max-height:700px)]:max-h-[24vmin] [@media(max-height:600px)]:max-h-[18vmin] w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]"
+          className="h-[17vh] min-h-[100px] max-h-[24vh] sm:h-[22vmin] md:h-[26vmin] lg:h-[30vmin] [@media(max-height:700px)]:max-h-[20vh] [@media(max-height:600px)]:max-h-[16vh] w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]"
         />
       </div>
 

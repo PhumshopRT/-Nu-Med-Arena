@@ -109,12 +109,30 @@ export function PlayClient() {
   const userCorrectCountRef = useRef(0);
   const syncRef = useRef<RoomSyncHandle | null>(null);
   const mechScrollRef = useRef<HTMLDivElement>(null);
+  const handScrollRef = useRef<HTMLDivElement>(null);
+  const swapScrollRef = useRef<HTMLDivElement>(null);
 
   const handleScrollMech = (direction: "left" | "right") => {
     sounds.playClick();
     if (mechScrollRef.current) {
       const scrollAmount = direction === "left" ? -280 : 280;
       mechScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
+  const handleScrollHand = (direction: "left" | "right") => {
+    sounds.playClick();
+    if (handScrollRef.current) {
+      const scrollAmount = direction === "left" ? -220 : 220;
+      handScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
+  const handleScrollSwap = (direction: "left" | "right") => {
+    sounds.playClick();
+    if (swapScrollRef.current) {
+      const scrollAmount = direction === "left" ? -230 : 230;
+      swapScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
 
@@ -897,7 +915,7 @@ export function PlayClient() {
             <div
               ref={mechScrollRef}
               className="flex-1 overflow-x-auto py-1.5 sm:py-2 px-2 sm:px-3 flex space-x-2 sm:space-x-3 scrollbar-none scroll-smooth bg-black/35 backdrop-blur-md rounded-2xl border-2 border-amber-500/35 shadow-[inset_0_2px_8px_rgba(0,0,0,0.6),0_4px_16px_rgba(0,0,0,0.35)] touch-pan-x"
-              style={{ scrollbarWidth: "none" }}
+              style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
             >
               {ALL_MECH_CARDS.map((mech) => {
                 const isSelected = selectedMech?.id === mech.id;
@@ -957,8 +975,106 @@ export function PlayClient() {
             ไพ่สารเภสัชรังสีในมือคุณ (YOUR HAND - 5 CARDS)
           </div>
 
-          {/* Arc Fan Container - Responsively Scaled for Phone, iPad, and Desktop */}
-          <div className="relative flex justify-center items-end h-38 sm:h-46 md:h-56 w-full max-w-2xl px-2 sm:px-4 scale-[0.68] xs:scale-[0.78] sm:scale-90 md:scale-100 origin-bottom mb-2 sm:mb-0">
+          {/* MOBILE VIEW (< sm): Slidable & Scrollable Hand Carousel with Left/Right Buttons */}
+          <div className="flex sm:hidden relative w-full items-center px-1">
+            {/* Left Arcade Nav Button */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => handleScrollHand("left")}
+              className="shrink-0 w-8 h-8 rounded-full bg-gradient-to-b from-blue-400 via-blue-500 to-blue-700 text-white flex items-center justify-center border-2 border-blue-200 shadow-[0_2px_0_#1e3a8a,0_4px_10px_rgba(0,0,0,0.5)] cursor-pointer transition-all z-20 active:scale-90"
+              title="เลื่อนซ้าย"
+              aria-label="Scroll hand left"
+            >
+              <ChevronLeft className="w-5 h-5 stroke-[3]" />
+            </motion.button>
+
+            {/* Scrollable Hand Track */}
+            <div
+              ref={handScrollRef}
+              className="flex-1 overflow-x-auto py-2 px-2 flex space-x-3 scrollbar-none scroll-smooth touch-pan-x snap-x snap-mandatory"
+              style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
+            >
+              {hand.map((card, index) => {
+                const isSelected = selectedRp?.id === card.id;
+                return (
+                  <div
+                    key={`${card.id}_${index}`}
+                    className="shrink-0 snap-center flex flex-col items-center cursor-pointer transition-transform active:scale-95"
+                    onClick={() => {
+                      sounds.playSelect();
+                      setSelectedRp(card);
+                    }}
+                  >
+                    {/* Slot badge */}
+                    <div className={`mb-1 px-2.5 py-0.5 rounded-full text-[9px] font-game font-bold flex items-center space-x-1 shadow-xs ${
+                      isSelected
+                        ? "bg-amber-400 text-amber-950 font-black border border-white"
+                        : "bg-black/60 text-blue-200 border border-blue-400/40"
+                    }`}>
+                      <span>#{index + 1}</span>
+                      {isSelected ? <span>✓ เลือกแล้ว</span> : <span>{card.id}</span>}
+                    </div>
+
+                    <div className={`transition-all rounded-[18px] ${
+                      isSelected
+                        ? "ring-4 ring-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.9)] -translate-y-1"
+                        : "opacity-95"
+                    }`}>
+                      <RpCard
+                        card={card}
+                        size="sm"
+                        isSelected={isSelected}
+                        isHoverable={false}
+                        className="shadow-xl"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Right Arcade Nav Button */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => handleScrollHand("right")}
+              className="shrink-0 w-8 h-8 rounded-full bg-gradient-to-b from-blue-400 via-blue-500 to-blue-700 text-white flex items-center justify-center border-2 border-blue-200 shadow-[0_2px_0_#1e3a8a,0_4px_10px_rgba(0,0,0,0.5)] cursor-pointer transition-all z-20 active:scale-90"
+              title="เลื่อนขวา"
+              aria-label="Scroll hand right"
+            >
+              <ChevronRight className="w-5 h-5 stroke-[3]" />
+            </motion.button>
+          </div>
+
+          {/* Mobile Swipe Hint & Slot Navigation Dots (< sm) */}
+          <div className="flex sm:hidden items-center justify-center space-x-2 mt-1">
+            <span className="text-[10px] text-blue-200/90 font-medium">◀ เลื่อนซ้าย-ขวา เพื่อเลือกไพ่ในมือ ▶</span>
+            <div className="flex space-x-1.5 ml-1">
+              {hand.map((c, i) => (
+                <button
+                  type="button"
+                  key={i}
+                  onClick={() => {
+                    sounds.playSelect();
+                    setSelectedRp(c);
+                    if (handScrollRef.current) {
+                      handScrollRef.current.scrollTo({ left: i * 215, behavior: "smooth" });
+                    }
+                  }}
+                  className={`h-2 rounded-full cursor-pointer transition-all ${
+                    selectedRp?.id === c.id
+                      ? "bg-amber-400 w-4 shadow-[0_0_8px_#fbbf24]"
+                      : "bg-blue-300/40 w-2 hover:bg-blue-200"
+                  }`}
+                  title={`ไปที่การ์ดใบที่ ${i + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* TABLET & DESKTOP VIEW (>= sm): Classic Arcade Fan Layout */}
+          <div className="hidden sm:flex relative justify-center items-end h-44 md:h-56 w-full max-w-2xl px-2 sm:px-4 scale-90 md:scale-100 origin-bottom mb-2 sm:mb-0">
             {hand.map((card, index) => {
               const offsetFromCenter = index - 2; // -2, -1, 0, 1, 2
               const rotation = offsetFromCenter * 5; // Arc degrees
@@ -968,7 +1084,7 @@ export function PlayClient() {
               return (
                 <motion.div
                   key={`${card.id}_${index}`}
-                  className="relative -mx-2.5 sm:-mx-3 md:-mx-4 cursor-pointer"
+                  className="relative -mx-3 md:-mx-4 cursor-pointer"
                   style={{
                     transformOrigin: "bottom center",
                   }}
@@ -1181,15 +1297,40 @@ export function PlayClient() {
               </div>
 
               {/* Cards in Hand Tray (Arcade Green Felt Table with Pedestals) */}
-              <div className="w-full bg-[#081f15] border-3 border-emerald-600/70 rounded-2xl p-3 sm:p-5 shadow-[inset_0_4px_30px_rgba(0,0,0,0.85)]">
-                <div className="flex items-stretch justify-start xl:justify-center overflow-x-auto gap-3.5 sm:gap-4.5 pb-2 pt-1 px-1 no-scrollbar">
+              <div className="w-full bg-[#081f15] border-3 border-emerald-600/70 rounded-2xl p-2.5 sm:p-5 shadow-[inset_0_4px_30px_rgba(0,0,0,0.85)] relative">
+                {/* Mobile / Tablet Quick Navigation Bar */}
+                <div className="flex xl:hidden justify-between items-center mb-2 px-1">
+                  <button
+                    type="button"
+                    onClick={() => handleScrollSwap("left")}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-800/90 hover:bg-emerald-700 text-emerald-100 text-xs font-bold flex items-center space-x-1 border border-emerald-400/50 shadow-md cursor-pointer active:scale-95 transition-all"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>ก่อนหน้า</span>
+                  </button>
+                  <span className="text-[11px] text-emerald-300 font-medium">◀ เลื่อนซ้าย-ขวาเพื่อดู 5 ช่อง ▶</span>
+                  <button
+                    type="button"
+                    onClick={() => handleScrollSwap("right")}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-800/90 hover:bg-emerald-700 text-emerald-100 text-xs font-bold flex items-center space-x-1 border border-emerald-400/50 shadow-md cursor-pointer active:scale-95 transition-all"
+                  >
+                    <span>ถัดไป</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div
+                  ref={swapScrollRef}
+                  className="flex items-stretch justify-start xl:justify-center overflow-x-auto gap-3.5 sm:gap-4.5 pb-2 pt-1 px-1 no-scrollbar touch-pan-x snap-x snap-mandatory scroll-smooth"
+                  style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
+                >
                   {hand.map((c, i) => (
                     <motion.div
                       key={`${c.id}_${i}`}
                       initial={{ scale: 0.95, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: i * 0.05 }}
-                      className="flex flex-col items-center shrink-0 w-[206px] bg-gradient-to-b from-[#0e3323] via-[#092418] to-[#04120b] border-2 border-emerald-500/40 rounded-2xl p-2.5 shadow-xl ring-1 ring-emerald-400/20"
+                      className="flex flex-col items-center shrink-0 snap-center w-[206px] bg-gradient-to-b from-[#0e3323] via-[#092418] to-[#04120b] border-2 border-emerald-500/40 rounded-2xl p-2.5 shadow-xl ring-1 ring-emerald-400/20"
                     >
                       {/* Slot Badge */}
                       <div className="mb-2 px-3 py-0.5 rounded-full bg-emerald-900/90 border border-emerald-400/50 text-[10.5px] font-game font-bold text-emerald-300 tracking-wider flex items-center space-x-1.5 shadow-xs">
@@ -1232,11 +1373,6 @@ export function PlayClient() {
                       </button>
                     </motion.div>
                   ))}
-                </div>
-
-                {/* Mobile / Tablet scroll hint */}
-                <div className="text-[11px] text-emerald-300/80 mt-2 flex items-center justify-center space-x-1 xl:hidden">
-                  <span>◀ เลื่อนซ้าย-ขวาเพื่อดูการ์ดทั้ง 5 ช่อง ▶</span>
                 </div>
               </div>
 
