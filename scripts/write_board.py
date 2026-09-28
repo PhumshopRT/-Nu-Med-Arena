@@ -1,4 +1,13 @@
-"use client";
+import os
+import glob
+
+files = glob.glob('apps/web/src/app/board/*/BoardClient.tsx')
+if not files:
+    print("Not found")
+    exit(1)
+board_path = files[0]
+
+code = """"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -408,3 +417,9 @@ export function BoardClient() {
     </div>
   );
 }
+"""
+
+with open(board_path, "w", encoding="utf-8") as f:
+    f.write(code)
+
+print("Updated BoardClient")

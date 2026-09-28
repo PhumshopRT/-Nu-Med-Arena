@@ -15,14 +15,15 @@ export function generateRoomCode(length: number = 6): string {
 
 export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
   totalRounds: 10,
-  thinkSeconds: 45,
+  thinkSeconds: 30,
   basicCount: 6,
   clinicalCount: 4,
-  hintAtPercent: 50,
+  hintAtPercent: 0,
   swapEvery: 3,
-  maxPlayers: 6,
+  maxPlayers: 55,
   minPlayersToStart: 1,
-  allowBots: true,
+  allowBots: false,
+  spotlightMode: "big-card",
 };
 
 export interface BotProfile {

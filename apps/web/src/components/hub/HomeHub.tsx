@@ -118,11 +118,16 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
           -------------------------------------------------------- */}
       <header className="w-full flex justify-between items-center px-4 md:px-8 py-3.5 z-30 pointer-events-auto">
         {/* Left: Player Profile Wood Plaque */}
-        <div className="wood-panel px-4 py-2 rounded-2xl flex items-center space-x-3 shadow-2xl border-3 border-amber-950 backdrop-blur-xs">
+        <button 
+          onClick={() => { sounds.playClick(); router.push("/profile"); }}
+          title="คลิกเพื่อตั้งค่าโปรไฟล์"
+          className="wood-panel px-4 py-2 rounded-2xl flex items-center space-x-3 shadow-2xl border-3 border-amber-950 backdrop-blur-xs hover:scale-105 hover:border-amber-500 active:scale-95 transition-all cursor-pointer text-left group relative"
+        >
+          <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 rounded-2xl transition-colors"></div>
           <AvatarBadge avatarId={currentUser.equipped?.avatar || "avatar-default"} size={44} />
-          <div>
+          <div className="relative z-10">
             <div className="flex items-center space-x-2">
-              <span className="font-bold text-sm text-white font-game">{currentUser.displayName}</span>
+              <span className="font-bold text-sm text-white font-game group-hover:text-amber-300 transition-colors">{currentUser.displayName}</span>
               <span className="bg-emerald-600/90 text-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-400/40">
                 LV.{level}
               </span>
@@ -138,7 +143,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
               />
             </div>
           </div>
-        </div>
+        </button>
 
         {/* Right: NucCoins Balance with 28px game coin + Sound + Logout */}
         <div className="flex items-center space-x-2.5">

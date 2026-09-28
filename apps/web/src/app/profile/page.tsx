@@ -180,10 +180,10 @@ export default function ProfilePage() {
                 <textarea
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  maxLength={60}
+                  maxLength={80}
                   rows={2}
                   className="w-full px-5 py-3 bg-black/60 border-2 border-amber-700/80 rounded-xl text-amber-100 text-sm focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all placeholder-white/20 resize-none"
-                  placeholder="เขียนอะไรสั้นๆ แนะนำตัวเอง (สูงสุด 60 ตัวอักษร)..."
+                  placeholder="เขียนอะไรสั้นๆ แนะนำตัวเอง (สูงสุด 80 ตัวอักษร)..."
                 />
               </div>
             </div>

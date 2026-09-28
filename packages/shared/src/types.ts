@@ -58,6 +58,7 @@ export interface RoomSettings {
   maxPlayers: number;
   minPlayersToStart: number;
   allowBots: boolean;
+  spotlightMode?: "big-card" | "text";
 }
 
 export type MatchPhase =
