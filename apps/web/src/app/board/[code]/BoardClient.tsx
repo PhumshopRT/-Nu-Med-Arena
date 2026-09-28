@@ -25,7 +25,11 @@ export function BoardClient() {
   const [currentCase, setCurrentCase] = useState<CaseCard>(ALL_CASE_CARDS[0]);
   const [timeLeft, setTimeLeft] = useState(30);
   
-  const [user] = useState(() => getRememberedUser());
+  const [user, setUser] = useState<StudentUser | null>(null);
+
+  useEffect(() => {
+    setUser(getRememberedUser());
+  }, []);
   const syncRef = useRef<RoomSyncHandle | null>(null);
   const roomRef = useRef<PublicRoomState | null>(null);
   roomRef.current = room;
