@@ -7,7 +7,7 @@ import {
   Trophy, Clock, Users, Play, SkipForward, XSquare, CheckCircle, XCircle 
 } from "lucide-react";
 import { 
-  ALL_CASE_CARDS, CaseCard, PublicRoomState, PublicPlayer, ALL_RP_CARDS, ALL_MECH_CARDS 
+  ALL_CASE_CARDS, CaseCard, PublicRoomState, PublicPlayer, ALL_RP_CARDS, ALL_MECH_CARDS, StudentUser 
 } from "@nucmed/shared";
 import { CaseCard as CaseCardComponent } from "@/components/cards/CaseCard";
 import { getRememberedUser } from "@/lib/user";
