@@ -15,6 +15,7 @@ import {
   Volume2, 
   VolumeX, 
   ArrowLeft, 
+  ChevronLeft,
   ChevronRight, 
   Coins, 
   Sparkles, 
@@ -86,6 +87,15 @@ export function PlayClient() {
   const [isMuted, setIsMuted] = useState(sounds.getMuted());
   const [showExplanation, setShowExplanation] = useState(false);
   const syncRef = useRef<RoomSyncHandle | null>(null);
+  const mechScrollRef = useRef<HTMLDivElement>(null);
+
+  const handleScrollMech = (direction: "left" | "right") => {
+    sounds.playClick();
+    if (mechScrollRef.current) {
+      const scrollAmount = direction === "left" ? -280 : 280;
+      mechScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
 
   // Initialize match
   useEffect(() => {
@@ -464,9 +474,9 @@ export function PlayClient() {
       />
 
       {/* 1. Top HUD Ribbon - Translucent Sleek HUD (~72% transparent) */}
-      <header className="relative z-20 w-full flex justify-between items-center px-4 md:px-8 py-2.5 bg-black/28 border-b border-amber-600/30 shadow-xl backdrop-blur-xs">
+      <header className="relative z-20 w-full flex justify-between items-center px-2 sm:px-4 md:px-8 py-2 bg-black/28 border-b border-amber-600/30 shadow-xl backdrop-blur-xs">
         {/* Left: Round & Exit */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-1.5 sm:space-x-3">
           <button
             onClick={() => {
               sounds.playClick();
@@ -474,20 +484,20 @@ export function PlayClient() {
                 router.push("/");
               }
             }}
-            className="p-1.5 bg-amber-900/70 hover:bg-amber-800 rounded-xl text-amber-200 border border-amber-600/80 transition-all hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-xs"
+            className="p-1 sm:p-1.5 bg-amber-900/70 hover:bg-amber-800 rounded-lg sm:rounded-xl text-amber-200 border border-amber-600/80 transition-all hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-xs"
             title="ออกจากเกม"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
 
-          <div className="bg-amber-950/60 border border-amber-500/60 px-3 py-1 rounded-xl shadow-inner flex items-center space-x-2 backdrop-blur-xs">
-            <span className="text-[10px] text-amber-300 font-game uppercase font-bold">รอบที่</span>
-            <span className="font-mono font-black text-amber-100 text-sm md:text-base">
-              {currentRound} / {totalRounds}
+          <div className="bg-amber-950/60 border border-amber-500/60 px-2 sm:px-3 py-0.5 sm:py-1 rounded-xl shadow-inner flex items-center space-x-1 sm:space-x-2 backdrop-blur-xs">
+            <span className="text-[9px] sm:text-[10px] text-amber-300 font-game uppercase font-bold">รอบ</span>
+            <span className="font-mono font-black text-amber-100 text-xs sm:text-sm md:text-base">
+              {currentRound}/{totalRounds}
             </span>
           </div>
 
-          <div className="hidden md:flex bg-amber-950/50 px-3 py-1 rounded-full text-xs font-bold text-amber-200 border border-amber-700/50 items-center space-x-1.5 backdrop-blur-xs">
+          <div className="hidden lg:flex bg-amber-950/50 px-3 py-1 rounded-full text-xs font-bold text-amber-200 border border-amber-700/50 items-center space-x-1.5 backdrop-blur-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
             <span>โจทย์: {currentCase.difficulty} ({currentCase.points} คะแนน)</span>
           </div>
@@ -495,14 +505,14 @@ export function PlayClient() {
 
         {/* Center: Countdown Timer Progress */}
         <div className="flex flex-col items-center">
-          <div className="flex items-center space-x-1.5">
-            <Clock className={`w-4 h-4 ${timeLeft <= 10 ? "text-rose-400 animate-bounce" : "text-amber-300"}`} />
-            <span className={`font-mono font-black text-lg md:text-xl ${timeLeft <= 10 ? "text-rose-400" : "text-amber-100"}`}>
+          <div className="flex items-center space-x-1 sm:space-x-1.5">
+            <Clock className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${timeLeft <= 10 ? "text-rose-400 animate-bounce" : "text-amber-300"}`} />
+            <span className={`font-mono font-black text-base sm:text-lg md:text-xl ${timeLeft <= 10 ? "text-rose-400" : "text-amber-100"}`}>
               {timeLeft}s
             </span>
           </div>
           {/* Progress bar */}
-          <div className="w-28 md:w-44 h-1.5 bg-black/40 rounded-full overflow-hidden border border-amber-500/30">
+          <div className="w-20 sm:w-28 md:w-44 h-1 sm:h-1.5 bg-black/40 rounded-full overflow-hidden border border-amber-500/30">
             <motion.div
               className={`h-full ${timeLeft <= 10 ? "bg-rose-500" : timeLeft <= 20 ? "bg-amber-400" : "bg-emerald-400"}`}
               style={{ width: `${(timeLeft / maxTime) * 100}%` }}
@@ -512,11 +522,11 @@ export function PlayClient() {
         </div>
 
         {/* Right: Sound & Score Summary */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1.5 sm:space-x-2">
           {/* My Score Badge */}
-          <div className="bg-amber-950/60 border border-amber-500/60 px-3 py-1 rounded-full flex items-center space-x-1.5 shadow-inner backdrop-blur-xs">
-            <Trophy className="w-4 h-4 text-amber-400" />
-            <span className="font-mono font-bold text-xs md:text-sm text-white">
+          <div className="bg-amber-950/60 border border-amber-500/60 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center space-x-1 sm:space-x-1.5 shadow-inner backdrop-blur-xs">
+            <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+            <span className="font-mono font-bold text-xs sm:text-sm text-white">
               {players.find((p) => p.studentId === user?.studentId)?.score || 0} PTS
             </span>
           </div>
@@ -526,29 +536,29 @@ export function PlayClient() {
               const muted = sounds.toggleMute();
               setIsMuted(muted);
             }}
-            className="p-1.5 bg-black/40 hover:bg-black/60 rounded-full text-white border border-amber-500/40 transition-all hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-xs"
+            className="p-1 sm:p-1.5 bg-black/40 hover:bg-black/60 rounded-full text-white border border-amber-500/40 transition-all hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-xs"
             title={isMuted ? "เปิดเสียง" : "ปิดเสียง"}
           >
-            {isMuted ? <VolumeX className="w-4 h-4 text-rose-300" /> : <Volume2 className="w-4 h-4 text-emerald-300" />}
+            {isMuted ? <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-300" /> : <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-300" />}
           </button>
         </div>
       </header>
 
       {/* Players Quick Ribbon - Translucent (72% transparent backdrop) */}
-      <div className="relative z-10 w-full flex justify-center items-center py-1.5 bg-black/28 border-b border-amber-900/30 gap-2 md:gap-4 overflow-x-auto px-4 backdrop-blur-xs">
+      <div className="relative z-10 w-full flex justify-center items-center py-1 sm:py-1.5 bg-black/28 border-b border-amber-900/30 gap-1.5 sm:gap-3 overflow-x-auto px-2 sm:px-4 backdrop-blur-xs scrollbar-none">
         {players.map((p) => {
           const isMe = p.studentId === user?.studentId;
           return (
             <div
               key={p.id}
-              className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full border text-[11px] font-bold backdrop-blur-xs ${
+              className={`flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border text-[10px] sm:text-[11px] font-bold backdrop-blur-xs shrink-0 ${
                 isMe
                   ? "bg-amber-900/70 border-amber-400 text-amber-100 shadow-md"
                   : "bg-black/35 border-amber-800/40 text-amber-200/80"
               }`}
             >
               <span>{p.avatar || "👨‍🎓"}</span>
-              <span className="truncate max-w-[80px]">{p.name}</span>
+              <span className="truncate max-w-[70px] sm:max-w-[85px]">{p.name}</span>
               <span className="font-mono text-amber-300">({p.score})</span>
               {p.locked ? (
                 <span className="w-2 h-2 rounded-full bg-emerald-400" title="ตอบแล้ว" />
@@ -561,11 +571,11 @@ export function PlayClient() {
       </div>
 
       {/* 2. Main Arena Table */}
-      <main className="relative z-10 flex-1 max-w-6xl mx-auto w-full px-4 py-4 flex flex-col justify-between items-center">
-        {/* Upper Center: Clinical Case Card + Clue Card Slot */}
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6 my-auto">
-          {/* Clue Slot */}
-          <div className="flex flex-col items-center">
+      <main className="relative z-10 flex-1 max-w-6xl mx-auto w-full px-2 sm:px-4 py-2 sm:py-3 flex flex-col justify-between items-center">
+        {/* Upper Center: Clinical Case Card + Clue Card Slot + Selection Slot */}
+        <div className="flex flex-col md:flex-row items-center justify-center gap-2 sm:gap-4 md:gap-6 lg:gap-8 my-auto w-full px-1">
+          {/* Desktop Clue Slot (hidden on phone, shown on md+) */}
+          <div className="hidden md:flex flex-col items-center">
             <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider mb-1 drop-shadow-md">
               คำใบ้ / เป้าหมาย (CLUE)
             </span>
@@ -579,7 +589,7 @@ export function PlayClient() {
                   sounds.playSelect();
                   setIsClueRevealed(true);
                 }}
-                className="w-44 h-62 rounded-2xl border-2 border-dashed border-emerald-500/60 bg-black/28 hover:bg-emerald-950/40 backdrop-blur-xs p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:scale-102 shadow-lg group"
+                className="w-38 md:w-44 h-54 md:h-62 rounded-2xl border-2 border-dashed border-emerald-500/60 bg-black/28 hover:bg-emerald-950/40 backdrop-blur-xs p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:scale-102 shadow-lg group"
               >
                 <HelpCircle className="w-8 h-8 text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />
                 <span className="text-xs font-bold text-emerald-200">แตะเพื่อเปิดคำใบ้</span>
@@ -588,18 +598,92 @@ export function PlayClient() {
             )}
           </div>
 
-          {/* Clinical Case Card */}
+          {/* Clinical Case Card (Hero in Center on both Phone, iPad & Desktop) */}
           <div className="flex flex-col items-center">
-            <span className="text-[10px] text-rose-300 font-bold uppercase tracking-wider mb-1 drop-shadow-md">
+            <span className="text-[10px] sm:text-xs text-rose-300 font-bold uppercase tracking-wider mb-0.5 sm:mb-1 drop-shadow-md">
               โจทย์ทางคลินิก (CLINICAL CASE)
             </span>
-            <motion.div initial={{ scale: 0.9, y: 10 }} animate={{ scale: 1, y: 0 }} transition={{ duration: 0.4 }}>
+            <motion.div
+              initial={{ scale: 0.9, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="scale-[0.74] xs:scale-[0.80] sm:scale-92 md:scale-100 origin-center -my-2 sm:my-0"
+            >
               <CaseCardComponent card={currentCase} size="md" />
             </motion.div>
           </div>
 
-          {/* Current Selection Slot & Giant LOCK Button - 72% Translucent Frame */}
-          <div className="flex flex-col items-center bg-black/28 backdrop-blur-xs p-4 rounded-3xl border border-amber-500/40 shadow-2xl min-w-[220px]">
+          {/* Mobile Combined Row: Clue Slot (Left) + YOUR MATCH Slot (Right) */}
+          <div className="flex md:hidden flex-row items-stretch justify-center gap-2 w-full max-w-sm px-1 mt-0.5">
+            {/* Mobile Clue Slot */}
+            <div className="flex-1 flex flex-col items-center justify-between p-2 rounded-2xl border border-emerald-500/50 bg-black/28 backdrop-blur-xs text-center shadow-lg">
+              <span className="text-[9px] text-emerald-300 font-bold uppercase">
+                คำใบ้ (CLUE)
+              </span>
+              {isClueRevealed && currentClue ? (
+                <div className="scale-75 origin-center my-auto">
+                  <ClueCardComponent card={currentClue} size="sm" />
+                </div>
+              ) : (
+                <div
+                  onClick={() => {
+                    sounds.playSelect();
+                    setIsClueRevealed(true);
+                  }}
+                  className="w-full flex-1 min-h-[85px] rounded-xl border border-dashed border-emerald-500/40 bg-emerald-950/20 hover:bg-emerald-950/40 flex flex-col items-center justify-center p-1.5 cursor-pointer mt-1"
+                >
+                  <HelpCircle className="w-5 h-5 text-emerald-400 mb-1" />
+                  <span className="text-[10px] font-bold text-emerald-200 leading-tight">แตะเปิดคำใบ้</span>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile YOUR MATCH Slot */}
+            <div className="flex-1 flex flex-col items-center justify-between p-2 rounded-2xl border border-amber-500/50 bg-black/28 backdrop-blur-xs shadow-lg">
+              <span className="text-[9px] text-amber-300 font-bold uppercase">
+                คำตอบของคุณ
+              </span>
+              {/* Mini cards preview */}
+              <div className="flex space-x-1.5 my-1">
+                {/* Mini RP */}
+                <div className="w-13 h-18 rounded-lg border border-blue-400/60 bg-blue-950/40 flex flex-col items-center justify-center p-0.5 text-center">
+                  <span className="text-[7px] text-blue-200 font-bold">RP</span>
+                  {selectedRp ? (
+                    <span className="text-[8px] font-black text-white truncate max-w-[48px]">{selectedRp.nuclide}</span>
+                  ) : (
+                    <span className="text-[9px] opacity-60">🃏</span>
+                  )}
+                </div>
+                {/* Mini Mech */}
+                <div className="w-13 h-18 rounded-lg border border-amber-400/60 bg-amber-950/40 flex flex-col items-center justify-center p-0.5 text-center">
+                  <span className="text-[7px] text-amber-200 font-bold">MECH</span>
+                  {selectedMech ? (
+                    <span className="text-[7.5px] font-black text-amber-300 truncate max-w-[48px]">{selectedMech.id}</span>
+                  ) : (
+                    <span className="text-[9px] opacity-60">⚙️</span>
+                  )}
+                </div>
+              </div>
+              {/* Mobile LOCK Button */}
+              <button
+                onClick={lockAnswer}
+                disabled={isLocked || !selectedRp || !selectedMech}
+                className={`w-full py-1.5 px-2 rounded-xl font-game font-black text-[10px] flex items-center justify-center space-x-1 transition-all shadow-md cursor-pointer ${
+                  isLocked
+                    ? "bg-slate-700/80 text-slate-300 cursor-default"
+                    : selectedRp && selectedMech
+                    ? "bg-gradient-to-b from-amber-400 to-amber-600 text-amber-950 font-bold border border-amber-200 animate-pulse"
+                    : "bg-black/40 text-amber-300/40 cursor-not-allowed border border-amber-800/40"
+                }`}
+              >
+                <Lock className="w-3 h-3" />
+                <span>{isLocked ? "LOCKED" : "LOCK!"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Desktop YOUR MATCH Slot (hidden on phone, shown on md+) */}
+          <div className="hidden md:flex flex-col items-center bg-black/28 backdrop-blur-xs p-3.5 lg:p-4 rounded-3xl border border-amber-500/40 shadow-2xl min-w-[200px] lg:min-w-[220px]">
             <span className="text-[10px] text-amber-300 font-bold uppercase tracking-wider mb-2 drop-shadow-md">
               คำตอบของคุณ (YOUR MATCH)
             </span>
@@ -613,7 +697,7 @@ export function PlayClient() {
                   <motion.div
                     initial={{ scale: 0.8, y: -5 }}
                     animate={{ scale: 1, y: 0 }}
-                    className="w-24 h-34 rounded-2xl bg-[#1B70BF] p-1 flex flex-col justify-between shadow-2xl border-2 border-blue-300 transform hover:scale-105 transition-transform select-none"
+                    className="w-22 lg:w-24 h-30 lg:h-34 rounded-2xl bg-[#1B70BF] p-1 flex flex-col justify-between shadow-2xl border-2 border-blue-300 transform hover:scale-105 transition-transform select-none"
                   >
                     <div className="w-full flex-1 bg-white rounded-xl p-1.5 flex flex-col justify-between items-center text-center">
                       <div className="w-full flex justify-between items-center">
@@ -628,7 +712,7 @@ export function PlayClient() {
                     </div>
                   </motion.div>
                 ) : (
-                  <div className="w-24 h-34 rounded-2xl border-2 border-dashed border-blue-400/50 bg-black/25 backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center">
+                  <div className="w-22 lg:w-24 h-30 lg:h-34 rounded-2xl border-2 border-dashed border-blue-400/50 bg-black/25 backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center">
                     <span className="text-xl mb-1 opacity-60">🃏</span>
                     <span className="text-[8.5px] text-blue-200/80 font-bold">เลือก 1 ใบจากมือ</span>
                   </div>
@@ -642,7 +726,7 @@ export function PlayClient() {
                   <motion.div
                     initial={{ scale: 0.8, y: -5 }}
                     animate={{ scale: 1, y: 0 }}
-                    className="w-24 h-34 rounded-2xl bg-[#EFA316] p-1 flex flex-col justify-between shadow-2xl border-2 border-amber-300 transform hover:scale-105 transition-transform select-none"
+                    className="w-22 lg:w-24 h-30 lg:h-34 rounded-2xl bg-[#EFA316] p-1 flex flex-col justify-between shadow-2xl border-2 border-amber-300 transform hover:scale-105 transition-transform select-none"
                   >
                     <div className="w-full flex-1 bg-white rounded-xl p-1.5 flex flex-col justify-between items-center text-center">
                       <div className="w-full flex justify-between items-center">
@@ -657,7 +741,7 @@ export function PlayClient() {
                     </div>
                   </motion.div>
                 ) : (
-                  <div className="w-24 h-34 rounded-2xl border-2 border-dashed border-amber-400/50 bg-black/25 backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center">
+                  <div className="w-22 lg:w-24 h-30 lg:h-34 rounded-2xl border-2 border-dashed border-amber-400/50 bg-black/25 backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center">
                     <span className="text-xl mb-1 opacity-60">⚙️</span>
                     <span className="text-[8.5px] text-amber-200/80 font-bold">เลือก 1 อย่างจากแถบ</span>
                   </div>
@@ -671,7 +755,7 @@ export function PlayClient() {
               whileTap={!isLocked && selectedRp && selectedMech ? { scale: 0.95 } : {}}
               onClick={lockAnswer}
               disabled={isLocked || !selectedRp || !selectedMech}
-              className={`w-full mt-3 py-3 px-4 rounded-2xl font-game font-black text-sm md:text-base tracking-wider flex items-center justify-center space-x-2 transition-all shadow-xl cursor-pointer ${
+              className={`w-full mt-3 py-2.5 lg:py-3 px-4 rounded-2xl font-game font-black text-sm md:text-base tracking-wider flex items-center justify-center space-x-2 transition-all shadow-xl cursor-pointer ${
                 isLocked
                   ? "bg-slate-700/80 border-2 border-slate-500 text-slate-300 cursor-default opacity-80"
                   : selectedRp && selectedMech
@@ -685,55 +769,107 @@ export function PlayClient() {
           </div>
         </div>
 
-        {/* Middle Rack: 12 Shared Mechanism Cards Bar */}
-        <div className="w-full flex flex-col items-center my-2">
-          <div className="flex items-center space-x-1.5 text-xs text-amber-200 font-bold mb-1 drop-shadow-md">
-            <span>⚙️ แถบกลไกการสะสมกลางโต๊ะ (MECHANISMS)</span>
-            <span className="text-[10px] text-amber-300/80 font-normal">(คลิก 1 อย่างที่ตรงกับเคส)</span>
+        {/* Middle Rack: 12 Shared Mechanism Cards Bar with Arcade Controls */}
+        <div className="w-full flex flex-col items-center my-1.5 sm:my-2">
+          {/* Rack Header */}
+          <div className="flex items-center space-x-1.5 sm:space-x-2 text-[11px] sm:text-xs text-amber-200 font-bold mb-1 drop-shadow-md">
+            <span className="text-sm sm:text-base">⚙️</span>
+            <span className="font-game tracking-wider uppercase">แถบกลไกการสะสมกลางโต๊ะ (MECHANISMS)</span>
+            <span className="hidden sm:inline text-[10px] text-amber-300/80 font-normal">
+              (แตะ 1 กลไกเพื่อจับคู่)
+            </span>
           </div>
 
-          <div className="w-full max-w-5xl overflow-x-auto py-2 px-3 flex space-x-2 scrollbar-thin bg-black/28 backdrop-blur-xs rounded-2xl border border-amber-500/25 shadow-lg">
-            {ALL_MECH_CARDS.map((mech) => {
-              const isSelected = selectedMech?.id === mech.id;
-              return (
-                <button
-                  key={mech.id}
-                  onClick={() => {
-                    sounds.playSelect();
-                    setSelectedMech(mech);
-                  }}
-                  className={`flex-shrink-0 px-3 py-2 rounded-xl text-left border transition-all hover:scale-104 cursor-pointer backdrop-blur-xs ${
-                    isSelected
-                      ? "bg-gradient-to-r from-amber-500 to-amber-600 border-amber-200 text-amber-950 font-black shadow-lg scale-104"
-                      : "bg-black/35 hover:bg-amber-950/50 border-amber-700/40 text-amber-100 font-bold"
-                  }`}
-                >
-                  <div className="text-[10px] font-mono text-amber-300">{mech.id}</div>
-                  <div className="text-xs truncate max-w-[130px]">{mech.titleEn}</div>
-                </button>
-              );
-            })}
+          {/* Arcade Console Bar */}
+          <div className="relative w-full max-w-5xl flex items-center px-0.5 sm:px-2 gap-1 sm:gap-2">
+            {/* Left Arcade 3D Button */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => handleScrollMech("left")}
+              className="shrink-0 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-gradient-to-b from-amber-300 via-amber-500 to-amber-700 hover:from-amber-200 hover:to-amber-400 active:scale-90 text-amber-950 flex items-center justify-center border-2 border-amber-200 shadow-[0_2px_0_#78350f,0_4px_10px_rgba(0,0,0,0.5)] cursor-pointer transition-all z-20 group"
+              title="เลื่อนซ้าย"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3] group-hover:-translate-x-0.5 transition-transform" />
+            </motion.button>
+
+            {/* Scrollable Track - Styled as Brass & Felt Casino Track */}
+            <div
+              ref={mechScrollRef}
+              className="flex-1 overflow-x-auto py-1.5 sm:py-2 px-2 sm:px-3 flex space-x-2 sm:space-x-3 scrollbar-none scroll-smooth bg-black/35 backdrop-blur-md rounded-2xl border-2 border-amber-500/35 shadow-[inset_0_2px_8px_rgba(0,0,0,0.6),0_4px_16px_rgba(0,0,0,0.35)] touch-pan-x"
+              style={{ scrollbarWidth: "none" }}
+            >
+              {ALL_MECH_CARDS.map((mech) => {
+                const isSelected = selectedMech?.id === mech.id;
+                return (
+                  <motion.button
+                    key={mech.id}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => {
+                      sounds.playSelect();
+                      setSelectedMech(mech);
+                    }}
+                    className={`flex-shrink-0 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-left border-2 transition-all cursor-pointer select-none ${
+                      isSelected
+                        ? "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 border-amber-100 text-amber-950 font-black shadow-[0_0_16px_rgba(245,158,11,0.7),0_4px_8px_rgba(0,0,0,0.4)] scale-104 -translate-y-0.5"
+                        : "bg-black/45 hover:bg-amber-950/70 border-amber-600/40 hover:border-amber-400/70 text-amber-100 font-bold backdrop-blur-xs shadow-md"
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 mb-0.5">
+                      <span className={`text-[8.5px] sm:text-[9.5px] font-mono font-black px-1.5 py-0.5 rounded shadow-xs ${
+                        isSelected ? "bg-amber-950 text-amber-300" : "bg-amber-900/80 text-amber-200 border border-amber-600/40"
+                      }`}>
+                        {mech.id}
+                      </span>
+                      <span className="text-[10px] sm:text-xs">⚙️</span>
+                    </div>
+                    <div className="text-[11px] sm:text-xs font-black truncate max-w-[110px] sm:max-w-[130px] leading-tight">
+                      {mech.titleEn}
+                    </div>
+                    <div className={`text-[8.5px] sm:text-[9.5px] truncate max-w-[110px] sm:max-w-[130px] mt-0.5 ${
+                      isSelected ? "text-amber-950 font-bold" : "text-amber-300/80 font-medium"
+                    }`}>
+                      {mech.titleTh}
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            {/* Right Arcade 3D Button */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => handleScrollMech("right")}
+              className="shrink-0 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-gradient-to-b from-amber-300 via-amber-500 to-amber-700 hover:from-amber-200 hover:to-amber-400 active:scale-90 text-amber-950 flex items-center justify-center border-2 border-amber-200 shadow-[0_2px_0_#78350f,0_4px_10px_rgba(0,0,0,0.5)] cursor-pointer transition-all z-20 group"
+              title="เลื่อนขวา"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3] group-hover:translate-x-0.5 transition-transform" />
+            </motion.button>
           </div>
         </div>
 
         {/* 3. Bottom: Player's 5-Card Hand */}
-        <div className="w-full flex flex-col items-center mt-2">
-          <div className="text-[11px] text-blue-200 font-bold uppercase tracking-wider mb-1 drop-shadow-md">
+        <div className="w-full flex flex-col items-center mt-0.5 sm:mt-2 pb-2 sm:pb-3">
+          <div className="text-[10px] sm:text-[11px] text-blue-200 font-bold uppercase tracking-wider mb-0.5 sm:mb-1 drop-shadow-md">
             ไพ่สารเภสัชรังสีในมือคุณ (YOUR HAND - 5 CARDS)
           </div>
 
-          {/* Arc Fan Container */}
-          <div className="relative flex justify-center items-end h-48 md:h-56 w-full max-w-2xl px-4">
+          {/* Arc Fan Container - Responsively Scaled for Phone, iPad, and Desktop */}
+          <div className="relative flex justify-center items-end h-38 sm:h-46 md:h-56 w-full max-w-2xl px-2 sm:px-4 scale-[0.68] xs:scale-[0.78] sm:scale-90 md:scale-100 origin-bottom mb-2 sm:mb-0">
             {hand.map((card, index) => {
               const offsetFromCenter = index - 2; // -2, -1, 0, 1, 2
-              const rotation = offsetFromCenter * 6; // Arc degrees
-              const yOffset = Math.abs(offsetFromCenter) * 10; // Arc sag
+              const rotation = offsetFromCenter * 5; // Arc degrees
+              const yOffset = Math.abs(offsetFromCenter) * 8; // Arc sag
               const isSelected = selectedRp?.id === card.id;
 
               return (
                 <motion.div
                   key={`${card.id}_${index}`}
-                  className="relative -mx-3 md:-mx-4 cursor-pointer"
+                  className="relative -mx-2.5 sm:-mx-3 md:-mx-4 cursor-pointer"
                   style={{
                     transformOrigin: "bottom center",
                   }}

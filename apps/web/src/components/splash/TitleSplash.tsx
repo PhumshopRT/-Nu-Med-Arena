@@ -348,37 +348,132 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
 
       {/* How to play Modal [z-50] */}
       {showHowToModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="relative w-full max-w-lg wood-panel rounded-2xl p-6 text-white border-4 border-amber-950 shadow-2xl">
-            <h3 className="text-xl font-bold font-game text-amber-200 mb-3">
-              📖 กติกาการแข่งขัน Localization Match
-            </h3>
-            <div className="space-y-2.5 text-xs text-amber-100/90 leading-relaxed max-h-96 overflow-y-auto pr-2">
-              <div className="p-2.5 bg-black/30 rounded-xl border border-blue-500/30">
-                <span className="font-bold text-blue-300">1. การแจกไพ่:</span> ผู้เล่นทุกคนได้รับไพ่สารเภสัชรังสี (RP Blue) คนละ 5 ใบในมือ
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm">
+          <div className="relative w-full max-w-xl wood-panel rounded-3xl p-5 sm:p-6 text-white border-4 border-amber-950 shadow-2xl flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-amber-500/30">
+              <div className="flex items-center space-x-2">
+                <span className="text-2xl">📖</span>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-black font-game text-amber-200">
+                    คู่มือกติกา NucMed Arena
+                  </h3>
+                  <p className="text-[10px] sm:text-xs text-amber-300/80">
+                    Mode 1: Localization Match · ประลองจับคู่สารและกลไก
+                  </p>
+                </div>
               </div>
-              <div className="p-2.5 bg-black/30 rounded-xl border border-red-500/30">
-                <span className="font-bold text-red-300">2. เปิดโจทย์:</span> ในแต่ละรอบ โต๊ะจะเปิดการ์ดโจทย์ทางคลินิก (Case Card) 1 ข้อ
-                <ul className="list-disc pl-5 mt-1 space-y-0.5">
-                  <li>🟢 BASIC (โจทย์ตรง): 2 คะแนน</li>
-                  <li>🔴 CLINICAL (วิเคราะห์อาการ): 4 คะแนน</li>
-                </ul>
+              <button
+                onClick={() => {
+                  sounds.playClick();
+                  setShowHowToModal(false);
+                }}
+                className="w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 border border-amber-500/40 text-amber-200 flex items-center justify-center font-bold text-sm cursor-pointer transition-transform hover:scale-110 active:scale-95"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="mt-3 space-y-3 text-xs text-amber-100/90 leading-relaxed overflow-y-auto pr-1.5 scrollbar-thin">
+              {/* Card 4 Types Grid */}
+              <div className="bg-black/35 rounded-2xl p-3 border border-amber-500/30">
+                <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wider block mb-2">
+                  🃏 สำรับการ์ด 4 หมวดหลัก
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[10px]">
+                  <div className="p-2 rounded-xl bg-blue-950/60 border border-blue-400/50">
+                    <span className="text-base block mb-0.5">🔵</span>
+                    <strong className="text-blue-300 block">RP (น้ำเงิน)</strong>
+                    <span className="text-slate-300 text-[9px]">สารเภสัชรังสี ในมือ 5 ใบ</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-amber-950/60 border border-amber-400/50">
+                    <span className="text-base block mb-0.5">🟡</span>
+                    <strong className="text-amber-300 block">MECH (เหลือง)</strong>
+                    <span className="text-amber-200/80 text-[9px]">12 กลไก แถบกลางโต๊ะ</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-rose-950/60 border border-rose-400/50">
+                    <span className="text-base block mb-0.5">🔴</span>
+                    <strong className="text-rose-300 block">CASE (แดง)</strong>
+                    <span className="text-rose-200/80 text-[9px]">โจทย์อาการ Basic / Clinical</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-emerald-950/60 border border-emerald-400/50">
+                    <span className="text-base block mb-0.5">🟢</span>
+                    <strong className="text-emerald-300 block">CLUE (เขียว)</strong>
+                    <span className="text-emerald-200/80 text-[9px]">คำใบ้อวัยวะ ปอด ไทรอยด์</span>
+                  </div>
+                </div>
               </div>
-              <div className="p-2.5 bg-black/30 rounded-xl border border-amber-500/30">
-                <span className="font-bold text-amber-300">3. ตอบคำถาม:</span> เลือกไพ่สาร 1 ใบจากมือ + เลือกกลไก 1 อย่างจากแถบกลไกกลางโต๊ะ แล้วกด LOCK
+
+              {/* 4 Steps */}
+              <div className="space-y-2">
+                <div className="p-2.5 bg-black/30 rounded-xl border border-blue-500/30 flex items-start space-x-2.5">
+                  <span className="px-2 py-0.5 bg-blue-600/80 rounded-md font-mono font-bold text-xs text-white shrink-0 mt-0.5">
+                    STEP 1
+                  </span>
+                  <div>
+                    <strong className="text-blue-200">รับไพ่สารรังสี 5 ใบในมือ:</strong>
+                    <p className="text-[11px] text-blue-100/80 mt-0.5">
+                      ดูไอโซโทป Modality (SPECT/PET) และคุณสมบัติของสารในมือแต่ละใบ
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 bg-black/30 rounded-xl border border-rose-500/30 flex items-start space-x-2.5">
+                  <span className="px-2 py-0.5 bg-rose-600/80 rounded-md font-mono font-bold text-xs text-white shrink-0 mt-0.5">
+                    STEP 2
+                  </span>
+                  <div>
+                    <strong className="text-rose-200">วิเคราะห์เคสกลางโต๊ะ:</strong>
+                    <p className="text-[11px] text-rose-100/80 mt-0.5">
+                      อ่านอาการนำของผู้ป่วย เช่น ข้อบ่งชี้ตรวจกระดูก หรือสงสัยลิ่มเลือดอุดกั้นในปอด (แตะเปิดใบคำใบ้สีเขียวได้)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 bg-black/30 rounded-xl border border-amber-500/30 flex items-start space-x-2.5">
+                  <span className="px-2 py-0.5 bg-amber-600/80 rounded-md font-mono font-bold text-xs text-white shrink-0 mt-0.5">
+                    STEP 3
+                  </span>
+                  <div>
+                    <strong className="text-amber-200">เลือกคู่สาร + กลไก แล้วกด LOCK:</strong>
+                    <p className="text-[11px] text-amber-100/80 mt-0.5">
+                      แตะ 1 การ์ด RP จากมือ + แตะ 1 กลไกจากแถบเลื่อน ◀ ▶ แล้วกดปุ่ม <strong>LOCK คำตอบ!</strong> ก่อนหมดเวลา 45 วินาที
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 bg-black/30 rounded-xl border border-emerald-500/30 flex items-start space-x-2.5">
+                  <span className="px-2 py-0.5 bg-emerald-600/80 rounded-md font-mono font-bold text-xs text-white shrink-0 mt-0.5">
+                    STEP 4
+                  </span>
+                  <div>
+                    <strong className="text-emerald-200">เฉลยแต้มคะแนน & รับ NucCoin:</strong>
+                    <p className="text-[11px] text-emerald-100/80 mt-0.5">
+                      ตอบถูกรับแต้ม +2 ถึง +4 พร้อมเหรียญ <strong>NucCoin</strong> และค่า <strong>XP</strong> ไปช้อปปิ้งของตกแต่งในร้านค้า
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="p-2.5 bg-black/30 rounded-xl border border-emerald-500/30">
-                <span className="font-bold text-emerald-300">4. เฉลยคะแนน:</span> ตอบถูกทั้งสารและกลไกได้คะแนนเต็ม ตอบผิดอย่างใดอย่างหนึ่งได้ 0 คะแนน
+
+              {/* Pro Tips Banner */}
+              <div className="p-2.5 bg-amber-950/70 rounded-xl border border-amber-500/40 text-[11px] flex items-center space-x-2">
+                <span className="text-base">💡</span>
+                <span className="text-amber-200">
+                  <strong>เคล็ดลับนักประลอง:</strong> เมื่อจบรอบจะมีช่วง <em>Hand Swap</em> ให้เลือกทิ้งการ์ดที่ไม่ถนัดเพื่อจั่วการ์ดใหม่ฟรี 1 ใบ!
+                </span>
               </div>
             </div>
+
+            {/* Bottom Button */}
             <button
               onClick={() => {
                 sounds.playClick();
                 setShowHowToModal(false);
               }}
-              className="w-full mt-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-xl font-bold text-sm cursor-pointer"
+              className="w-full mt-3 py-2.5 bg-play hover:bg-play-hover border-2 border-play-border rounded-2xl font-game font-black text-sm text-white tracking-wider shadow-play-btn active:scale-98 transition-all cursor-pointer"
             >
-              เข้าใจแล้ว
+              พร้อมแล้ว เข้าสู่สังเวียน!
             </button>
           </div>
         </div>
