@@ -644,7 +644,13 @@ export function getNaAccounts(): NaAccount[] {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        return parsed.map((acc: any) => {
+          let decoded = acc.password;
+          if (typeof decoded === "string" && decoded.startsWith("b64:")) {
+            try { decoded = atob(decoded.substring(4)); } catch {}
+          }
+          return { ...acc, password: decoded };
+        });
       }
     }
 
@@ -668,14 +674,14 @@ export function getNaAccounts(): NaAccount[] {
             inventory: DEFAULT_OWNED_IDS,
             equipped: { ...DEFAULT_EQUIPPED, avatar: acc.avatarId || "avatar-default" }
           }));
-          localStorage.setItem("na_accounts", JSON.stringify(migrated));
+          saveNaAccounts(migrated);
           return migrated;
         }
       } catch {}
     }
 
     // Seed defaults
-    localStorage.setItem("na_accounts", JSON.stringify(DEFAULT_SEED_ACCOUNTS));
+    saveNaAccounts(DEFAULT_SEED_ACCOUNTS);
     return DEFAULT_SEED_ACCOUNTS;
   } catch {
     return DEFAULT_SEED_ACCOUNTS;
@@ -684,7 +690,13 @@ export function getNaAccounts(): NaAccount[] {
 
 export function saveNaAccounts(accounts: NaAccount[]): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem("na_accounts", JSON.stringify(accounts));
+  try {
+    const obfuscated = accounts.map(acc => ({
+      ...acc,
+      password: acc.password && !acc.password.startsWith("b64:") ? `b64:${btoa(acc.password)}` : acc.password
+    }));
+    localStorage.setItem("na_accounts", JSON.stringify(obfuscated));
+  } catch {}
 }
 
 export function findNaAccount(studentId: string): NaAccount | undefined {
