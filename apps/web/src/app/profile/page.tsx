@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Save, User as UserIcon, Loader2, CheckCircle2 } from "lucide-react";
 import { getNaAccounts, saveNaAccounts, getLocalUser, saveLocalUser } from "@/lib/user";
-import { sounds } from "@/lib/sounds";
-import { NucCoinIcon } from "@/components/icons";
+import { sounds } from "@/lib/sound";
+import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -83,7 +83,7 @@ export default function ProfilePage() {
       <header className="sticky top-0 z-40 bg-[#0B3B36] border-b-2 border-amber-900/60 shadow-lg px-6 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <button 
-            onClick={() => { sounds.playClick(); router.push("/hub"); }}
+            onClick={() => { sounds.playClick(); router.push("/"); }}
             className="w-10 h-10 rounded-full bg-black/40 border border-amber-700/50 flex items-center justify-center hover:bg-black/60 hover:border-amber-400 text-amber-500 transition-all cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />
