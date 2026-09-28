@@ -23,6 +23,7 @@ interface TitleSplashProps {
   onOpenGallery?: () => void;
   onOpenHowTo?: () => void;
   onOpenShop?: () => void;
+  initialLoginOpen?: boolean;
 }
 
 const getAvatarIcon = (avatarId?: string) => {
@@ -35,14 +36,27 @@ const getAvatarIcon = (avatarId?: string) => {
   }
 };
 
-export function TitleSplash({ currentUser, onLoginSuccess, onOpenGallery, onOpenHowTo, onOpenShop }: TitleSplashProps) {
+export function TitleSplash({ 
+  currentUser, 
+  onLoginSuccess, 
+  onOpenGallery, 
+  onOpenHowTo, 
+  onOpenShop,
+  initialLoginOpen = false
+}: TitleSplashProps) {
   const router = useRouter();
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(initialLoginOpen);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showHowToModal, setShowHowToModal] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [isMuted, setIsMuted] = useState(sounds.getMuted());
   const [rememberedUser, setRememberedUser] = useState<StudentUser | null>(currentUser || null);
+
+  React.useEffect(() => {
+    if (initialLoginOpen) {
+      setIsLoginOpen(true);
+    }
+  }, [initialLoginOpen]);
 
   React.useEffect(() => {
     const user = currentUser || getRememberedUser();

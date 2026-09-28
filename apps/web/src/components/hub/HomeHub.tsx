@@ -38,9 +38,10 @@ interface HomeHubProps {
   user: StudentUser;
   onLogout: () => void;
   onOpenGallery: () => void;
+  onSwitchAccount?: () => void;
 }
 
-export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
+export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: HomeHubProps) {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<StudentUser>(user);
   const [joinCode, setJoinCode] = useState("");
@@ -163,7 +164,11 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
           <button
             onClick={() => {
               sounds.playClick();
-              onLogout();
+              if (onSwitchAccount) {
+                onSwitchAccount();
+              } else {
+                onLogout();
+              }
             }}
             className="px-3 py-2 rounded-2xl bg-amber-900/80 hover:bg-amber-800 border border-amber-500/50 text-amber-200 hover:text-white transition-all shadow-lg hover:scale-105 active:scale-95 cursor-pointer flex items-center space-x-1.5 text-xs font-game font-bold"
             title="สลับบัญชีผู้ใช้งาน"

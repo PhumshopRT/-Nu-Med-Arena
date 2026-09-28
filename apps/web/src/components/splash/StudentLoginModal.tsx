@@ -493,7 +493,7 @@ export function StudentLoginModal({
                         <span>รหัสผ่าน (PASSWORD) *</span>
                       </label>
                       <span className="text-[10.5px] text-amber-300/80">
-                        {isAdminInput ? "รหัสผ่านแอดมิน" : "รหัสผ่านที่ตั้งไว้"}
+                        {isAdminInput ? "รหัสผ่านแอดมิน" : "รหัสที่ตั้งไว้, ชื่อ, หรือ 1234"}
                       </span>
                     </div>
 
@@ -506,7 +506,7 @@ export function StudentLoginModal({
                           setPassword(e.target.value);
                           setError(null);
                         }}
-                        placeholder={isAdminInput ? "กรอกรหัสผ่านผู้ดูแลระบบ" : "กรอกรหัสผ่านของคุณ"}
+                        placeholder={isAdminInput ? "กรอกรหัสผ่านผู้ดูแลระบบ" : "กรอกรหัสผ่านของคุณ (หรือ 1234)"}
                         className="w-full px-4 py-2.5 bg-amber-950/80 border-2 border-amber-600/80 rounded-xl text-white placeholder-amber-400/40 font-mono tracking-wider font-bold text-base focus:outline-hidden focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-all pr-11"
                       />
                       <button
@@ -518,6 +518,23 @@ export function StudentLoginModal({
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
                     </div>
+
+                    {!isAdminInput && (
+                      <div className="mt-1 flex items-center justify-between text-[10.5px]">
+                        <span className="text-amber-300/70">บัญชีตัวอย่างใช้รหัส 1234</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            sounds.playClick();
+                            setPassword("1234");
+                            setError(null);
+                          }}
+                          className="text-amber-300 hover:text-white underline cursor-pointer font-bold"
+                        >
+                          กดใส่ 1234 อัตโนมัติ
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Remember Me Checkbox */}
