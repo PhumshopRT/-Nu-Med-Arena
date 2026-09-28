@@ -5,7 +5,7 @@ import { BootScreen } from "@/components/splash/BootScreen";
 import { TitleSplash } from "@/components/splash/TitleSplash";
 import { HomeHub } from "@/components/hub/HomeHub";
 import { StudentUser } from "@nucmed/shared";
-import { createDefaultUser } from "@/lib/user";
+import { createDefaultUser, getRememberedUser, logoutAccount } from "@/lib/user";
 import { useRouter } from "next/navigation";
 
 type ScreenState = "boot" | "splash" | "hub";
@@ -18,9 +18,9 @@ export default function HomePage() {
   // Check saved session on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("nucmed_current_user");
-      if (saved) {
-        setUser(JSON.parse(saved));
+      const remembered = getRememberedUser();
+      if (remembered) {
+        setUser(remembered);
       }
     } catch {
       // Ignore parse errors
@@ -38,7 +38,7 @@ export default function HomePage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("nucmed_current_user");
+    logoutAccount();
     setUser(null);
     setScreen("splash");
   };
@@ -54,6 +54,7 @@ export default function HomePage() {
   if (screen === "splash") {
     return (
       <TitleSplash
+        currentUser={user}
         onLoginSuccess={handleLoginSuccess}
         onOpenGallery={handleOpenGallery}
         onOpenHowTo={() => {

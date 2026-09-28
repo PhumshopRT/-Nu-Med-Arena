@@ -12,24 +12,42 @@ import { MechCard } from "@/components/cards/MechCard";
 import { CaseCard } from "@/components/cards/CaseCard";
 import { ClueCard } from "@/components/cards/ClueCard";
 import { sounds } from "@/lib/sound";
-import { getLocalUser } from "@/lib/user";
+import { getLocalUser, getRememberedUser } from "@/lib/user";
 import { jev } from "@/lib/jev-engine";
 import { getAssetPath } from "@/lib/assets";
+import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
 
 interface TitleSplashProps {
+  currentUser?: StudentUser | null;
   onLoginSuccess: (user: StudentUser) => void;
   onOpenGallery?: () => void;
   onOpenHowTo?: () => void;
   onOpenShop?: () => void;
 }
 
-export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpenShop }: TitleSplashProps) {
+const getAvatarIcon = (avatarId?: string) => {
+  switch (avatarId) {
+    case "avatar-thyroid": return "🦋";
+    case "avatar-lung": return "🫁";
+    case "av_bone": return "🦴";
+    case "avatar-default":
+    default: return "☢️";
+  }
+};
+
+export function TitleSplash({ currentUser, onLoginSuccess, onOpenGallery, onOpenHowTo, onOpenShop }: TitleSplashProps) {
   const router = useRouter();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showHowToModal, setShowHowToModal] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [isMuted, setIsMuted] = useState(sounds.getMuted());
+  const [rememberedUser, setRememberedUser] = useState<StudentUser | null>(currentUser || null);
+
+  React.useEffect(() => {
+    const user = currentUser || getRememberedUser();
+    setRememberedUser(user);
+  }, [currentUser]);
 
   const handleToggleMute = () => {
     const nextMuted = sounds.toggleMute();
@@ -41,7 +59,7 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
 
   const handleOpenJoinRoom = () => {
     sounds.playClick();
-    const user = getLocalUser();
+    const user = rememberedUser || getLocalUser();
     if (user && user.studentId && jev.validateStudentId(user.studentId).isValid) {
       setShowJoinModal(true);
     } else {
@@ -191,7 +209,42 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
           {/* ----------------------------------------------------
               LAYER 4 & 6: บนเคาน์เตอร์ไม้ (PLAY สี #2EAD4B + 3 ปุ่มใต้ PLAY) [z-30]
               ---------------------------------------------------- */}
-          <div className="w-full flex flex-col items-center pointer-events-none z-30 space-y-2.5">
+          <div className="w-full flex flex-col items-center pointer-events-none z-30 space-y-2">
+            {/* Remembered User Active Profile Banner */}
+            {rememberedUser && (
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="wood-panel px-4 py-1.5 rounded-2xl border-2 border-amber-500/80 shadow-xl flex items-center space-x-3 pointer-events-auto z-40 bg-amber-950/95 max-w-sm"
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 border border-amber-200 flex items-center justify-center text-base shadow shrink-0">
+                  {getAvatarIcon(rememberedUser.equipped?.avatar)}
+                </div>
+                <div className="text-left truncate">
+                  <div className="text-xs font-bold text-white font-game flex items-center space-x-1.5 truncate">
+                    <span className="truncate">{rememberedUser.displayName}</span>
+                    <span className="text-[10px] text-amber-300 font-mono shrink-0">({rememberedUser.studentId})</span>
+                  </div>
+                  <div className="text-[10.5px] text-amber-200 flex items-center space-x-1.5 font-mono">
+                    <NucCoinIcon size={14} />
+                    <span>{rememberedUser.coins ?? 120} NucCoin</span>
+                    <span className="text-[9px] text-emerald-300 font-sans font-bold">● บัญชีปัจจุบัน</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    sounds.playClick();
+                    setIsLoginOpen(true);
+                  }}
+                  className="ml-auto shrink-0 px-2.5 py-1 bg-amber-900/80 hover:bg-amber-800 text-amber-200 hover:text-white rounded-lg text-[10.5px] font-bold border border-amber-600/60 shadow transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  title="สลับบัญชีหรือสมัครใหม่"
+                >
+                  สลับบัญชี
+                </button>
+              </motion.div>
+            )}
+
             {/* 4) ปุ่ม PLAY สี #2EAD4B วางบนเคาน์เตอร์ไม้ [z-40] */}
             <motion.div
               whileHover={{ scale: 1.06 }}
@@ -201,7 +254,11 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
               <button
                 onClick={() => {
                   sounds.playClick();
-                  setIsLoginOpen(true);
+                  if (rememberedUser) {
+                    onLoginSuccess(rememberedUser);
+                  } else {
+                    setIsLoginOpen(true);
+                  }
                 }}
                 onMouseEnter={() => sounds.playSelect()}
                 className="px-14 md:px-24 py-3.5 md:py-4.5 bg-[#2EAD4B] hover:bg-[#25943f] border-4 border-[#86EFAC] rounded-2xl text-white font-game font-black text-2xl md:text-4xl tracking-widest shadow-[0_8px_0_#1b632c,0_14px_24px_rgba(0,0,0,0.65)] active:translate-y-2 active:shadow-[0_2px_0_#1b632c,0_6px_10px_rgba(0,0,0,0.4)] transition-all flex items-center space-x-3.5 cursor-pointer group"
@@ -294,6 +351,7 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
         onLoginSuccess={(user) => {
+          setRememberedUser(user);
           setIsLoginOpen(false);
           onLoginSuccess(user);
         }}

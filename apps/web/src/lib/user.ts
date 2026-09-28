@@ -371,21 +371,217 @@ export function clearNaPreview(): void {
   localStorage.removeItem("na_preview");
 }
 
-export function getLocalUser(): StudentUser {
-  if (typeof window === "undefined") {
-    return createDefaultUser("68208307052", "นักศึกษา 7052");
+export interface RegisteredAccount {
+  studentId: string;
+  displayName: string;
+  avatarId: string;
+  coins: number;
+  xp: number;
+  registeredAt: string;
+  lastLoginAt: string;
+  rememberMe: boolean;
+}
+
+export function getRegisteredAccounts(): RegisteredAccount[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem("nucmed_registered_accounts");
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
   }
-  const saved = localStorage.getItem("nucmed_current_user");
-  if (saved) {
+}
+
+export function saveRegisteredAccounts(accounts: RegisteredAccount[]): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("nucmed_registered_accounts", JSON.stringify(accounts));
+}
+
+export function registerAccount(params: {
+  studentId: string;
+  displayName?: string;
+  avatarId?: string;
+  rememberMe?: boolean;
+}): StudentUser {
+  const cleanId = params.studentId.trim().toUpperCase();
+  const avatarId = params.avatarId || "avatar-default";
+  const name = params.displayName?.trim() || `นักศึกษา ${cleanId.slice(-4)}`;
+  const rememberMe = params.rememberMe ?? true;
+
+  // New registered student gets 120 NucCoin welcome bonus
+  const user: StudentUser = {
+    studentId: cleanId,
+    displayName: name,
+    xp: 60,
+    coins: 120,
+    equipped: {
+      frame: "frame-graphite",
+      cardback: "back-default",
+      avatar: avatarId,
+      fx: "fx-none",
+      title: "title-none"
+    }
+  };
+
+  if (typeof window !== "undefined") {
+    localStorage.setItem(`nucmed_user_${cleanId}`, JSON.stringify(user));
+
+    const accounts = getRegisteredAccounts().filter(a => a.studentId !== cleanId);
+    const newAccount: RegisteredAccount = {
+      studentId: cleanId,
+      displayName: name,
+      avatarId: avatarId,
+      coins: 120,
+      xp: 60,
+      registeredAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString(),
+      rememberMe
+    };
+    accounts.unshift(newAccount);
+    saveRegisteredAccounts(accounts);
+
+    localStorage.setItem("nucmed_current_user", JSON.stringify(user));
+
+    if (rememberMe) {
+      localStorage.setItem("nucmed_remembered_id", cleanId);
+    } else {
+      localStorage.removeItem("nucmed_remembered_id");
+    }
+
+    setNaWallet({ coins: 120 });
+    const owned = ["frame-graphite", "back-default", avatarId, "fx-none", "title-none"];
+    setNaInventory({ ownedIds: owned });
+    setNaEquipped({
+      frame: "frame-graphite",
+      back: "back-default",
+      avatar: avatarId,
+      fx: "fx-none",
+      title: "title-none"
+    });
+  }
+
+  return user;
+}
+
+export function loginAccount(studentId: string, rememberMe: boolean = true): StudentUser {
+  const cleanId = studentId.trim().toUpperCase();
+  let user: StudentUser | null = null;
+
+  if (typeof window !== "undefined") {
+    const raw = localStorage.getItem(`nucmed_user_${cleanId}`);
+    if (raw) {
+      try {
+        user = JSON.parse(raw);
+      } catch {}
+    }
+  }
+
+  if (!user) {
+    user = createDefaultUser(cleanId);
+  }
+
+  if (typeof window !== "undefined") {
+    const wallet = getNaWallet();
+    if (wallet && typeof wallet.coins === "number") {
+      user.coins = wallet.coins;
+    } else {
+      setNaWallet({ coins: user.coins });
+    }
+
+    localStorage.setItem(`nucmed_user_${cleanId}`, JSON.stringify(user));
+    localStorage.setItem("nucmed_current_user", JSON.stringify(user));
+
+    const accounts = getRegisteredAccounts();
+    const existingIdx = accounts.findIndex(a => a.studentId === cleanId);
+    const updatedAccount: RegisteredAccount = {
+      studentId: cleanId,
+      displayName: user.displayName,
+      avatarId: user.equipped.avatar || "avatar-default",
+      coins: user.coins,
+      xp: user.xp,
+      registeredAt: existingIdx >= 0 ? accounts[existingIdx].registeredAt : new Date().toISOString(),
+      lastLoginAt: new Date().toISOString(),
+      rememberMe
+    };
+
+    const newAccounts = accounts.filter(a => a.studentId !== cleanId);
+    newAccounts.unshift(updatedAccount);
+    saveRegisteredAccounts(newAccounts);
+
+    if (rememberMe) {
+      localStorage.setItem("nucmed_remembered_id", cleanId);
+    } else {
+      localStorage.removeItem("nucmed_remembered_id");
+    }
+  }
+
+  return user;
+}
+
+export function logoutAccount(): void {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("nucmed_current_user");
+  }
+}
+
+export function getRememberedUser(): StudentUser | null {
+  if (typeof window === "undefined") return null;
+
+  const currentRaw = localStorage.getItem("nucmed_current_user");
+  if (currentRaw) {
     try {
-      const u = JSON.parse(saved);
-      // Ensure sync with na_wallet
+      const u = JSON.parse(currentRaw);
       const wallet = getNaWallet();
       u.coins = wallet.coins;
       return u;
-    } catch {
-      // fallback
+    } catch {}
+  }
+
+  const rememberedId = localStorage.getItem("nucmed_remembered_id");
+  if (rememberedId) {
+    const userRaw = localStorage.getItem(`nucmed_user_${rememberedId}`);
+    if (userRaw) {
+      try {
+        const u = JSON.parse(userRaw);
+        const wallet = getNaWallet();
+        u.coins = wallet.coins;
+        localStorage.setItem("nucmed_current_user", JSON.stringify(u));
+        return u;
+      } catch {}
     }
+  }
+
+  return null;
+}
+
+export function removeRegisteredAccount(studentId: string): void {
+  if (typeof window === "undefined") return;
+  const cleanId = studentId.trim().toUpperCase();
+  const accounts = getRegisteredAccounts().filter(a => a.studentId !== cleanId);
+  saveRegisteredAccounts(accounts);
+
+  const rememberedId = localStorage.getItem("nucmed_remembered_id");
+  if (rememberedId === cleanId) {
+    localStorage.removeItem("nucmed_remembered_id");
+  }
+
+  const currentRaw = localStorage.getItem("nucmed_current_user");
+  if (currentRaw) {
+    try {
+      const u = JSON.parse(currentRaw);
+      if (u.studentId === cleanId) {
+        localStorage.removeItem("nucmed_current_user");
+      }
+    } catch {}
+  }
+}
+
+export function getLocalUser(): StudentUser {
+  const remembered = getRememberedUser();
+  if (remembered) {
+    return remembered;
   }
   const newUser = createDefaultUser("68208307052", "นักศึกษา 7052");
   saveLocalUser(newUser);
@@ -397,6 +593,16 @@ export function saveLocalUser(user: StudentUser) {
     localStorage.setItem(`nucmed_user_${user.studentId}`, JSON.stringify(user));
     localStorage.setItem("nucmed_current_user", JSON.stringify(user));
     setNaWallet({ coins: user.coins });
+
+    // Update in registered accounts list if exists
+    const accounts = getRegisteredAccounts();
+    const idx = accounts.findIndex(a => a.studentId === user.studentId);
+    if (idx >= 0) {
+      accounts[idx].coins = user.coins;
+      accounts[idx].xp = user.xp;
+      accounts[idx].displayName = user.displayName;
+      saveRegisteredAccounts(accounts);
+    }
   }
 }
 
