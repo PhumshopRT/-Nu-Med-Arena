@@ -11,6 +11,8 @@ import { RpCard } from "../cards/RpCard";
 import { MechCard } from "../cards/MechCard";
 import { CaseCard } from "../cards/CaseCard";
 import { ClueCard } from "../cards/ClueCard";
+import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
+import { getNaWallet } from "@/lib/user";
 import { 
   PlusCircle, 
   LogIn, 
@@ -51,22 +53,25 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
   useEffect(() => {
     const syncUser = () => {
       try {
+        const wallet = getNaWallet();
         const saved = localStorage.getItem("nucmed_current_user");
         if (saved) {
           const parsed = JSON.parse(saved);
+          parsed.coins = wallet.coins;
           setCurrentUser(parsed);
           return;
         }
         const studentSaved = localStorage.getItem(`nucmed_user_${user.studentId}`);
         if (studentSaved) {
           const parsed = JSON.parse(studentSaved);
+          parsed.coins = wallet.coins;
           setCurrentUser(parsed);
           return;
         }
+        setCurrentUser({ ...user, coins: wallet.coins });
       } catch {
-        // Fallback to prop
+        setCurrentUser(user);
       }
-      setCurrentUser(user);
     };
 
     syncUser();
@@ -104,7 +109,7 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
       {/* --------------------------------------------------------
           LAYER 2: Top Bar Header [z-30]
           Left: Player Profile Wood Plaque (นักศึกษา 7052)
-          Right: NucCoins Balance (120 🪙) + Sound + Logout
+          Right: NucCoins Balance with official 28px game coin + Sound + Logout
           วางชั้นบนสุด ห้ามการ์ดทับ
           -------------------------------------------------------- */}
       <header className="w-full flex justify-between items-center px-4 md:px-8 py-3.5 z-30 pointer-events-auto">
@@ -133,14 +138,14 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
           </div>
         </div>
 
-        {/* Right: NucCoins Balance + Sound + Logout */}
+        {/* Right: NucCoins Balance with 28px game coin + Sound + Logout */}
         <div className="flex items-center space-x-2.5">
           {/* NucCoin Balance Plaque */}
           <div className="wood-panel px-4 py-2 rounded-2xl flex items-center space-x-2.5 shadow-2xl border-2 border-amber-950 backdrop-blur-xs">
-            <Coins className="w-5 h-5 text-amber-400 animate-bounce" />
+            <NucCoinIcon size={28} className="animate-bounce" />
             <div className="flex flex-col">
               <span className="text-[10px] text-amber-300 uppercase font-black tracking-wider">NucCoin</span>
-              <span className="font-bold text-sm text-white font-mono">{currentUser.coins} 🪙</span>
+              <span className="font-bold text-sm text-white font-mono">{currentUser.coins}</span>
             </div>
           </div>
 

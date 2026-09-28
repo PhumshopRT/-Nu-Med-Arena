@@ -4,9 +4,6 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { 
-  ShoppingBag, 
-  Coins, 
-  Sparkles, 
   ArrowLeft, 
   Check, 
   Shield, 
@@ -14,117 +11,222 @@ import {
   Smile, 
   Award, 
   Zap,
-  Volume2,
-  VolumeX
+  Eye,
+  Sparkles
 } from "lucide-react";
-import { StudentUser, ShopItem } from "@nucmed/shared";
-import { SHOP_CATALOG, getLocalUser, saveLocalUser } from "@/lib/user";
+import { ShopItem } from "@nucmed/shared";
+import { 
+  SHOP_CATALOG, 
+  getNaWallet, 
+  setNaWallet, 
+  getNaInventory, 
+  setNaInventory, 
+  getNaEquipped, 
+  setNaEquipped, 
+  getNaPreview, 
+  setNaPreview, 
+  clearNaPreview,
+  isItemMatching,
+  normalizeShopId,
+  getEquippedSlot,
+  setEquippedSlot,
+  getPreviewSlot,
+  setPreviewSlot,
+  NaWallet,
+  NaInventory,
+  NaEquipped,
+  NaPreview
+} from "@/lib/user";
 import { sounds } from "@/lib/sound";
-import { jev } from "@/lib/jev-engine";
-import { CardFrame } from "@/components/cards/CardFrame";
-import { CardBack } from "@/components/cards/CardBack";
-import { RpCard } from "@/components/cards/RpCard";
-import { ALL_RP_CARDS } from "@nucmed/shared";
+import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
+import { LivePreviewPanel } from "@/components/shop/LivePreviewPanel";
 
 type ShopTab = "frame" | "cardback" | "avatar" | "fx" | "title";
 
-const DEFAULT_OWNED = [
-  "frame_graphite",
-  "back_navy",
-  "av_fdg",
-  "fx_confetti",
-  "title_blockader"
-];
-
 export default function ShopPage() {
   const router = useRouter();
-  const [user, setUser] = useState<StudentUser | null>(null);
+
+  // Storage states
+  const [wallet, setWallet] = useState<NaWallet>({ coins: 120 });
+  const [inventory, setInventory] = useState<NaInventory>({ ownedIds: [] });
+  const [equipped, setEquipped] = useState<NaEquipped>({
+    frame: "frame-graphite",
+    back: "back-default",
+    avatar: "avatar-default",
+    fx: "fx-none",
+    title: "title-none"
+  });
+  const [preview, setPreview] = useState<NaPreview>({
+    frame: "frame-graphite",
+    back: "back-default",
+    avatar: "avatar-default",
+    fx: "fx-none",
+    title: "title-none"
+  });
+
   const [activeTab, setActiveTab] = useState<ShopTab>("frame");
-  const [previewItem, setPreviewItem] = useState<ShopItem | null>(null);
-  const [ownedItems, setOwnedItems] = useState<string[]>(DEFAULT_OWNED);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [faceUp, setFaceUp] = useState<boolean>(true);
+  const [previewItemName, setPreviewItemName] = useState<string>("กรอบ Graphite ดั้งเดิม");
+  const [isFxPlaying, setIsFxPlaying] = useState<boolean>(false);
+  const [toastContent, setToastContent] = useState<React.ReactNode | null>(null);
 
+  // Initialize storage states on mount
   useEffect(() => {
-    const loaded = getLocalUser();
-    // Ensure new player has at least 120 initial coins
-    if (loaded && (typeof loaded.coins !== "number" || (loaded.coins === 0 && !localStorage.getItem(`nucmed_inventory_${loaded.studentId}`)))) {
-      loaded.coins = 120;
-      saveLocalUser(loaded);
-    }
-    setUser(loaded);
+    const initialWallet = getNaWallet();
+    const initialInventory = getNaInventory();
+    const initialEquipped = getNaEquipped();
+    const initialPreview = getNaPreview();
 
-    // Retrieve owned items from storage if available
-    try {
-      const savedOwned = localStorage.getItem(`nucmed_inventory_${loaded.studentId}`);
-      if (savedOwned) {
-        const parsed = JSON.parse(savedOwned);
-        const merged = Array.from(new Set([...DEFAULT_OWNED, ...parsed]));
-        setOwnedItems(merged);
-        localStorage.setItem(`nucmed_inventory_${loaded.studentId}`, JSON.stringify(merged));
-      } else {
-        setOwnedItems(DEFAULT_OWNED);
-        localStorage.setItem(`nucmed_inventory_${loaded.studentId}`, JSON.stringify(DEFAULT_OWNED));
-      }
-    } catch {
-      setOwnedItems(DEFAULT_OWNED);
+    setWallet(initialWallet);
+    setInventory(initialInventory);
+    setEquipped(initialEquipped);
+
+    const activePreview = initialPreview || {
+      frame: initialEquipped.frame,
+      back: initialEquipped.back,
+      avatar: initialEquipped.avatar,
+      fx: initialEquipped.fx,
+      title: initialEquipped.title,
+      faceUp: true
+    };
+    setPreview(activePreview);
+
+    // Initial preview name based on equipped frame
+    const curFrameItem = SHOP_CATALOG.find(i => isItemMatching(i.id, activePreview.frame));
+    if (curFrameItem) {
+      setPreviewItemName(curFrameItem.nameTh);
     }
+
+    // Cleanup on leaving shop:
+    // "na_preview แยกจากของที่สวมใส่ ปิดร้านแล้วล้าง preview ได้ ของที่ใส่ห้ามล้าง"
+    return () => {
+      clearNaPreview();
+    };
   }, []);
 
-  const sampleCard = ALL_RP_CARDS[0]; // R-01 18F-FDG
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+  const showToast = (content: React.ReactNode) => {
+    setToastContent(content);
+    setTimeout(() => setToastContent(null), 3500);
   };
 
+  const triggerFxBurst = () => {
+    setIsFxPlaying(true);
+    setTimeout(() => setIsFxPlaying(false), 2000);
+  };
+
+  // Switch Tab Handler
+  const handleTabChange = (newTab: ShopTab) => {
+    sounds.playClick();
+    setActiveTab(newTab);
+
+    // Contextual preview camera behavior
+    if (newTab === "cardback") {
+      setFaceUp(false);
+    } else {
+      setFaceUp(true);
+    }
+
+    if (newTab === "fx") {
+      triggerFxBurst();
+    }
+
+    // Update previewItemName to the item equipped or previewed in this tab
+    const curItemId = getPreviewSlot(preview, newTab) || getEquippedSlot(equipped, newTab);
+    const curItem = SHOP_CATALOG.find(i => isItemMatching(i.id, curItemId));
+    if (curItem) {
+      setPreviewItemName(curItem.nameTh);
+    }
+  };
+
+  // Preview Button Handler (works immediately without purchasing)
+  const handlePreview = (item: ShopItem) => {
+    sounds.playSelect();
+    const updatedPreview = setPreviewSlot(preview, item.kind, item.id);
+
+    if (item.kind === "cardback") {
+      setFaceUp(false);
+      updatedPreview.faceUp = false;
+    } else if (item.kind === "frame") {
+      setFaceUp(true);
+      updatedPreview.faceUp = true;
+    }
+
+    if (item.kind === "fx") {
+      triggerFxBurst();
+    }
+
+    setPreview(updatedPreview);
+    setPreviewItemName(item.nameTh);
+    setNaPreview(updatedPreview);
+  };
+
+  // Buy Button Handler
   const handleBuy = (item: ShopItem) => {
-    if (!user) return;
-    const check = jev.validateShopPurchase(user.coins, item.price);
-    if (!check.canAfford) {
+    // Check funds
+    if (wallet.coins < item.price) {
       sounds.playWrong();
-      showToast(`❌ ${check.reason}`);
+      showToast(
+        <div className="flex items-center space-x-1.5 text-rose-300 font-bold">
+          <span>❌ NucCoin ไม่พอ (ต้องการ {item.price} NucCoin แต่มีเพียง {wallet.coins})</span>
+        </div>
+      );
       return;
     }
 
+    // Deduct coins immediately
+    const remaining = wallet.coins - item.price;
+    const nextWallet = { coins: remaining };
+    setWallet(nextWallet);
+    setNaWallet(nextWallet);
+
+    // Add to inventory
+    const nextOwned = Array.from(new Set([...inventory.ownedIds, item.id, normalizeShopId(item.id)]));
+    const nextInventory = { ownedIds: nextOwned };
+    setInventory(nextInventory);
+    setNaInventory(nextInventory);
+
+    // Update preview to this newly bought item
+    handlePreview(item);
+
     sounds.playWin();
-    const updatedUser: StudentUser = {
-      ...user,
-      coins: check.remainingCoins,
-      equipped: {
-        ...user.equipped,
-        [item.kind]: item.id
-      }
-    };
-    const nextOwned = [...ownedItems, item.id];
 
-    setUser(updatedUser);
-    setOwnedItems(nextOwned);
-    saveLocalUser(updatedUser);
-    localStorage.setItem(`nucmed_inventory_${user.studentId}`, JSON.stringify(nextOwned));
-    showToast(`🎉 ปลดล็อกและสวมใส่ "${item.nameTh}" เรียบร้อยแล้ว! (คงเหลือ ${check.remainingCoins} 🪙)`);
+    // Required toast message: «ซื้อแล้ว เหลือ xx NucCoin»
+    showToast(
+      <div className="flex items-center space-x-2 text-amber-200 font-bold text-sm">
+        <span>🎉 ซื้อแล้ว เหลือ {remaining}</span>
+        <NucCoinIcon size={18} />
+        <span>NucCoin</span>
+      </div>
+    );
   };
 
+  // Equip Button Handler
   const handleEquip = (item: ShopItem) => {
-    if (!user) return;
     sounds.playSelect();
-    const updatedUser: StudentUser = {
-      ...user,
-      equipped: {
-        ...user.equipped,
-        [item.kind]: item.id
-      }
-    };
-    setUser(updatedUser);
-    saveLocalUser(updatedUser);
-    showToast(`✨ สวมใส่ "${item.nameTh}" เรียบร้อยแล้ว!`);
+
+    // Same category can only have 1 item equipped
+    const nextEquipped = setEquippedSlot(equipped, item.kind, item.id);
+    setEquipped(nextEquipped);
+    setNaEquipped(nextEquipped);
+
+    // Keep preview locked to equipped item
+    handlePreview(item);
+
+    showToast(
+      <div className="flex items-center space-x-2 text-emerald-300 font-bold text-sm">
+        <Check className="w-4 h-4 text-emerald-400" />
+        <span>สวมใส่ "{item.nameTh}" เรียบร้อยแล้ว!</span>
+      </div>
+    );
   };
 
+  // Filter items by category
   const filteredItems = SHOP_CATALOG.filter((i) => i.kind === activeTab);
 
   const tabs: { key: ShopTab; label: string; icon: React.ReactNode }[] = [
     { key: "frame", label: "กรอบการ์ด", icon: <Shield className="w-4 h-4" /> },
     { key: "cardback", label: "ลายหลังไพ่", icon: <Layers className="w-4 h-4" /> },
-    { key: "avatar", label: "อวาตาร์", icon: <Smile className="w-4 h-4" /> },
+    { key: "avatar", label: "อวตาร", icon: <Smile className="w-4 h-4" /> },
     { key: "fx", label: "เอฟเฟกต์", icon: <Zap className="w-4 h-4" /> },
     { key: "title", label: "ฉายาเกียรติยศ", icon: <Award className="w-4 h-4" /> },
   ];
@@ -142,7 +244,7 @@ export default function ShopPage() {
               sounds.playClick();
               router.push("/");
             }}
-            className="p-2 bg-amber-900/80 hover:bg-amber-800 rounded-xl text-amber-200 border-2 border-amber-600 transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center space-x-1.5"
+            className="p-2 bg-amber-900/80 hover:bg-amber-800 rounded-xl text-amber-200 border-2 border-amber-600 transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center space-x-1.5 shadow-md"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="text-xs font-bold font-game">หน้าหลัก</span>
@@ -158,28 +260,28 @@ export default function ShopPage() {
           </div>
         </div>
 
-        {/* User Balance */}
+        {/* User Balance with 22px official game coin icon */}
         <div className="flex items-center space-x-3">
-          <div className="bg-amber-900/90 border-2 border-amber-500/80 px-3.5 py-1.5 rounded-full flex items-center space-x-2 shadow-inner">
-            <Coins className="w-5 h-5 text-amber-400 animate-bounce" />
+          <div className="bg-amber-900/90 border-2 border-amber-500/80 px-4 py-1.5 rounded-full flex items-center space-x-2 shadow-inner">
+            <NucCoinIcon size={22} className="animate-bounce" />
             <span className="font-mono font-bold text-sm md:text-base text-amber-200">
-              {user?.coins ?? 0}
+              {wallet.coins}
             </span>
-            <span className="text-xs text-amber-300 font-bold">🪙 NucCoin</span>
+            <span className="text-xs text-amber-300 font-bold uppercase tracking-wider">NucCoin</span>
           </div>
         </div>
       </header>
 
       {/* Toast Notification */}
       <AnimatePresence>
-        {toastMessage && (
+        {toastContent && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-amber-950 text-amber-200 border-2 border-amber-400 px-6 py-2.5 rounded-2xl shadow-2xl font-bold text-sm"
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-amber-950/95 text-amber-200 border-2 border-amber-400 px-6 py-2.5 rounded-2xl shadow-2xl backdrop-blur-sm"
           >
-            {toastMessage}
+            {toastContent}
           </motion.div>
         )}
       </AnimatePresence>
@@ -195,10 +297,7 @@ export default function ShopPage() {
               return (
                 <button
                   key={tab.key}
-                  onClick={() => {
-                    sounds.playClick();
-                    setActiveTab(tab.key);
-                  }}
+                  onClick={() => handleTabChange(tab.key)}
                   className={`flex-1 min-w-[120px] py-2.5 px-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center space-x-2 transition-all cursor-pointer ${
                     isActive
                       ? "bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-lg border-2 border-amber-300 scale-102"
@@ -215,15 +314,18 @@ export default function ShopPage() {
           {/* Item Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredItems.map((item) => {
-              const isOwned = ownedItems.includes(item.id);
-              const isEquipped = user?.equipped[item.kind] === item.id;
+              const isOwned = inventory.ownedIds.some(id => isItemMatching(id, item.id)) || item.price === 0;
+              const isEquipped = isItemMatching(getEquippedSlot(equipped, item.kind), item.id);
+              const isCurrentlyPreviewed = isItemMatching(getPreviewSlot(preview, item.kind), item.id);
 
               return (
                 <motion.div
                   key={item.id}
                   whileHover={{ y: -3 }}
                   className={`relative wood-panel p-4 rounded-2xl border-3 transition-all flex flex-col justify-between ${
-                    isEquipped
+                    isCurrentlyPreviewed
+                      ? "ring-3 ring-amber-400 border-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.55)] bg-amber-900/40"
+                      : isEquipped
                       ? "border-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)] bg-emerald-950/30"
                       : "border-amber-950 hover:border-amber-500"
                   }`}
@@ -233,19 +335,22 @@ export default function ShopPage() {
                       <div className="font-game font-bold text-base text-amber-200">
                         {item.nameTh}
                       </div>
+
+                      {/* Status Badges */}
                       {isEquipped ? (
-                        <span className="bg-emerald-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 border border-emerald-300">
+                        <span className="bg-emerald-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 border border-emerald-300 shadow">
                           <Check className="w-3 h-3" />
                           <span>สวมใส่อยู่</span>
                         </span>
                       ) : isOwned ? (
-                        <span className="bg-blue-600/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-400">
+                        <span className="bg-blue-600/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-400 shadow">
                           มีแล้ว
                         </span>
                       ) : (
-                        <div className="flex items-center space-x-1 bg-amber-950/90 px-2 py-1 rounded-lg border border-amber-600/60 font-mono text-xs font-bold text-amber-300">
-                          <Coins className="w-3.5 h-3.5 text-amber-400" />
-                          <span>{item.price === 0 ? "ฟรี" : `${item.price} 🪙`}</span>
+                        /* Price tag with 18px official coin icon */
+                        <div className="flex items-center space-x-1 bg-amber-950/90 px-2 py-1 rounded-lg border border-amber-600/60 font-mono text-xs font-bold text-amber-300 shadow-inner">
+                          <NucCoinIcon size={18} />
+                          <span>{item.price === 0 ? "ฟรี" : `${item.price}`}</span>
                         </div>
                       )}
                     </div>
@@ -255,18 +360,22 @@ export default function ShopPage() {
                     </p>
                   </div>
 
-                  {/* Actions */}
+                  {/* Actions Bar */}
                   <div className="flex items-center space-x-2 pt-2 border-t border-amber-900/50">
+                    {/* Preview Button: works immediately without buying */}
                     <button
-                      onClick={() => {
-                        sounds.playSelect();
-                        setPreviewItem(item);
-                      }}
-                      className="flex-1 py-2 bg-amber-900/60 hover:bg-amber-800/80 text-amber-200 text-xs font-bold rounded-xl border border-amber-600/50 transition-colors"
+                      onClick={() => handlePreview(item)}
+                      className={`flex-1 py-2 text-xs font-bold rounded-xl border transition-all flex items-center justify-center space-x-1 cursor-pointer active:scale-95 ${
+                        isCurrentlyPreviewed
+                          ? "bg-amber-600 text-white border-amber-300 shadow-md"
+                          : "bg-amber-900/60 hover:bg-amber-800/80 text-amber-200 border-amber-600/50"
+                      }`}
                     >
-                      ดูตัวอย่าง
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>{isCurrentlyPreviewed ? "กำลังดู" : "ดูตัวอย่าง"}</span>
                     </button>
 
+                    {/* Buy / Equip State Buttons */}
                     {isEquipped ? (
                       <button
                         disabled
@@ -277,16 +386,23 @@ export default function ShopPage() {
                     ) : isOwned ? (
                       <button
                         onClick={() => handleEquip(item)}
-                        className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95"
+                        className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 cursor-pointer border border-blue-400"
                       >
-                        สวมใส่ทันที
+                        สวมใส่
                       </button>
                     ) : (
+                      /* Buy button with 18px official coin icon */
                       <button
                         onClick={() => handleBuy(item)}
-                        className="flex-1 py-2 bg-play hover:bg-play-hover text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 border border-play-border"
+                        disabled={wallet.coins < item.price}
+                        className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 border flex items-center justify-center space-x-1.5 ${
+                          wallet.coins < item.price
+                            ? "bg-stone-800 text-stone-400 border-stone-600 cursor-not-allowed opacity-60"
+                            : "bg-play hover:bg-play-hover text-white border-play-border cursor-pointer"
+                        }`}
                       >
-                        ซื้อ {item.price} 🪙
+                        <span>ซื้อ {item.price}</span>
+                        <NucCoinIcon size={18} />
                       </button>
                     )}
                   </div>
@@ -297,55 +413,20 @@ export default function ShopPage() {
         </div>
 
         {/* Right Column: Live Equipping Card Showcase (4 cols) */}
-        <div className="lg:col-span-4 flex flex-col items-center">
-          <div className="w-full wood-panel p-5 rounded-3xl border-4 border-amber-950 shadow-2xl flex flex-col items-center">
-            <h3 className="font-game font-black text-amber-200 text-sm md:text-base mb-1 tracking-wide">
-              🎨 ตัวอย่างสด (LIVE PREVIEW)
-            </h3>
-            <p className="text-[11px] text-amber-300/80 text-center mb-4">
-              การ์ดและหลังไพ่ที่จะแสดงบนโต๊ะแข่ง
-            </p>
-
-            {/* Card & Back Display */}
-            <div className="flex flex-col sm:flex-row lg:flex-col items-center justify-center gap-4 my-2">
-              {/* Front with Equipped Frame */}
-              <div className="flex flex-col items-center">
-                <span className="text-[10px] font-bold text-amber-300 mb-1">หน้าการ์ด (FACE)</span>
-                <div className={`p-1.5 rounded-2xl transition-all ${
-                  user?.equipped.frame === "frame_gold" 
-                    ? "bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.6)]"
-                    : user?.equipped.frame === "frame_reactor"
-                    ? "bg-gradient-to-r from-emerald-400 via-green-200 to-teal-400 shadow-[0_0_20px_rgba(52,211,153,0.7)] animate-pulse"
-                    : "bg-slate-700/60 shadow-lg"
-                }`}>
-                  <RpCard card={sampleCard} size="md" />
-                </div>
-              </div>
-
-              {/* Back Card Preview */}
-              <div className="flex flex-col items-center">
-                <span className="text-[10px] font-bold text-amber-300 mb-1">หลังไพ่ (BACK)</span>
-                <CardBack 
-                  size="md" 
-                  theme={
-                    user?.equipped.cardback === "back_hotcell"
-                      ? "hotcell"
-                      : user?.equipped.cardback === "back_pet"
-                      ? "pet"
-                      : "navy"
-                  } 
-                />
-              </div>
-            </div>
-
-            {/* Equipped Title & Avatar Info */}
-            <div className="w-full mt-4 p-3 bg-amber-950/80 rounded-xl border border-amber-700/60 text-center">
-              <div className="text-[10px] text-amber-300 uppercase font-bold">ฉายาปัจจุบัน:</div>
-              <div className="text-xs font-black text-white font-game mt-0.5">
-                {SHOP_CATALOG.find((i) => i.id === user?.equipped.title)?.nameTh || "Capillary Blockader"}
-              </div>
-            </div>
-          </div>
+        <div className="lg:col-span-4 flex flex-col items-center sticky top-24">
+          <LivePreviewPanel
+            frameId={preview.frame || equipped.frame}
+            backId={preview.back || equipped.back}
+            avatarId={preview.avatar || equipped.avatar}
+            fxId={preview.fx || equipped.fx}
+            titleId={preview.title || equipped.title}
+            faceUp={faceUp}
+            previewItemName={previewItemName}
+            activeTab={activeTab}
+            onToggleFlip={() => setFaceUp(prev => !prev)}
+            isFxPlaying={isFxPlaying}
+            onPlayFx={triggerFxBurst}
+          />
         </div>
       </main>
 
