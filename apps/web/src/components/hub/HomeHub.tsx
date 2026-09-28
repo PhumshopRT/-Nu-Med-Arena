@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { LabWorldBackground } from "../splash/LabWorldBackground";
 import { FloatingCardIcons } from "../splash/FloatingCardIcons";
-import { MascotNew, MascotMed, MascotGamma } from "../splash/Mascots";
 import { StudentUser, generateRoomCode } from "@nucmed/shared";
 import { sounds } from "@/lib/sound";
 import { 
@@ -22,7 +21,9 @@ import {
   Layers,
   ArrowRight,
   Tv,
-  ShieldCheck
+  ShieldCheck,
+  Zap,
+  Activity
 } from "lucide-react";
 
 interface HomeHubProps {
@@ -107,11 +108,24 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
           ยินดีต้อนรับสู่โต๊ะแข่งขันเวชศาสตร์นิวเคลียร์
         </div>
 
-        {/* Mascots Cheering */}
-        <div className="flex items-end justify-center my-2 space-x-4">
-          <MascotNew className="w-20 md:w-24 h-28 md:h-32 opacity-95" />
-          <MascotGamma className="w-16 md:w-20 h-20 md:h-24 opacity-95" />
-          <MascotMed className="w-20 md:w-24 h-28 md:h-32 opacity-95" />
+        {/* High-Tech Arena Status HUD */}
+        <div className="flex items-center justify-center my-3 space-x-3 pointer-events-auto">
+          <div className="px-4 py-1.5 rounded-xl bg-slate-950/80 border-2 border-amber-400/60 shadow-lg backdrop-blur-md flex items-center space-x-3 text-xs font-mono">
+            <div className="flex items-center space-x-1.5 text-emerald-400">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span className="font-bold">SYSTEM ACTIVE</span>
+            </div>
+            <div className="w-[1px] h-4 bg-amber-600/40" />
+            <div className="flex items-center space-x-1 text-cyan-300">
+              <Activity className="w-3.5 h-3.5" />
+              <span>CYCLOTRON 511 keV</span>
+            </div>
+            <div className="w-[1px] h-4 bg-amber-600/40" />
+            <div className="flex items-center space-x-1 text-amber-300 font-bold">
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <span>JEV DECISION ENGINE READY</span>
+            </div>
+          </div>
         </div>
 
         {/* Primary Action Buttons Grid */}

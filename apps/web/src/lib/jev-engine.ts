@@ -20,6 +20,16 @@ export interface JevCardDecision {
   confidence: number;
 }
 
+export interface JevIdValidation {
+  isValid: boolean;
+  cleanId: string;
+  year?: string;
+  facultyCode?: string;
+  seatNumber?: string;
+  error?: string;
+  confidence: number;
+}
+
 /**
  * JEV System One Decision Engine
  * Powers background routing, slot selection, and UI design decisions.
@@ -143,6 +153,80 @@ class JevEngine {
       illustrationStyle: "flat-vector-pastel",
       contrastScore: target.contrast,
       confidence: 0.99,
+    };
+  }
+
+  /**
+   * Validate Student ID based on required cohort pattern:
+   * [Year: 2 digits] + 2083070 + [Seat: 00-55] (Total 11 digits)
+   * Example: 68208307037, 66208307052
+   */
+  validateStudentId(rawId: string): JevIdValidation {
+    const cleanId = rawId.trim();
+
+    if (!cleanId) {
+      return {
+        isValid: false,
+        cleanId,
+        error: "กรุณากรอกรหัสนักศึกษา 11 หลัก เช่น 68208307037",
+        confidence: 1.0,
+      };
+    }
+
+    if (!/^\d+$/.test(cleanId)) {
+      return {
+        isValid: false,
+        cleanId,
+        error: "รหัสนักศึกษาต้องประกอบด้วยตัวเลขเท่านั้น",
+        confidence: 0.99,
+      };
+    }
+
+    if (cleanId.length !== 11) {
+      return {
+        isValid: false,
+        cleanId,
+        error: `รหัสนักศึกษาต้องมีความยาว 11 หลักพอดี (ปัจจุบันกรอก ${cleanId.length} หลัก) เช่น 68208307037`,
+        confidence: 0.99,
+      };
+    }
+
+    const year = cleanId.slice(0, 2);
+    const facultyCode = cleanId.slice(2, 9);
+    const seatNumber = cleanId.slice(9, 11);
+
+    if (facultyCode !== "2083070") {
+      return {
+        isValid: false,
+        cleanId,
+        year,
+        facultyCode,
+        seatNumber,
+        error: `เลข 7 หลักตรงกลางต้องเป็นรหัสคณะ/สาขา "2083070" (ปัจจุบันกรอกเป็น "${facultyCode}") เช่น 68208307037`,
+        confidence: 0.98,
+      };
+    }
+
+    const seatNum = parseInt(seatNumber, 10);
+    if (isNaN(seatNum) || seatNum < 0 || seatNum > 55) {
+      return {
+        isValid: false,
+        cleanId,
+        year,
+        facultyCode,
+        seatNumber,
+        error: `เลข 2 หลักสุดท้าย (ลำดับที่) ต้องอยู่ระหว่าง 00 ถึง 55 เท่านั้น (ปัจจุบันกรอกเป็น "${seatNumber}")`,
+        confidence: 0.98,
+      };
+    }
+
+    return {
+      isValid: true,
+      cleanId,
+      year,
+      facultyCode,
+      seatNumber,
+      confidence: 1.0,
     };
   }
 }

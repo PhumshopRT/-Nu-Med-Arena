@@ -4,19 +4,19 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { LabWorldBackground } from "./LabWorldBackground";
 import { FloatingCardIcons } from "./FloatingCardIcons";
-import { Volume2, VolumeX, Sparkles } from "lucide-react";
+import { Volume2, VolumeX, Sparkles, Zap, Radio, Activity, ShieldCheck } from "lucide-react";
 
 interface BootScreenProps {
   onComplete: () => void;
 }
 
 const TIPS = [
-  "กำลังอุ่นเครื่อง generator ⁹⁹ᵐTc...",
-  "กำลังสับการ์ด Capillary Blockade...",
-  "กำลังตั้งกล้องตรวจ PET/CT...",
-  "กำลังตรวจเช็กขนาดอนุภาค MAA 10–50 μm...",
-  "กำลังเร่งอนุภาคไซโคลตรอนผลิต ¹⁸F...",
-  "กำลังจัดเรียงสำรับกลไก 12 รูปแบบ...",
+  "กำลังอุ่นเครื่อง generator ⁹⁹ᵐTc จากแม่สาร ⁹⁹Mo...",
+  "กำลังสับการ์ดกลไก Capillary Blockade (ขนาดอนุภาค MAA 10–50 μm)...",
+  "กำลังเร่งอนุภาคไซโคลตรอนผลิต ¹⁸F สำหรับ PET Scan 511 keV...",
+  "กำลังจัดเรียงสำรับการ์ด 4 หมวด (RP, MECH, CASE, CLUE)...",
+  "กำลังปรับเทียบตัวตรวจจับ Coincidence Detection ในระบบ PET...",
+  "JEV Engine กำลังวิเคราะห์สิทธิ์และตรวจสอบความพร้อมระบบ...",
 ];
 
 export function BootScreen({ onComplete }: BootScreenProps) {
@@ -28,11 +28,11 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     // Tip rotator
     const tipInterval = setInterval(() => {
       setTipIndex((prev) => (prev + 1) % TIPS.length);
-    }, 900);
+    }, 850);
 
-    // Progress bar 0 to 100 in 3 seconds
+    // Progress bar 0 to 100 in 2.6 seconds
     const start = Date.now();
-    const duration = 2800;
+    const duration = 2600;
 
     const progressInterval = setInterval(() => {
       const elapsed = Date.now() - start;
@@ -42,9 +42,9 @@ export function BootScreen({ onComplete }: BootScreenProps) {
       if (pct >= 100) {
         clearInterval(progressInterval);
         clearInterval(tipInterval);
-        setTimeout(onComplete, 300);
+        setTimeout(onComplete, 250);
       }
-    }, 40);
+    }, 35);
 
     return () => {
       clearInterval(progressInterval);
@@ -53,95 +53,140 @@ export function BootScreen({ onComplete }: BootScreenProps) {
   }, [onComplete]);
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden flex flex-col justify-between items-center z-50">
+    <div className="relative w-screen h-screen overflow-hidden flex flex-col justify-between items-center z-50 select-none">
       {/* Game World Background */}
       <LabWorldBackground />
 
       {/* Floating 4-Color Prototype Cards */}
       <FloatingCardIcons />
 
-      {/* Top Header / Mute control */}
-      <div className="w-full flex justify-between items-center p-6 z-20">
-        <div className="bg-black/30 backdrop-blur-xs text-amber-200 text-xs px-3 py-1.5 rounded-full border border-amber-400/40 flex items-center space-x-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin" />
-          <span>INITIALIZING NUCLEAR MEDICINE ARENA</span>
+      {/* Top Header / Telemetry Bar & Audio Control */}
+      <div className="w-full flex justify-between items-center p-4 md:p-6 z-20">
+        <div className="bg-slate-950/85 backdrop-blur-md text-amber-200 text-xs px-3.5 py-1.5 rounded-full border border-amber-400/40 flex items-center space-x-2 shadow-xl">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <span className="font-mono tracking-wider font-bold">CYCLOTRON REACTOR LAB • JEV SYSTEM ONE ONLINE</span>
         </div>
 
         <button
           onClick={() => setIsMuted(!isMuted)}
-          className="bg-black/40 hover:bg-black/60 p-2.5 rounded-full text-white/80 hover:text-white transition-colors border border-white/20"
+          className="bg-black/50 hover:bg-black/70 p-2.5 rounded-full text-white/90 hover:text-white transition-all border border-amber-500/40 shadow-lg cursor-pointer"
           title={isMuted ? "เปิดเสียง" : "ปิดเสียง"}
         >
-          {isMuted ? <VolumeX className="w-5 h-5 text-red-300" /> : <Volume2 className="w-5 h-5 text-emerald-300" />}
+          {isMuted ? <VolumeX className="w-5 h-5 text-rose-300" /> : <Volume2 className="w-5 h-5 text-emerald-300" />}
         </button>
       </div>
 
-      {/* Central 3D Logo Section */}
+      {/* Central High-Tech Ionization Core & Title Section */}
       <div className="flex flex-col items-center text-center my-auto z-20 px-4">
-        {/* Radioactive Trefoil Icon Above Logo */}
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-          className="w-16 h-16 mb-2 rounded-full bg-amber-400 border-4 border-amber-600 flex items-center justify-center shadow-xl shadow-amber-500/30"
-        >
-          <span className="text-2xl font-bold text-slate-900 select-none">☢️</span>
-        </motion.div>
+        {/* Animated Concentric Cyclotron Energy Rings */}
+        <div className="relative w-28 h-28 md:w-32 md:h-32 flex items-center justify-center mb-2">
+          {/* Ring 1 - Outer amber dashed counter-clockwise */}
+          <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 rounded-full border-2 border-dashed border-amber-400/60 shadow-[0_0_20px_rgba(245,158,11,0.3)]"
+          />
+
+          {/* Ring 2 - Middle cyan pulse */}
+          <motion.div
+            animate={{ rotate: 360, scale: [1, 1.05, 1] }}
+            transition={{
+              rotate: { duration: 8, repeat: Infinity, ease: "linear" },
+              scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+            }}
+            className="absolute inset-3 rounded-full border border-cyan-400/70"
+          />
+
+          {/* Ring 3 - Inner emerald glow */}
+          <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-6 rounded-full border border-emerald-400/80"
+          />
+
+          {/* Core Trefoil Glow */}
+          <motion.div
+            animate={{ scale: [0.95, 1.08, 0.95] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 border-2 border-amber-600 flex items-center justify-center shadow-[0_0_25px_rgba(245,158,11,0.8)] z-10"
+          >
+            <span className="text-2xl filter drop-shadow">☢️</span>
+          </motion.div>
+        </div>
 
         {/* 3D Big Title */}
         <motion.h1
-          initial={{ scale: 0.8, opacity: 0 }}
+          initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className="text-5xl md:text-7xl font-black text-amber-300 tracking-wider font-game text-shadow-gold-title filter drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]"
+          className="text-5xl md:text-7xl font-black text-amber-300 tracking-tight font-game text-shadow-gold-title filter drop-shadow-[0_12px_16px_rgba(0,0,0,0.7)] select-none"
         >
           NucMed Arena
         </motion.h1>
 
         {/* Mode & Subtitle Plaque */}
-        <div className="wood-panel px-6 py-2.5 rounded-xl mt-3 text-center max-w-lg shadow-2xl">
-          <div className="text-amber-100 font-bold text-base md:text-xl font-game tracking-wide">
+        <div className="wood-panel px-6 py-2 rounded-xl mt-1.5 text-center max-w-lg shadow-2xl border-2 border-amber-950 flex flex-col items-center">
+          <div className="text-amber-100 font-black text-sm md:text-base font-game tracking-wider">
             จับคู่สาร · จับคู่กลไก · รอบโต๊ะไพ่
           </div>
-          <div className="text-amber-300/80 text-[10px] md:text-xs font-semibold tracking-widest uppercase mt-0.5">
+          <div className="text-amber-300/90 text-[9px] md:text-[10px] font-black tracking-widest uppercase mt-0.5">
             LEARN • MATCH • PLAY • NUCLEAR MEDICINE
+          </div>
+        </div>
+
+        {/* High-Tech Telemetry Stats Grid */}
+        <div className="mt-4 px-4 py-1.5 rounded-xl bg-slate-950/80 border border-amber-500/40 backdrop-blur-md flex items-center space-x-3 text-[10px] md:text-[11px] font-mono text-amber-200">
+          <div className="flex items-center space-x-1 text-cyan-300">
+            <Radio className="w-3 h-3 animate-pulse" />
+            <span>BEAM: 18 MeV</span>
+          </div>
+          <span className="text-amber-600">•</span>
+          <div className="flex items-center space-x-1 text-emerald-300">
+            <Activity className="w-3 h-3 animate-pulse" />
+            <span>FLUX: 511 keV</span>
+          </div>
+          <span className="text-amber-600">•</span>
+          <div className="flex items-center space-x-1 text-amber-300 font-bold">
+            <Zap className="w-3 h-3 text-amber-400" />
+            <span>JEV ORCHESTRATION</span>
           </div>
         </div>
       </div>
 
-      {/* Bottom Loading Progress Bar & Tips */}
-      <div className="w-full max-w-xl px-6 pb-12 z-20 flex flex-col items-center">
-        {/* Dynamic Tip Text */}
+      {/* Bottom Loading Progress Bar & Nuclear Medicine Tips */}
+      <div className="w-full max-w-xl px-6 pb-10 z-20 flex flex-col items-center">
+        {/* Dynamic Tip Text with smooth fade */}
         <motion.div
           key={tipIndex}
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-amber-950 font-semibold text-xs md:text-sm mb-2 text-center bg-white/70 backdrop-blur-xs px-4 py-1 rounded-full shadow border border-amber-300/60"
+          className="text-amber-100 font-semibold text-xs md:text-sm mb-2 text-center bg-slate-950/85 backdrop-blur-md px-5 py-1.5 rounded-full shadow-lg border border-amber-400/50 min-h-[32px] flex items-center justify-center"
         >
           {TIPS[tipIndex]}
         </motion.div>
 
-        {/* Wood/Metal Progress Bar Frame */}
-        <div className="w-full h-8 bg-wood-dark border-4 border-wood-light rounded-xl p-1 shadow-2xl relative overflow-hidden">
+        {/* High-Tech Cyclotron Progress Bar Frame */}
+        <div className="w-full h-8 bg-slate-950/90 border-3 border-amber-500/80 rounded-xl p-1 shadow-[0_0_20px_rgba(245,158,11,0.25)] relative overflow-hidden backdrop-blur-md">
           <motion.div
-            className="h-full rounded-lg bg-gradient-to-r from-emerald-500 via-green-400 to-amber-300 shadow-inner relative"
+            className="h-full rounded-lg bg-gradient-to-r from-blue-500 via-emerald-400 to-amber-300 shadow-[0_0_12px_rgba(52,211,153,0.8)] relative"
             style={{ width: `${progress}%` }}
           >
-            {/* Striped animation overlay */}
-            <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.25)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.25)_50%,rgba(255,255,255,0.25)_75%,transparent_75%,transparent)] bg-[length:16px_16px] animate-[pulse_1.5s_infinite]" />
+            {/* Animated Particle Beam Shimmer */}
+            <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.3)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.3)_50%,rgba(255,255,255,0.3)_75%,transparent_75%,transparent)] bg-[length:16px_16px] animate-[pulse_1.2s_infinite]" />
           </motion.div>
-          
-          {/* Centered Percentage */}
-          <div className="absolute inset-0 flex items-center justify-center font-game font-bold text-xs text-white text-shadow-sub">
-            {progress}%
+
+          {/* Centered Percentage & Status */}
+          <div className="absolute inset-0 flex items-center justify-center font-mono font-black text-xs text-white text-shadow-sub tracking-wider">
+            <span>CHARGING REACTOR... {progress}%</span>
           </div>
         </div>
 
         {/* Skip button for quick dev access */}
         <button
           onClick={onComplete}
-          className="text-[11px] text-slate-800 font-semibold underline mt-3 hover:text-black transition-colors"
+          className="text-xs text-amber-300/80 font-bold hover:text-white transition-colors underline mt-3 cursor-pointer"
         >
-          กดข้ามหน้ารอโหลด (Skip)
+          กดข้ามหน้ารอโหลด (Skip to Arena)
         </button>
       </div>
     </div>

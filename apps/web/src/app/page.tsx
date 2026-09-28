@@ -71,7 +71,7 @@ export default function HomePage() {
     <HomeHub
       user={
         user || {
-          studentId: "651000000",
+          studentId: "68208307001",
           displayName: "นักศึกษาใหม่",
           xp: 0,
           coins: 0,

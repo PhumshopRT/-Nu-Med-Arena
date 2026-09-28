@@ -110,7 +110,7 @@ export const SHOP_CATALOG: ShopItem[] = [
 
 export function getLocalUser(): StudentUser {
   if (typeof window === "undefined") {
-    return createDefaultUser("651000000", "นักศึกษา");
+    return createDefaultUser("68208307001", "นักศึกษา");
   }
   const saved = localStorage.getItem("nucmed_current_user");
   if (saved) {
@@ -120,7 +120,7 @@ export function getLocalUser(): StudentUser {
       // fallback
     }
   }
-  const newUser = createDefaultUser("651000000", "นักศึกษา");
+  const newUser = createDefaultUser("68208307001", "นักศึกษา");
   saveLocalUser(newUser);
   return newUser;
 }

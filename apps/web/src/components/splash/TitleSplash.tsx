@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { LabWorldBackground } from "./LabWorldBackground";
 import { AmbientMotes } from "./FloatingCardIcons";
-import { MascotNew, MascotMed, MascotGamma } from "./Mascots";
+import { CyclotronReactorStage } from "./CyclotronReactorStage";
 import { StudentLoginModal } from "./StudentLoginModal";
 import { Play, LogIn, ShoppingBag, BookOpen, Volume2, VolumeX, Image as ImageIcon } from "lucide-react";
 import { StudentUser, PROTOTYPE_4_CARDS } from "@nucmed/shared";
@@ -15,6 +15,7 @@ import { CaseCard } from "@/components/cards/CaseCard";
 import { ClueCard } from "@/components/cards/ClueCard";
 import { sounds } from "@/lib/sound";
 import { getLocalUser } from "@/lib/user";
+import { jev } from "@/lib/jev-engine";
 
 interface TitleSplashProps {
   onLoginSuccess: (user: StudentUser) => void;
@@ -30,15 +31,6 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
   const [showHowToModal, setShowHowToModal] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [isMuted, setIsMuted] = useState(sounds.getMuted());
-  const [activeSpeech, setActiveSpeech] = useState<string | null>(null);
-
-  const triggerSpeech = (speaker: string, text: string) => {
-    sounds.playSelect();
-    setActiveSpeech(`${speaker}: ${text}`);
-    setTimeout(() => {
-      setActiveSpeech((prev) => (prev?.startsWith(speaker) ? null : prev));
-    }, 2800);
-  };
 
   const handleToggleMute = () => {
     const nextMuted = sounds.toggleMute();
@@ -51,7 +43,7 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
   const handleOpenJoinRoom = () => {
     sounds.playClick();
     const user = getLocalUser();
-    if (user && user.studentId && user.studentId !== "651000000") {
+    if (user && user.studentId && jev.validateStudentId(user.studentId).isValid) {
       setShowJoinModal(true);
     } else {
       setIsLoginOpen(true);
@@ -178,67 +170,11 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
                 </div>
               </motion.div>
 
-              {/* Mascot Speech Bubble Toast */}
-              <AnimatePresence>
-                {activeSpeech && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.9 }}
-                    className="mt-1.5 bg-amber-950/95 text-amber-200 border-2 border-amber-400 px-4 py-1 rounded-full text-xs font-bold shadow-xl z-40"
-                  >
-                    💬 {activeSpeech}
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
 
-            {/* Mascots Row (Strictly ABOVE deck border & PLAY button, with clear margin) [z-30] */}
-            <div className="flex items-end justify-center space-x-6 md:space-x-10 pointer-events-auto z-30 mb-3 md:mb-5">
-              {/* Mascot 1: New (นิว) */}
-              <motion.div
-                whileHover={{ scale: 1.08, y: -4 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => triggerSpeech("นิว", "พร้อมลุยตรวจ PET ด้วย ¹⁸F-FDG แล้วครับ!")}
-                className="flex flex-col items-center cursor-pointer group"
-                title="คลิกเพื่อนิวพูดคุย!"
-              >
-                <MascotNew className="w-18 md:w-24 lg:w-26 h-22 md:h-28 lg:h-32 drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]" />
-                {/* Dedicated 22px height pill container without clipping */}
-                <div className="h-[22px] min-w-[54px] px-3 bg-[#0B3B36] border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-md mt-1 group-hover:border-emerald-300 transition-colors">
-                  <span className="text-white text-xs font-bold leading-none">นิว</span>
-                </div>
-              </motion.div>
-
-              {/* Mascot 2: Gamma (แกมม่า) */}
-              <motion.div
-                whileHover={{ scale: 1.12, y: -5 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => triggerSpeech("แกมม่า", "โฮ่ง! ดมกลิ่นรังสีเจอแล้ว ☢️")}
-                className="flex flex-col items-center cursor-pointer group mb-0.5"
-                title="คลิกเพื่อแกมม่ากระดิกหาง!"
-              >
-                <MascotGamma className="w-14 md:w-18 lg:w-20 h-18 md:h-22 lg:h-24 drop-shadow-[0_6px_12px_rgba(0,0,0,0.45)]" />
-                {/* Dedicated 22px height pill container without clipping */}
-                <div className="h-[22px] min-w-[54px] px-3 bg-[#0B3B36] border-2 border-amber-400 rounded-full flex items-center justify-center shadow-md mt-1 group-hover:border-amber-300 transition-colors">
-                  <span className="text-white text-xs font-bold leading-none">แกมม่า</span>
-                </div>
-              </motion.div>
-
-              {/* Mascot 3: Med (เมด) */}
-              <motion.div
-                whileHover={{ scale: 1.08, y: -4 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => triggerSpeech("เมด", "วิเคราะห์กลไก Capillary Blockade ให้แม่นยำนะ!")}
-                className="flex flex-col items-center cursor-pointer group"
-                title="คลิกเพื่อเมดให้กำลังใจ!"
-              >
-                <MascotMed className="w-18 md:w-24 lg:w-26 h-22 md:h-28 lg:h-32 drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]" />
-                {/* Dedicated 22px height pill container without clipping */}
-                <div className="h-[22px] min-w-[54px] px-3 bg-[#0B3B36] border-2 border-rose-400 rounded-full flex items-center justify-center shadow-md mt-1 group-hover:border-rose-300 transition-colors">
-                  <span className="text-white text-xs font-bold leading-none">เมด</span>
-                </div>
-              </motion.div>
+            {/* Cyclotron Reactor Stage Centerpiece (Zero mascots, high-tech particle accelerator dais) [z-30] */}
+            <div className="w-full flex justify-center pointer-events-auto z-30 mb-2 md:mb-4">
+              <CyclotronReactorStage />
             </div>
           </div>
 
