@@ -70,7 +70,7 @@ export default function HomePage() {
 
   return (
     <HomeHub
-      user={user || createDefaultUser("68208307001", "นักศึกษาใหม่")}
+      user={user || createDefaultUser("68208307052", "นักศึกษา 7052")}
       onLogout={handleLogout}
       onOpenGallery={handleOpenGallery}
     />

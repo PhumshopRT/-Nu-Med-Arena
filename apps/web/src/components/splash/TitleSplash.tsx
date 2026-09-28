@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { AmbientMotes } from "./FloatingCardIcons";
+import { AmbientMotes } from "./AmbientMotes";
 import { StudentLoginModal } from "./StudentLoginModal";
 import { Play, LogIn, ShoppingBag, BookOpen, Volume2, VolumeX, Image as ImageIcon } from "lucide-react";
 import { StudentUser, PROTOTYPE_4_CARDS } from "@nucmed/shared";
@@ -67,16 +67,16 @@ export function TitleSplash({ onLoginSuccess, onOpenGallery, onOpenHowTo, onOpen
 
       {/* --------------------------------------------------------
           LAYER 2: mascots.webp วางกึ่งกลาง ยืนบนเคาน์เตอร์ เหนือปุ่ม PLAY [z-10]
-          Counter horizon is at ~71.5% from top. Mascots stand on the wood surface!
+          Height strictly <= 28vh, with gap of at least 12px under wooden plaque
           -------------------------------------------------------- */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-[26%] sm:bottom-[27%] md:bottom-[27.5%] lg:bottom-[28%] pointer-events-none z-10 flex flex-col items-center">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-[21%] sm:bottom-[22%] md:bottom-[22.5%] lg:bottom-[23%] pointer-events-none z-10 flex flex-col items-center">
         <motion.img
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
           src={getAssetPath("/scene/mascots.webp")}
           alt="NucMed Arena Mascots"
-          className="h-[210px] sm:h-[240px] md:h-[275px] lg:h-[305px] xl:h-[325px] w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]"
+          className="h-[20vh] sm:h-[22vh] md:h-[24vh] lg:h-[26vh] max-h-[28vh] w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]"
         />
       </div>
 
