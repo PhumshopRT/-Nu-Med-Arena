@@ -9,6 +9,7 @@ export interface CardBase {
   body: string[];        // bullet points
   illustration: string;  // svg key (e.g. 'thyroid', 'lung', 'bone', 'liver_spleen', 'cell', 'capillary')
   tags: string[];
+  disabled?: boolean; // switch to enable/disable card from being dealt
 }
 
 export interface RadiopharmaceuticalCard extends CardBase {
@@ -35,7 +36,7 @@ export interface CaseCard extends CardBase {
   acceptedRpIds: string[];
   acceptedMechIds: string[];
   explanationTh: string;
-  points: 8 | 16;
+  points: number; // 2, 4, 8, 16
   clueId?: string; // Mapped specific clue card ID from CLUE_DECK
 }
 

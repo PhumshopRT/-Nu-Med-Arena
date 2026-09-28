@@ -40,6 +40,12 @@ import {
   BOTS,
   simulateBotAnswer
 } from "@nucmed/shared";
+import { 
+  getPlayableCaseCards, 
+  getPlayableRpCards, 
+  getPlayableMechCards, 
+  getPlayableClueCards 
+} from "@/lib/cards";
 import { RpCard } from "@/components/cards/RpCard";
 import { MechCard } from "@/components/cards/MechCard";
 import { CaseCard as CaseCardComponent } from "@/components/cards/CaseCard";
@@ -80,7 +86,7 @@ export function PlayClient() {
   // Cards in play
   const [deck, setDeck] = useState<RadiopharmaceuticalCard[]>([]);
   const [hand, setHand] = useState<RadiopharmaceuticalCard[]>([]);
-  const [currentCase, setCurrentCase] = useState<CaseCard>(ALL_CASE_CARDS[0]);
+  const [currentCase, setCurrentCase] = useState<CaseCard>(() => getPlayableCaseCards()[0] || ALL_CASE_CARDS[0]);
   const [currentClue, setCurrentClue] = useState<ClueCard | null>(null);
   const [isClueRevealed, setIsClueRevealed] = useState(false);
   const [showClueConfirm, setShowClueConfirm] = useState(false);
@@ -186,7 +192,8 @@ export function PlayClient() {
     const myFrame = localUser.equipped?.frame || equipped.frame;
 
     // Shuffle RP deck and deal 5 cards to player
-    const shuffledRp = [...ALL_RP_CARDS].sort(() => Math.random() - 0.5);
+    const playableRp = getPlayableRpCards();
+    const shuffledRp = [...playableRp].sort(() => Math.random() - 0.5);
     const initialHand = shuffledRp.slice(0, 5);
     const remainingDeck = shuffledRp.slice(5);
 
@@ -285,7 +292,9 @@ export function PlayClient() {
         case "ROUND_ADVANCE": {
           sounds.playDraw();
           setCurrentRound(msg.roundIndex);
-          const nextCase = ALL_CASE_CARDS.find((c) => c.id === msg.caseId) || ALL_CASE_CARDS[(msg.roundIndex - 1) % ALL_CASE_CARDS.length];
+          const playableCases = getPlayableCaseCards();
+          const casePool = playableCases.length > 0 ? playableCases : ALL_CASE_CARDS;
+          const nextCase = casePool.find((c) => c.id === msg.caseId) || casePool[(msg.roundIndex - 1) % casePool.length];
           setCurrentCase(nextCase);
           setSelectedRp(null);
           setSelectedMech(null);
@@ -320,23 +329,28 @@ export function PlayClient() {
 
   // Setup a new round
   const setupRound = (roundNum: number, currentDeck: RadiopharmaceuticalCard[], currentHand: RadiopharmaceuticalCard[]) => {
+    const playableCases = getPlayableCaseCards();
+    const playableClues = getPlayableClueCards();
+    const casePool = playableCases.length > 0 ? playableCases : ALL_CASE_CARDS;
+    const cluePool = playableClues.length > 0 ? playableClues : ALL_CLUE_CARDS;
+
     // Pick Case Card - ensure clueId exists, otherwise skip case
-    let caseIndex = (roundNum - 1) % ALL_CASE_CARDS.length;
-    let caseCard = ALL_CASE_CARDS[caseIndex];
+    let caseIndex = (roundNum - 1) % casePool.length;
+    let caseCard = casePool[caseIndex];
 
     // Check clueId exists before dealing; if missing, skip case
     let attempts = 0;
-    while ((!caseCard.clueId || !ALL_CLUE_CARDS.some(c => c.id === caseCard.clueId)) && attempts < ALL_CASE_CARDS.length) {
+    while ((!caseCard.clueId || !cluePool.some(c => c.id === caseCard.clueId)) && attempts < casePool.length) {
       console.warn(`[RTGAME] Case ${caseCard.id} has invalid or missing clueId: ${caseCard.clueId}. Skipping case.`);
-      caseIndex = (caseIndex + 1) % ALL_CASE_CARDS.length;
-      caseCard = ALL_CASE_CARDS[caseIndex];
+      caseIndex = (caseIndex + 1) % casePool.length;
+      caseCard = casePool[caseIndex];
       attempts++;
     }
 
     setCurrentCase(caseCard);
 
     // Exact 1-to-1 clue card matching via caseCard.clueId (strict, no random/fuzzy)
-    const clueCard = ALL_CLUE_CARDS.find((c) => c.id === caseCard.clueId) || null;
+    const clueCard = cluePool.find((c) => c.id === caseCard.clueId) || null;
     setCurrentClue(clueCard);
     setIsClueRevealed(false);
     setShowClueConfirm(false);
@@ -397,7 +411,7 @@ export function PlayClient() {
           const shouldLock = Math.random() < 0.12 || currentSeconds < 10;
           if (shouldLock) {
             const botTemplate = BOTS.find((b) => b.avatar === p.avatar) || BOTS[0];
-            const botAnswer = simulateBotAnswer(botTemplate, currentCase, ALL_RP_CARDS);
+            const botAnswer = simulateBotAnswer(botTemplate, currentCase, getPlayableRpCards());
             return {
               ...p,
               locked: true,
@@ -426,7 +440,7 @@ export function PlayClient() {
       prev.map((p) => {
         if (p.isBot && !p.locked) {
           const botTemplate = BOTS.find((b) => b.avatar === p.avatar) || BOTS[0];
-          const botAnswer = simulateBotAnswer(botTemplate, currentCase, ALL_RP_CARDS);
+          const botAnswer = simulateBotAnswer(botTemplate, currentCase, getPlayableRpCards());
           return {
             ...p,
             locked: true,
@@ -533,7 +547,9 @@ export function PlayClient() {
     const nextRoundNum = currentRound + 1;
     setCurrentRound(nextRoundNum);
     setupRound(nextRoundNum, deck, hand);
-    const nextCase = ALL_CASE_CARDS[(nextRoundNum - 1) % ALL_CASE_CARDS.length];
+    const playableCases = getPlayableCaseCards();
+    const casePool = playableCases.length > 0 ? playableCases : ALL_CASE_CARDS;
+    const nextCase = casePool[(nextRoundNum - 1) % casePool.length];
     syncRef.current?.publish({
       type: "ROUND_ADVANCE",
       roundIndex: nextRoundNum,
@@ -962,7 +978,7 @@ export function PlayClient() {
               className="flex-1 overflow-x-auto py-1 sm:py-2 px-1.5 sm:px-3 flex space-x-1.5 sm:space-x-3 scrollbar-none scroll-smooth bg-black/35 backdrop-blur-md rounded-xl sm:rounded-2xl border-2 border-amber-500/35 shadow-[inset_0_2px_8px_rgba(0,0,0,0.6),0_4px_16px_rgba(0,0,0,0.35)] touch-pan-x"
               style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
             >
-              {ALL_MECH_CARDS.map((mech) => {
+              {getPlayableMechCards().map((mech) => {
                 const isSelected = selectedMech?.id === mech.id;
                 return (
                   <motion.button
