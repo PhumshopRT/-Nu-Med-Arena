@@ -36,6 +36,7 @@ export interface CaseCard extends CardBase {
   acceptedMechIds: string[];
   explanationTh: string;
   points: 2 | 4;
+  clueId?: string; // Mapped specific clue card ID from CLUE_DECK
 }
 
 export interface ClueCard extends CardBase {
@@ -80,11 +81,14 @@ export interface PublicPlayer {
   handCount: number;
   selectedRpId?: string; // only revealed during REVEAL
   selectedMechId?: string; // only revealed during REVEAL
+  usedClue?: boolean; // private to player or revealed in REVEAL
   lastAnswerResult?: {
     correct: boolean;
     points: number;
     rpOk: boolean;
     mechOk: boolean;
+    usedClue?: boolean;
+    cluePenalty?: number;
   };
   isBot?: boolean;
   avatar?: string;

@@ -165,17 +165,17 @@ export const CLUE_DECK: ClueCard[] = [
     id: "T-11",
     type: "CLUE",
     clueKind: "WHY",
-    titleTh: "ทำไม MAA ไม่ไปสมอง?",
-    titleEn: "Why MAA Does Not Reach Brain?",
-    subtitle: "Venous Route & Capillary Filter",
+    titleTh: "หลักการกระจายตัวในแขนงหลอดเลือดปอด",
+    titleEn: "Principle of Pulmonary Microvascular Distribution",
+    subtitle: "Venous Route & Microvascular Filter",
     body: [
-      "ฉีดเข้าหลอดเลือดดำแขน → วิ่งเข้าหัวใจห้องขวา → เข้าสู่หลอดเลือดแดงปอด",
-      "อนุภาคขนาด 10–50 μm ติดค้างในหลอดเลือดฝอยปอดที่มีขนาดเพียง 10 μm",
-      "หากพบสารไปสมองหรือไต แสดงว่ามี Right-to-Left Shunt ในหัวใจ!"
+      "ฉีดเข้าหลอดเลือดดำแขน → วิ่งเข้าสู่หัวใจห้องขวา → เข้าสู่หลอดเลือดแดงปอด",
+      "เส้นผ่านศูนย์กลางช่องหลอดเลือดฝอยในถุงลมมีขนาดเฉลี่ยเพียง 7–10 μm",
+      "อนุภาคขนาดใหญ่กว่ารูหลอดเลือดจะถูกสกัดไว้ชั่วคราวตามสัดส่วนการไหลเวียนเลือด"
     ],
-    reveals: "กลไก Capillary Blockade ในปอดทำหน้าที่เป็นตัวกรองทางกายภาพ",
+    reveals: "พิจารณาขนาดอนุภาคที่พอดีกับการติดค้างชั่วคราวในโครงข่ายเส้นเลือดฝอย",
     illustration: "capillary",
-    tags: ["why", "maa", "lung"]
+    tags: ["why", "perfusion", "lung"]
   },
   {
     id: "T-12",
@@ -229,17 +229,17 @@ export const CLUE_DECK: ClueCard[] = [
     id: "T-15",
     type: "CLUE",
     clueKind: "TRAIT",
-    titleTh: "ลักษณะกลไก: การกลืนกิน (Phagocytosis)",
-    titleEn: "Trait: RES Phagocytosis",
-    subtitle: "Immune Cell Clearance",
+    titleTh: "คุณลักษณะ: ด่านตรวจจับสิ่งแปลกปลอมในอวัยวะภายใน",
+    titleEn: "Trait: Reticuloendothelial Clearance",
+    subtitle: "Particle Size & Immune Clearance",
     body: [
-      "ขึ้นอยู่กับขนาดอนุภาค: ขนาด 0.1–1.0 μm ไปตับม้าม, เล็กกว่า 0.1 μm ไปไขกระดูก",
-      "หากอนุภาคใหญ่เกิน 10 μm จะติดค้างที่ปอดแทน",
-      "ไม่เกิดในเนื้อเยื่อที่มีการทำลายของเซลล์ Kupffer (เช่น มะเร็งตับ เกิด Cold defect)"
+      "ขึ้นกับขนาดอนุภาค: ขนาดระดับไมครอนต่ำกว่า 1 μm จะถูกดักจับโดยเซลล์ภูมิคุ้มกันประจำเนื้อเยื่อ",
+      "หากขนาดใหญ่ระดับ 10–50 μm จะติดค้างในเส้นเลือดฝอยแทน",
+      "บริเวณที่มีเซลล์ประจำถิ่นปกติจะสะสมสาร ส่วนบริเวณรอยโรคที่เซลล์ถูกทำลายจะเห็นเป็น Cold defect"
     ],
-    reveals: "เกี่ยวข้องกับอนุภาค ⁹⁹ᵐTc-sulfur colloid และเซลล์ Kupffer",
+    reveals: "พิจารณาการทำงานของเซลล์แมโครฟาจประจำอวัยวะในการจับกินอนุภาคแขวนลอย",
     illustration: "liver_spleen",
-    tags: ["trait", "phagocytosis"]
+    tags: ["trait", "colloid", "clearance"]
   },
   {
     id: "T-16",
@@ -256,5 +256,69 @@ export const CLUE_DECK: ClueCard[] = [
     reveals: "กลไก Receptor Binding ในการตรวจ NET",
     illustration: "receptor",
     tags: ["trait", "sstr2", "net"]
+  },
+  {
+    id: "T-17",
+    type: "CLUE",
+    clueKind: "TARGET",
+    titleTh: "เป้าหมาย: บริเวณติดเชื้อและการอักเสบ",
+    titleEn: "Target: Infection & Inflammation Site",
+    subtitle: "Chemotaxis & Leukocyte Migration",
+    body: [
+      "เนื้อเยื่อที่มีการรวมกลุ่มของแบคทีเรียหรือการอักเสบเฉียบพลัน",
+      "มีสารกระตุ้น Chemotactic factors ดึงดูดเซลล์เม็ดเลือดขาวชนิดนิวโทรฟิล",
+      "ใช้ตรวจหาตำแหน่งฝีหนองซ่อนเร้นหรือข้อเทียมติดเชื้อ"
+    ],
+    reveals: "พิจารณาการเคลื่อนที่ของเซลล์เม็ดเลือดขาวตามแรงดึงดูดทางชีวเคมี",
+    illustration: "migration",
+    tags: ["infection", "wbc", "migration"]
+  },
+  {
+    id: "T-18",
+    type: "CLUE",
+    clueKind: "TARGET",
+    titleTh: "เป้าหมาย: การขับถ่ายของไตและท่อไต",
+    titleEn: "Target: Renal Clearance & Dynamic Flow",
+    subtitle: "Tubular Secretion & Glomerular Filtration",
+    body: [
+      "อวัยวะ: กรวยไตและระบบท่อไต",
+      "สารจะถูกกรองผ่าน Glomerulus หรือหลั่งผ่านท่อไตโดยไม่สะสมในเนื้อไต",
+      "ใช้ประเมินทางระบายน้ำปัสสาวะและการตอบสนองต่อยาขับปัสสาวะ"
+    ],
+    reveals: "พิจารณาการไหลผ่านและขับออกอย่างรวดเร็วทางระบบทางเดินปัสสาวะ",
+    illustration: "kidney",
+    tags: ["kidney", "renal", "flow"]
+  },
+  {
+    id: "T-19",
+    type: "CLUE",
+    clueKind: "TARGET",
+    titleTh: "เป้าหมาย: เนื้องอกต่อมพาราไทรอยด์",
+    titleEn: "Target: Parathyroid Oxyphil Adenoma",
+    subtitle: "Mitochondrial-Rich Neoplasm",
+    body: [
+      "ต่อมพาราไทรอยด์ขนาดเล็กด้านหลังต่อมไทรอยด์",
+      "เซลล์เนื้องอกชนิด Oxyphil อัดแน่นไปด้วยไมโทคอนเดรียจำนวนมหาศาล",
+      "สารจะถูกล้างออกจากต่อมไทรอยด์เร็วกว่าเนื้องอกพาราไทรอยด์ในเฟสที่สอง"
+    ],
+    reveals: "พิจารณาสารที่แพร่เข้าสู่เซลล์และจับยึดในออร์แกเนลล์สร้างพลังงาน",
+    illustration: "cell",
+    tags: ["parathyroid", "adenoma", "mitochondria"]
+  },
+  {
+    id: "T-20",
+    type: "CLUE",
+    clueKind: "TARGET",
+    titleTh: "เป้าหมาย: ต่อมหมวกไตและระบบซิมพาเทติก",
+    titleEn: "Target: Adrenal Medulla & Sympathetic System",
+    subtitle: "Catecholamine Vesicles",
+    body: [
+      "เนื้อเยื่อต่อมหมวกไตส่วนใน (Adrenal medulla) และปมประสาท",
+      "มีโปรตีนขนส่ง Norepinephrine Transporter (NET) ดึงดูดสารคล้ายสารสื่อประสาท",
+      "สะสมและกักเก็บในถุงเก็บสารสื่อประสาท Neurosecretory granules"
+    ],
+    reveals: "พิจารณาสารที่มีโครงสร้างเลียนแบบสารสื่อประสาทกลุ่มแคทีโคลามีน",
+    illustration: "cell",
+    tags: ["adrenal", "medulla", "pheo"]
   }
 ];

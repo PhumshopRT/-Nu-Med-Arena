@@ -85,16 +85,16 @@ export function TitleSplash({ currentUser, onLoginSuccess, onOpenGallery, onOpen
 
       {/* --------------------------------------------------------
           LAYER 2: mascots.webp วางกึ่งกลาง ยืนบนเคาน์เตอร์ เหนือปุ่ม PLAY [z-10]
-          Height strictly <= 28vh, with gap of at least 12px under wooden plaque
+          Separate layer bottom-center, height <= 34vmin, shrunk if height < 700, never hidden in landscape
           -------------------------------------------------------- */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-[21%] sm:bottom-[22%] md:bottom-[22.5%] lg:bottom-[23%] pointer-events-none z-10 flex flex-col items-center">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-[20%] sm:bottom-[21%] md:bottom-[21.5%] lg:bottom-[22%] pointer-events-none z-10 flex flex-col items-center">
         <motion.img
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
           src={getAssetPath("/scene/mascots.webp")}
           alt="NucMed Arena Mascots"
-          className="h-[20vh] sm:h-[22vh] md:h-[24vh] lg:h-[26vh] max-h-[28vh] w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]"
+          className="h-[20vmin] sm:h-[24vmin] md:h-[28vmin] lg:h-[32vmin] max-h-[34vmin] [@media(max-height:700px)]:max-h-[24vmin] [@media(max-height:600px)]:max-h-[19vmin] w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]"
         />
       </div>
 
@@ -482,10 +482,27 @@ export function TitleSplash({ currentUser, onLoginSuccess, onOpenGallery, onOpen
                     STEP 2
                   </span>
                   <div>
-                    <strong className="text-rose-200">วิเคราะห์เคสกลางโต๊ะ:</strong>
+                    <strong className="text-rose-200">วิเคราะห์เคสกลางโต๊ะ (Case Card):</strong>
                     <p className="text-[11px] text-rose-100/80 mt-0.5">
-                      อ่านอาการนำของผู้ป่วย เช่น ข้อบ่งชี้ตรวจกระดูก หรือสงสัยลิ่มเลือดอุดกั้นในปอด (แตะเปิดใบคำใบ้สีเขียวได้)
+                      อ่านอาการนำของผู้ป่วย เช่น ข้อบ่งชี้ตรวจกระดูก หรือสงสัยลิ่มเลือดอุดกั้นในปอด
                     </p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 bg-emerald-950/40 rounded-xl border border-emerald-500/50 flex items-start space-x-2.5">
+                  <span className="px-2 py-0.5 bg-emerald-600/80 rounded-md font-mono font-bold text-xs text-white shrink-0 mt-0.5">
+                    CLUE
+                  </span>
+                  <div>
+                    <strong className="text-emerald-300">ใบคำใบ้ส่วนตัว & กฎการหักแต้ม:</strong>
+                    <p className="text-[11px] text-emerald-100/90 mt-0.5 leading-relaxed">
+                      ผู้เล่นสามารถกดเปิดคำใบ้ส่วนตัวได้ คำใบ้จะแสดงเฉพาะบนจอคุณเท่านั้น (จอใหญ่และผู้เล่นอื่นมองไม่เห็น และเปิดแล้วห้ามปิดในตานั้น)
+                    </p>
+                    <div className="mt-1.5 p-2 bg-black/40 rounded-lg text-[10px] space-y-0.5 text-amber-200">
+                      <div>• <strong>Basic (2 แต้ม):</strong> ไม่เปิดได้ 2 แต้ม | เปิดคำใบ้ได้ 1 แต้ม</div>
+                      <div>• <strong>Clinical (4 แต้ม):</strong> ไม่เปิดได้ 4 แต้ม | เปิดคำใบ้ได้ 3 แต้ม</div>
+                      <div className="text-rose-300">• <strong>ตอบผิด:</strong> ได้ 0 แต้มตามเดิม (หักแต้มเฉพาะคนเปิดเมื่อตอบถูก)</div>
+                    </div>
                   </div>
                 </div>
 
@@ -501,14 +518,14 @@ export function TitleSplash({ currentUser, onLoginSuccess, onOpenGallery, onOpen
                   </div>
                 </div>
 
-                <div className="p-2.5 bg-black/30 rounded-xl border border-emerald-500/30 flex items-start space-x-2.5">
-                  <span className="px-2 py-0.5 bg-emerald-600/80 rounded-md font-mono font-bold text-xs text-white shrink-0 mt-0.5">
+                <div className="p-2.5 bg-black/30 rounded-xl border border-blue-500/30 flex items-start space-x-2.5">
+                  <span className="px-2 py-0.5 bg-blue-600/80 rounded-md font-mono font-bold text-xs text-white shrink-0 mt-0.5">
                     STEP 4
                   </span>
                   <div>
-                    <strong className="text-emerald-200">เฉลยแต้มคะแนน & รับ NucCoin:</strong>
-                    <p className="text-[11px] text-emerald-100/80 mt-0.5">
-                      ตอบถูกรับแต้ม +2 ถึง +4 พร้อมเหรียญ <strong>NucCoin</strong> และค่า <strong>XP</strong> ไปช้อปปิ้งของตกแต่งในร้านค้า
+                    <strong className="text-blue-200">เฉลยแต้มคะแนน & รับ NucCoin:</strong>
+                    <p className="text-[11px] text-blue-100/80 mt-0.5">
+                      เมื่อตอบถูกทั้งคู่ รับคะแนนเข้าสู่ตารางคะแนน พร้อมเหรียญ <strong>NucCoin</strong> และค่า <strong>XP</strong> ไปช้อปปิ้งในร้านค้า
                     </p>
                   </div>
                 </div>

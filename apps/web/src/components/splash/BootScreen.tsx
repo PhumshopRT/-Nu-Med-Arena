@@ -141,7 +141,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
         </div>
 
         {/* High-Tech Telemetry Stats Grid */}
-        <div className="mt-4 px-4 py-1.5 rounded-xl bg-slate-950/80 border border-amber-500/40 backdrop-blur-md flex items-center space-x-3 text-[10px] md:text-[11px] font-mono text-amber-200">
+        <div className="mt-3 px-4 py-1.5 rounded-xl bg-slate-950/80 border border-amber-500/40 backdrop-blur-md flex items-center space-x-3 text-[10px] md:text-[11px] font-mono text-amber-200">
           <div className="flex items-center space-x-1 text-cyan-300">
             <Radio className="w-3 h-3 animate-pulse" />
             <span>BEAM: 18 MeV</span>
@@ -157,6 +157,18 @@ export function BootScreen({ onComplete }: BootScreenProps) {
             <span>JEV ORCHESTRATION</span>
           </div>
         </div>
+      </div>
+
+      {/* Mascots Layer: separate layer bottom-center, <= 34vmin, shrunk when height < 700, never hidden in landscape */}
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-[16%] sm:bottom-[17%] md:bottom-[18%] pointer-events-none z-10 flex flex-col items-center">
+        <motion.img
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          src={getAssetPath("/scene/mascots.webp")}
+          alt="NucMed Arena Mascots"
+          className="h-[20vmin] sm:h-[24vmin] md:h-[28vmin] lg:h-[32vmin] max-h-[34vmin] [@media(max-height:700px)]:max-h-[24vmin] [@media(max-height:600px)]:max-h-[18vmin] w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]"
+        />
       </div>
 
       {/* Bottom Loading Progress Bar & Nuclear Medicine Tips */}

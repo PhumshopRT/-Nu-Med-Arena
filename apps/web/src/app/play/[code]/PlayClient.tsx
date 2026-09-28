@@ -71,6 +71,7 @@ export function PlayClient() {
   const [currentCase, setCurrentCase] = useState<CaseCard>(ALL_CASE_CARDS[0]);
   const [currentClue, setCurrentClue] = useState<ClueCard | null>(null);
   const [isClueRevealed, setIsClueRevealed] = useState(false);
+  const [showClueConfirm, setShowClueConfirm] = useState(false);
 
   // Player Selection
   const [selectedRp, setSelectedRp] = useState<RadiopharmaceuticalCard | null>(null);
@@ -225,15 +226,26 @@ export function PlayClient() {
 
   // Setup a new round
   const setupRound = (roundNum: number, currentDeck: RadiopharmaceuticalCard[], currentHand: RadiopharmaceuticalCard[]) => {
-    // Pick Case Card
-    const caseIndex = (roundNum - 1) % ALL_CASE_CARDS.length;
-    const caseCard = ALL_CASE_CARDS[caseIndex];
+    // Pick Case Card - ensure clueId exists, otherwise skip case
+    let caseIndex = (roundNum - 1) % ALL_CASE_CARDS.length;
+    let caseCard = ALL_CASE_CARDS[caseIndex];
+
+    // Check clueId exists before dealing; if missing, skip case
+    let attempts = 0;
+    while ((!caseCard.clueId || !ALL_CLUE_CARDS.some(c => c.id === caseCard.clueId)) && attempts < ALL_CASE_CARDS.length) {
+      console.warn(`[RTGAME] Case ${caseCard.id} has invalid or missing clueId: ${caseCard.clueId}. Skipping case.`);
+      caseIndex = (caseIndex + 1) % ALL_CASE_CARDS.length;
+      caseCard = ALL_CASE_CARDS[caseIndex];
+      attempts++;
+    }
+
     setCurrentCase(caseCard);
 
-    // Clue card matching
-    const clueCard = ALL_CLUE_CARDS.find((c) => c.titleEn.toLowerCase().includes(caseCard.titleEn.split(" ")[0].toLowerCase())) || ALL_CLUE_CARDS[0];
+    // Exact 1-to-1 clue card matching via caseCard.clueId (strict, no random/fuzzy)
+    const clueCard = ALL_CLUE_CARDS.find((c) => c.id === caseCard.clueId) || null;
     setCurrentClue(clueCard);
     setIsClueRevealed(false);
+    setShowClueConfirm(false);
 
     // Reset selection & timer
     setSelectedRp(null);
@@ -271,11 +283,6 @@ export function PlayClient() {
         // Play tick in last 5 seconds
         if (prev <= 6 && prev > 1) {
           sounds.playTick();
-        }
-
-        // Auto reveal clue at 50%
-        if (prev === Math.floor(maxTime / 2) && !isClueRevealed) {
-          setIsClueRevealed(true);
         }
 
         // Simulate bots locking in over time
@@ -366,11 +373,12 @@ export function PlayClient() {
   const revealAnswers = () => {
     setPhase("REVEAL");
 
-    // Grade current user's answer
+    // Grade current user's answer (private clue reveal only affects player)
     const result = gradeAnswer(
       currentCase,
       selectedRp?.id || "",
-      selectedMech?.id || ""
+      selectedMech?.id || "",
+      isClueRevealed
     );
 
     setLastRoundResult(result);
@@ -386,22 +394,27 @@ export function PlayClient() {
       sounds.playWrong();
     }
 
-    // Grade and update all players' scores
+    // Grade and update all players' scores (Bots do NOT open clues!)
     setPlayers((prev) =>
       prev.map((p) => {
-        const rpId = p.studentId === user?.studentId ? selectedRp?.id || "" : p.selectedRpId || "";
-        const mechId = p.studentId === user?.studentId ? selectedMech?.id || "" : p.selectedMechId || "";
+        const isMe = p.studentId === user?.studentId;
+        const rpId = isMe ? selectedRp?.id || "" : p.selectedRpId || "";
+        const mechId = isMe ? selectedMech?.id || "" : p.selectedMechId || "";
+        const usedClue = isMe ? isClueRevealed : false; // Bots do not open clues!
 
-        const grading = gradeAnswer(currentCase, rpId, mechId);
+        const grading = gradeAnswer(currentCase, rpId, mechId, usedClue);
 
         return {
           ...p,
           score: p.score + grading.scoreAwarded,
+          usedClue,
           lastAnswerResult: {
             correct: grading.scoreAwarded > 0,
             points: grading.scoreAwarded,
             rpOk: grading.rpMatch,
-            mechOk: grading.mechMatch
+            mechOk: grading.mechMatch,
+            usedClue: grading.usedClue,
+            cluePenalty: grading.cluePenalty
           }
         };
       })
@@ -577,24 +590,25 @@ export function PlayClient() {
           {/* Desktop Clue Slot (hidden on phone, shown on md+) */}
           <div className="hidden md:flex flex-col items-center">
             <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider mb-1 drop-shadow-md">
-              คำใบ้ / เป้าหมาย (CLUE)
+              คำใบ้ส่วนตัว (PRIVATE CLUE)
             </span>
             {isClueRevealed && currentClue ? (
               <motion.div initial={{ scale: 0.8, rotateY: 90 }} animate={{ scale: 1, rotateY: 0 }} transition={{ duration: 0.4 }}>
                 <ClueCardComponent card={currentClue} size="md" />
               </motion.div>
             ) : (
-              <div
+              <button
+                type="button"
                 onClick={() => {
                   sounds.playSelect();
-                  setIsClueRevealed(true);
+                  setShowClueConfirm(true);
                 }}
                 className="w-38 md:w-44 h-54 md:h-62 rounded-2xl border-2 border-dashed border-emerald-500/60 bg-black/28 hover:bg-emerald-950/40 backdrop-blur-xs p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:scale-102 shadow-lg group"
               >
                 <HelpCircle className="w-8 h-8 text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-emerald-200">แตะเพื่อเปิดคำใบ้</span>
-                <span className="text-[9px] text-emerald-300/80 mt-1">(เปิดอัตโนมัติเมื่อเหลือเวลาครึ่งหนึ่ง)</span>
-              </div>
+                <span className="text-xs font-bold text-emerald-200">«เปิดคำใบ้ -1 ถ้าตอบถูก»</span>
+                <span className="text-[9px] text-emerald-300/80 mt-1">(เปิดแล้วไม่สามารถปิดได้ในตานี้)</span>
+              </button>
             )}
           </div>
 
@@ -618,23 +632,24 @@ export function PlayClient() {
             {/* Mobile Clue Slot */}
             <div className="flex-1 flex flex-col items-center justify-between p-2 rounded-2xl border border-emerald-500/50 bg-black/28 backdrop-blur-xs text-center shadow-lg">
               <span className="text-[9px] text-emerald-300 font-bold uppercase">
-                คำใบ้ (CLUE)
+                คำใบ้ส่วนตัว (CLUE)
               </span>
               {isClueRevealed && currentClue ? (
                 <div className="scale-75 origin-center my-auto">
                   <ClueCardComponent card={currentClue} size="sm" />
                 </div>
               ) : (
-                <div
+                <button
+                  type="button"
                   onClick={() => {
                     sounds.playSelect();
-                    setIsClueRevealed(true);
+                    setShowClueConfirm(true);
                   }}
                   className="w-full flex-1 min-h-[85px] rounded-xl border border-dashed border-emerald-500/40 bg-emerald-950/20 hover:bg-emerald-950/40 flex flex-col items-center justify-center p-1.5 cursor-pointer mt-1"
                 >
                   <HelpCircle className="w-5 h-5 text-emerald-400 mb-1" />
-                  <span className="text-[10px] font-bold text-emerald-200 leading-tight">แตะเปิดคำใบ้</span>
-                </div>
+                  <span className="text-[10px] font-bold text-emerald-200 leading-tight">«เปิดคำใบ้ -1 ถ้าตอบถูก»</span>
+                </button>
               )}
             </div>
 
@@ -901,6 +916,61 @@ export function PlayClient() {
         </div>
       </main>
 
+      {/* Clue Confirmation Modal */}
+      <AnimatePresence>
+        {showClueConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 15 }}
+              className="relative w-full max-w-sm wood-panel p-5 rounded-3xl border-3 border-amber-950 shadow-2xl flex flex-col items-center text-center select-none"
+            >
+              <div className="w-12 h-12 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-2xl mb-3 shadow-inner">
+                💡
+              </div>
+              <h3 className="font-game font-black text-xl text-emerald-200">
+                ยืนยันการเปิดคำใบ้?
+              </h3>
+              <p className="text-xs text-amber-100/90 mt-2 mb-2 leading-relaxed">
+                หากเปิดคำใบ้ คะแนนที่ได้จะถูก<strong className="text-rose-300">หัก 1 แต้ม</strong> (เมื่อตอบถูกเท่านั้น หากตอบผิดจะได้ 0 แต้มตามเดิม)
+              </p>
+              <div className="bg-amber-950/70 border border-amber-700/60 rounded-xl p-2 w-full text-[10px] text-amber-300/90 mb-4 leading-normal">
+                <div>• Basic: 2 แต้ม → เหลือ 1 แต้ม</div>
+                <div>• Clinical: 4 แต้ม → เหลือ 3 แต้ม</div>
+                <div className="text-emerald-300 font-bold mt-0.5">*คำใบ้เป็นส่วนตัวเฉพาะคุณ และเปิดแล้วไม่สามารถปิดได้ในตานี้</div>
+              </div>
+
+              <div className="flex space-x-3 w-full">
+                <button
+                  type="button"
+                  onClick={() => setShowClueConfirm(false)}
+                  className="flex-1 py-2.5 bg-black/40 hover:bg-black/60 border border-amber-700/60 rounded-xl text-xs font-bold text-amber-300 cursor-pointer"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    sounds.playSelect();
+                    setIsClueRevealed(true);
+                    setShowClueConfirm(false);
+                  }}
+                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 border-2 border-emerald-400 rounded-xl text-xs font-game font-black text-white shadow-md cursor-pointer"
+                >
+                  เปิดคำใบ้ (-1 แต้ม)
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 4. Reveal Modal */}
       <AnimatePresence>
         {phase === "REVEAL" && lastRoundResult && (
@@ -925,6 +995,11 @@ export function PlayClient() {
                   ? `ยอดเยี่ยม! +${lastRoundResult.scoreAwarded} คะแนน`
                   : "ยังไม่ถูกต้อง (0 คะแนน)"}
               </h2>
+              {lastRoundResult.cluePenalty > 0 && (
+                <div className="mt-1 px-3 py-1 bg-amber-950/90 border border-amber-500/70 rounded-full text-xs font-bold text-amber-300 inline-flex items-center space-x-1">
+                  <span>💡 หัก 1 คะแนนจากการเปิดคำใบ้ส่วนตัว</span>
+                </div>
+              )}
 
               {/* Breakdown */}
               <div className="w-full grid grid-cols-2 gap-3 my-4">

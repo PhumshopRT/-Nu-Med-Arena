@@ -484,16 +484,27 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
                     <li>🔴 <span className="font-bold text-rose-300">CLINICAL (วิเคราะห์อาการ/โรค):</span> 4 คะแนน</li>
                   </ul>
                 </div>
+                <div className="p-3 bg-emerald-950/40 rounded-xl border border-emerald-500/50">
+                  <span className="font-bold text-emerald-300 text-sm">3. ใบคำใบ้ส่วนตัว & กฎการหักแต้ม:</span>
+                  <p className="mt-1 leading-relaxed">
+                    ผู้เล่นสามารถกดเปิดคำใบ้ส่วนตัวได้ คำใบ้จะแสดงเฉพาะบนจอคุณเท่านั้น (จอใหญ่และผู้เล่นอื่นมองไม่เห็น และเปิดแล้วห้ามปิดในตานั้น)
+                  </p>
+                  <div className="mt-1.5 p-2 bg-black/40 rounded-lg text-[10.5px] space-y-0.5 text-amber-200">
+                    <div>• <strong>Basic (2 แต้ม):</strong> ไม่เปิดได้ 2 แต้ม | เปิดคำใบ้ได้ 1 แต้ม</div>
+                    <div>• <strong>Clinical (4 แต้ม):</strong> ไม่เปิดได้ 4 แต้ม | เปิดคำใบ้ได้ 3 แต้ม</div>
+                    <div className="text-rose-300">• <strong>ตอบผิด:</strong> ได้ 0 แต้มตามเดิม (หักแต้มเฉพาะคนเปิดเมื่อตอบถูก)</div>
+                  </div>
+                </div>
                 <div className="p-3 bg-black/35 rounded-xl border border-amber-500/30">
-                  <span className="font-bold text-amber-300 text-sm">3. ตอบคำถามภายในเวลา:</span>
+                  <span className="font-bold text-amber-300 text-sm">4. ตอบคำถามภายในเวลา:</span>
                   <p className="mt-1">
                     เลือกไพ่สาร 1 ใบจากมือ + เลือกกลไก 1 อย่างจากแถบกลไกกลางโต๊ะ แล้วกด <span className="text-emerald-400 font-bold">LOCK</span> ยืนยันคำตอบ
                   </p>
                 </div>
-                <div className="p-3 bg-black/35 rounded-xl border border-emerald-500/30">
-                  <span className="font-bold text-emerald-300 text-sm">4. การคิดคะแนนและรางวัล:</span>
+                <div className="p-3 bg-black/35 rounded-xl border border-blue-500/30">
+                  <span className="font-bold text-blue-300 text-sm">5. การคิดคะแนนและรางวัล:</span>
                   <p className="mt-1">
-                    ตอบถูกทั้งสารและกลไกรับคะแนนเต็ม + เหรียญ NucCoin สำหรับนำไปซื้อกรอบการ์ดและฉายาในร้านค้า!
+                    ตอบถูกทั้งสารและกลไกรับคะแนนเข้าสู่อันดับ + เหรียญ NucCoin สำหรับนำไปซื้อกรอบการ์ดและฉายาในร้านค้า!
                   </p>
                 </div>
               </div>

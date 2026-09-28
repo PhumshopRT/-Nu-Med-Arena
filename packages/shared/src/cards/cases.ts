@@ -11,6 +11,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Whole Body Bone Scintigraphy",
     promptTh: "การตรวจสแกนกระดูก (Bone Scan) เพื่อประเมินภาวะกระดูกทั่วร่างกาย",
     organHint: "bone",
+    clueId: "T-09",
     acceptedRpIds: ["R-05", "R-06", "R-11"],
     acceptedMechIds: ["M-06", "M-11"],
     explanationTh: "การตรวจ Bone Scan นิยมใช้ ⁹⁹ᵐTc-MDP หรือ ¹⁸F-NaF โดยสารจะสร้างพันธะกับผลึกไฮดรอกซีอะพาไทต์ผ่านกลไก Chemisorption หรือ Ion Exchange",
@@ -27,6 +28,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Thyroid Scintigraphy",
     promptTh: "การตรวจสแกนต่อมไทรอยด์ (Thyroid Scan) เพื่อดูการทำงานและการกระจายตัวของเนื้อเยื่อไทรอยด์",
     organHint: "thyroid",
+    clueId: "T-03",
     acceptedRpIds: ["R-02", "R-03"],
     acceptedMechIds: ["M-01"],
     explanationTh: "ต่อมไทรอยด์ใช้กลไก Active Transport ผ่าน Na⁺/I⁻ symporter ในการดึงดูด ¹²³I หรือ ⁹⁹ᵐTcO4⁻ เข้าสู่เซลล์",
@@ -43,6 +45,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Liver-Spleen Scintigraphy",
     promptTh: "การตรวจสแกนตับและม้ามเพื่อประเมินเซลล์ในระบบเรติคูโลเอนโดทีเลียล (RES)",
     organHint: "liver",
+    clueId: "T-06",
     acceptedRpIds: ["R-09"],
     acceptedMechIds: ["M-04"],
     explanationTh: "อนุภาค ⁹⁹ᵐTc-sulfur colloid ถูกจับกลืนโดย Kupffer cells ในตับและ Macrophages ในม้ามด้วยกลไก Phagocytosis",
@@ -59,6 +62,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Renal Cortical Scintigraphy",
     promptTh: "การตรวจภาพเนื้อเยื่อไตส่วนนอก (Cortex) เพื่อหารอยแผลเป็นหรือการอักเสบกรวยไต",
     organHint: "kidney",
+    clueId: "T-02",
     acceptedRpIds: ["R-12"],
     acceptedMechIds: ["M-06", "M-01"],
     explanationTh: "⁹⁹ᵐTc-DMSA จะจับติดแน่นกับเซลล์ท่อไตส่วนต้น (Proximal tubules) ในเนื้อเยื่อคอร์เทกซ์ของไต",
@@ -75,6 +79,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Myocardial Perfusion Imaging",
     promptTh: "การตรวจประเมินการไหลเวียนเลือดของกล้ามเนื้อหัวใจเพื่อหาภาวะกล้ามเนื้อหัวใจขาดเลือด",
     organHint: "heart",
+    clueId: "T-04",
     acceptedRpIds: ["R-17", "R-18"],
     acceptedMechIds: ["M-05", "M-01"],
     explanationTh: "⁹⁹ᵐTc-sestamibi แพร่ผ่านเยื่อหุ้มเซลล์ (Passive diffusion) จับในไมโทคอนเดรีย หรือใช้ ²⁰¹Tl ผ่าน Na⁺/K⁺ ATPase (Active Transport)",
@@ -91,6 +96,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Pulmonary Perfusion Scintigraphy",
     promptTh: "การตรวจประเมินการไหลเวียนเลือดในหลอดเลือดฝอยปอดโดยตรง",
     organHint: "lung",
+    clueId: "T-01",
     acceptedRpIds: ["R-07"],
     acceptedMechIds: ["M-03"],
     explanationTh: "ใช้อนุภาค ⁹⁹ᵐTc-MAA ขนาด 10–50 μm เพื่อให้เกิดการอุดกั้นชั่วคราวในหลอดเลือดฝอยปอดด้วยกลไก Capillary Blockade",
@@ -107,6 +113,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Biliary System Scintigraphy",
     promptTh: "การตรวจระบบท่อน้ำดีและถุงน้ำดี (HIDA Scan) เพื่อดูการทำงานของตับและการขับน้ำดี",
     organHint: "liver",
+    clueId: "T-07",
     acceptedRpIds: ["R-10"],
     acceptedMechIds: ["M-01", "M-12"],
     explanationTh: "⁹⁹ᵐTc-mebrofenin ถูกดึงดูดเข้าสู่เซลล์ตับผ่านระบบ Active transport แล้วขับออกสู่ระบบท่อน้ำดี",
@@ -123,6 +130,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Cerebral Blood Flow Scintigraphy",
     promptTh: "การตรวจประเมินการไหลเวียนเลือดในสมองเพื่อดูภาวะสมองเสื่อมหรือจุดกำเนิดโรคลมชัก",
     organHint: "brain",
+    clueId: "T-12",
     acceptedRpIds: ["R-19", "R-20"],
     acceptedMechIds: ["M-05"],
     explanationTh: "⁹⁹ᵐTc-HMPAO หรือ ⁹⁹ᵐTc-ECD เป็นสารละลายในไขมันที่แพร่ผ่าน Blood-Brain Barrier (Passive diffusion) แล้วถูกกักขังในเนื้อสมอง",
@@ -139,6 +147,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Labeled Leukocyte Scintigraphy",
     promptTh: "การตรวจหาตำแหน่งการติดเชื้อซ่อนเร้นหรือกระดูกอักเสบโดยใช้เม็ดเลือดขาวของผู้ป่วย",
     organHint: "wbc",
+    clueId: "T-17",
     acceptedRpIds: ["R-21"],
     acceptedMechIds: ["M-08"],
     explanationTh: "¹¹¹In-WBC เคลื่อนที่ไปยังตำแหน่งที่มีการอักเสบหรือติดเชื้อตามสารเคมีชักนำด้วยกลไก Cellular Migration",
@@ -155,6 +164,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Neuroendocrine Tumor Imaging",
     promptTh: "การตรวจเนื้องอกระบบประสาทและต่อมไร้ท่อด้วยสารเลียนแบบฮอร์โมนโซมาโตสแตติน",
     organHint: "tumor",
+    clueId: "T-05",
     acceptedRpIds: ["R-15", "R-16"],
     acceptedMechIds: ["M-07"],
     explanationTh: "¹¹¹In-pentetreotide หรือ ⁶⁸Ga-DOTATATE มีความจำเพาะสูงในการจับกับ Somatostatin Receptor (SSTR) ด้วยกลไก Receptor Binding",
@@ -173,6 +183,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Suspected Acute Pulmonary Embolism",
     promptTh: "ผู้ป่วยสงสัย Pulmonary Embolism ต้องการประเมินการกระจายของเลือดในปอด (Lung Perfusion Scan)",
     organHint: "lung",
+    clueId: "T-01",
     acceptedRpIds: ["R-07"],
     acceptedMechIds: ["M-03"],
     explanationTh: "อนุภาค MAA ขนาด 10–50 μm ติดค้างที่หลอดเลือดฝอยปอดด้วยกลไก Capillary Blockade จึงใช้ดู perfusion เพื่อช่วยวินิจฉัย PE",
@@ -189,6 +200,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Back Pain with Suspected Bone Metastases",
     promptTh: "ผู้ป่วยมีอาการปวดหลัง และสงสัยการแพร่กระจายของมะเร็งไปยังกระดูก ควรเลือกสารและกลไกใด?",
     organHint: "bone",
+    clueId: "T-14",
     acceptedRpIds: ["R-05", "R-06", "R-11"],
     acceptedMechIds: ["M-06", "M-11"],
     explanationTh: "กระดูกที่มีมะเร็งแพร่กระจายจะมีการสร้างกระดูกซ่อมแซมสูง สาร ⁹⁹ᵐTc-MDP จะจับกับผลึกด้วยกลไก Chemisorption หรือ ¹⁸F-NaF ด้วย Ion Exchange",
@@ -205,6 +217,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Cirrhosis with RES Colloid Shift",
     promptTh: "ผู้ป่วยมีภาวะตับแข็งเรื้อรัง ต้องการประเมินการทำงานของตับและม้าม ใช้สารและกลไกใด?",
     organHint: "liver",
+    clueId: "T-13",
     acceptedRpIds: ["R-09"],
     acceptedMechIds: ["M-04"],
     explanationTh: "ใช้ ⁹⁹ᵐTc-sulfur colloid ผ่านกลไก Phagocytosis ในผู้ป่วยตับแข็งจะพบปรากฏการณ์ colloid shift ไปที่ม้ามและไขกระดูกเด่นชัด",
@@ -221,6 +234,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Neuroendocrine Tumor Localization",
     promptTh: "ผู้ป่วยมีเนื้องอกระบบประสาท (neuroendocrine tumor) ต้องการตรวจวินิจฉัย ใช้สารและกลไกใด?",
     organHint: "tumor",
+    clueId: "T-16",
     acceptedRpIds: ["R-15", "R-16"],
     acceptedMechIds: ["M-07"],
     explanationTh: "เซลล์ NET แสดงตัวรับ SSTR จำนวนมาก จึงใช้ ¹¹¹In-pentetreotide หรือ ⁶⁸Ga-DOTATATE ผ่านกลไก Receptor Binding",
@@ -237,6 +251,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Active Lower Gastrointestinal Bleeding",
     promptTh: "ถ่ายอุจจาระเป็นเลือดสด สงสัยภาวะเลือดออกในทางเดินอาหารส่วนล่าง ต้องการหาตำแหน่งเลือดออก",
     organHint: "blood_pool",
+    clueId: "T-08",
     acceptedRpIds: ["R-23"],
     acceptedMechIds: ["M-10"],
     explanationTh: "ใช้ ⁹⁹ᵐTc-labeled RBC ที่กักอยู่ในระบบหลอดเลือด (Compartmental localization) เมื่อมีเลือดออก สารจะรั่วไหลและเคลื่อนที่ไปตามการบีบตัวของลำไส้",
@@ -253,6 +268,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Pediatric Bleeding - Meckel's Diverticulum",
     promptTh: "เด็กอายุ 4 ปี ถ่ายเป็นมูกเลือดปน สงสัย Meckel's diverticulum ที่มีเยื่อบุกระเพาะผิดที่",
     organHint: "meckel",
+    clueId: "T-03",
     acceptedRpIds: ["R-03"],
     acceptedMechIds: ["M-01"],
     explanationTh: "เซลล์เยื่อบุกระเพาะที่อยู่ผิดที่ (Ectopic gastric mucosa) มีโปรตีน NIS สามารถจับ ⁹⁹ᵐTc-pertechnetate ได้ด้วย Active Transport",
@@ -269,6 +285,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Primary Hyperparathyroidism",
     promptTh: "ระดับฮอร์โมน PTH และแคลเซียมในเลือดสูง สงสัยเนื้องอกต่อมพาราไทรอยด์ ต้องการหาตำแหน่งก้อน",
     organHint: "parathyroid",
+    clueId: "T-19",
     acceptedRpIds: ["R-17"],
     acceptedMechIds: ["M-05", "M-01"],
     explanationTh: "⁹⁹ᵐTc-sestamibi แพร่เข้าเซลล์ (Passive diffusion) และจับติดแน่นในไมโทคอนเดรียที่หนาแน่นของเซลล์ Oxyphil ในเนื้องอกพาราไทรอยด์",
@@ -285,6 +302,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Fever of Unknown Origin (FUO)",
     promptTh: "ผู้ป่วยมีไข้สูงไม่ทราบสาเหตุเป็นเวลานาน สงสัยฝีหนองหรือการติดเชื้อซ่อนเร้นในช่องท้อง",
     organHint: "infection",
+    clueId: "T-17",
     acceptedRpIds: ["R-21"],
     acceptedMechIds: ["M-08"],
     explanationTh: "¹¹¹In-labeled WBC เคลื่อนที่ไปยังตำแหน่งที่มีการรวมกลุ่มของเชื้อแบคทีเรียและฝีหนองผ่านกลไก Cellular Migration",
@@ -301,6 +319,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Hydronephrosis & Ureteral Obstruction",
     promptTh: "ผู้ป่วยมีภาวะไตบวมน้ำ (Hydronephrosis) ต้องการแยกภาวะท่อไตอุดกั้นด้วยการตรวจ Renogram",
     organHint: "kidney",
+    clueId: "T-18",
     acceptedRpIds: ["R-13", "R-14"],
     acceptedMechIds: ["M-12", "M-05"],
     explanationTh: "ใช้ ⁹⁹ᵐTc-MAG3 ขับออกทาง Tubular Secretion หรือ ⁹⁹ᵐTc-DTPA ขับทาง Glomerular Filtration ร่วมกับการให้ยาขับปัสสาวะ Lasix",
@@ -317,6 +336,7 @@ export const CASE_DECK: CaseCard[] = [
     titleEn: "Suspected Pheochromocytoma",
     promptTh: "ผู้ป่วยมีความดันโลหิตสูงวิกฤต หัวใจเต้นเร็ว เหงื่อออกมาก สงสัยเนื้องอกต่อมหมวกไต Pheochromocytoma",
     organHint: "adrenal",
+    clueId: "T-20",
     acceptedRpIds: ["R-24"],
     acceptedMechIds: ["M-01"],
     explanationTh: "¹²³I-MIBG มีโครงสร้างเสมือน Norepinephrine ถูกลำเลียงเข้าสู่เซลล์ต่อมหมวกไตผ่าน Norepinephrine Transporter (Active Transport)",
@@ -325,3 +345,18 @@ export const CASE_DECK: CaseCard[] = [
     tags: ["pheochromocytoma", "adrenal", "clinical"]
   }
 ];
+
+export function validateCaseClues(
+  cases: CaseCard[] = CASE_DECK,
+  availableClueIds?: string[]
+): { valid: boolean; missingClueCaseIds: string[] } {
+  const allowed = availableClueIds ? new Set(availableClueIds) : null;
+  const missing = cases
+    .filter(c => !c.clueId || (allowed && !allowed.has(c.clueId)))
+    .map(c => c.id);
+
+  return {
+    valid: missing.length === 0,
+    missingClueCaseIds: missing
+  };
+}

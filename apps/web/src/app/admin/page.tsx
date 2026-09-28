@@ -21,6 +21,7 @@ import {
   ALL_MECH_CARDS, 
   ALL_CLUE_CARDS,
   gradeAnswer,
+  validateCaseClues,
   CaseCard,
   RadiopharmaceuticalCard,
   MechanismCard
@@ -37,7 +38,11 @@ export default function AdminPage() {
   const [selectedCase, setSelectedCase] = useState<CaseCard>(ALL_CASE_CARDS[0]);
   const [selectedRpId, setSelectedRpId] = useState<string>(ALL_RP_CARDS[0].id);
   const [selectedMechId, setSelectedMechId] = useState<string>(ALL_MECH_CARDS[0].id);
+  const [useClueInSandbox, setUseClueInSandbox] = useState(false);
   const [sandboxResult, setSandboxResult] = useState<any>(null);
+
+  // Clue validation check
+  const clueValidation = validateCaseClues(ALL_CASE_CARDS, ALL_CLUE_CARDS.map(c => c.id));
 
   // Filter for question library
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,7 +61,7 @@ export default function AdminPage() {
 
   const handleRunSandbox = () => {
     sounds.playSelect();
-    const result = gradeAnswer(selectedCase, selectedRpId, selectedMechId);
+    const result = gradeAnswer(selectedCase, selectedRpId, selectedMechId, useClueInSandbox);
     setSandboxResult(result);
   };
 
@@ -195,6 +200,22 @@ export default function AdminPage() {
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 md:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Question Library (7 cols) */}
         <div className="lg:col-span-7 flex flex-col space-y-4">
+          {/* Clue Validation Status Banner */}
+          {!clueValidation.valid ? (
+            <div className="p-3 rounded-2xl bg-rose-950/80 border-2 border-rose-500 text-rose-200 text-xs font-bold flex items-center space-x-2">
+              <span className="text-lg">⚠️</span>
+              <div>
+                <div>คำเตือน: พบโจทย์ที่ขาด clueId หรือคำใบ้ไม่มีอยู่จริง: <strong>{clueValidation.missingClueCaseIds.join(", ")}</strong></div>
+                <div className="text-[10px] text-rose-300 font-normal">ระบบเกมจะข้ามเคสเหล่านี้อัตโนมัติในการแข่งขันเพื่อป้องกันข้อผิดพลาด</div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3 rounded-2xl bg-emerald-950/60 border border-emerald-500/60 text-emerald-200 text-xs font-bold flex items-center space-x-2">
+              <span className="text-emerald-400 text-base">✓</span>
+              <span>ตรวจสอบความสมบูรณ์: โจทย์ทุกข้อ ({ALL_CASE_CARDS.length} ข้อ) จับคู่คำใบ้ถูกต้อง 1-ต่อ-1 ไม่มีการสุ่ม</span>
+            </div>
+          )}
+
           <div className="wood-panel p-5 rounded-3xl border-3 border-amber-950 shadow-xl">
             <div className="flex justify-between items-center mb-3">
               <div className="flex items-center space-x-2">
@@ -219,28 +240,47 @@ export default function AdminPage() {
 
             {/* Questions List */}
             <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-              {filteredCases.map((c) => (
-                <div
-                  key={c.id}
-                  onClick={() => setSelectedCase(c)}
-                  className={`p-3 rounded-2xl border-2 cursor-pointer transition-all ${
-                    selectedCase.id === c.id
-                      ? "bg-amber-900/80 border-amber-400 shadow-md"
-                      : "bg-black/40 border-amber-800/50 hover:bg-black/60"
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="font-mono font-bold text-xs text-amber-300">{c.id}</span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      c.difficulty === "CLINICAL" ? "bg-rose-900 text-rose-200" : "bg-emerald-900 text-emerald-200"
-                    }`}>
-                      {c.difficulty} ({c.points} แต้ม)
-                    </span>
+              {filteredCases.map((c) => {
+                const mappedClue = ALL_CLUE_CARDS.find((clue) => clue.id === c.clueId);
+                return (
+                  <div
+                    key={c.id}
+                    onClick={() => setSelectedCase(c)}
+                    className={`p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                      selectedCase.id === c.id
+                        ? "bg-amber-900/80 border-amber-400 shadow-md"
+                        : "bg-black/40 border-amber-800/50 hover:bg-black/60"
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-mono font-bold text-xs text-amber-300">{c.id}</span>
+                      <div className="flex items-center space-x-1.5">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          c.difficulty === "CLINICAL" ? "bg-rose-900 text-rose-200" : "bg-emerald-900 text-emerald-200"
+                        }`}>
+                          {c.difficulty} ({c.points} แต้ม)
+                        </span>
+                        {c.clueId ? (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-600/60">
+                            🔍 {c.clueId}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-950 text-rose-400 border border-rose-600">
+                            ⚠️ ขาดคำใบ้
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="font-bold text-sm text-white">{c.titleTh}</div>
+                    <div className="text-[11px] text-amber-200/80 mt-1 line-clamp-2">{c.promptTh}</div>
+                    {mappedClue && (
+                      <div className="text-[10px] text-emerald-300/90 mt-1.5 font-medium truncate">
+                        🎯 คำใบ้: [{mappedClue.id}] {mappedClue.titleTh}
+                      </div>
+                    )}
                   </div>
-                  <div className="font-bold text-sm text-white">{c.titleTh}</div>
-                  <div className="text-[11px] text-amber-200/80 mt-1 line-clamp-2">{c.promptTh}</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -256,8 +296,9 @@ export default function AdminPage() {
             <div className="space-y-3 text-xs">
               <div>
                 <label className="text-amber-300 font-bold block mb-1">เคสที่กำลังทดสอบ:</label>
-                <div className="bg-amber-950/80 p-2.5 rounded-xl border border-amber-700 text-white font-bold">
-                  [{selectedCase.id}] {selectedCase.titleTh} ({selectedCase.points} คะแนน)
+                <div className="bg-amber-950/80 p-2.5 rounded-xl border border-amber-700 text-white font-bold flex justify-between items-center">
+                  <span>[{selectedCase.id}] {selectedCase.titleTh} ({selectedCase.points} คะแนน)</span>
+                  <span className="text-xs text-emerald-300 font-mono font-bold">Clue: {selectedCase.clueId || "None"}</span>
                 </div>
               </div>
 
@@ -291,6 +332,19 @@ export default function AdminPage() {
                 </select>
               </div>
 
+              {/* Clue Used Checkbox */}
+              <div className="p-2.5 rounded-xl bg-amber-950/60 border border-amber-700/60">
+                <label className="flex items-center space-x-2 text-emerald-300 font-bold cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useClueInSandbox}
+                    onChange={(e) => setUseClueInSandbox(e.target.checked)}
+                    className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-400"
+                  />
+                  <span>จำลองเปิดคำใบ้ (-1 แต้มเมื่อตอบถูก, ตอบผิดได้ 0)</span>
+                </label>
+              </div>
+
               <button
                 onClick={handleRunSandbox}
                 className="w-full mt-2 py-3 bg-play hover:bg-play-hover border-2 border-play-border rounded-xl font-game font-black text-white text-sm shadow-play-btn cursor-pointer"
@@ -305,14 +359,22 @@ export default function AdminPage() {
                     ? "bg-emerald-950/70 border-emerald-400 text-emerald-100"
                     : "bg-rose-950/70 border-rose-400 text-rose-100"
                 }`}>
-                  <div className="font-game font-black text-lg mb-2">
-                    {sandboxResult.scoreAwarded > 0
-                      ? `✓ ถูกต้อง ได้รับ ${sandboxResult.scoreAwarded} คะแนน`
-                      : "✗ ผิด ได้รับ 0 คะแนน"}
+                  <div className="font-game font-black text-lg mb-1 flex items-center justify-between">
+                    <span>
+                      {sandboxResult.scoreAwarded > 0
+                        ? `✓ ถูกต้อง ได้รับ ${sandboxResult.scoreAwarded} คะแนน`
+                        : "✗ ผิด ได้รับ 0 คะแนน"}
+                    </span>
+                    {sandboxResult.cluePenalty > 0 && (
+                      <span className="text-xs bg-amber-900/90 text-amber-200 border border-amber-400 px-2 py-0.5 rounded-full font-sans">
+                        หักคำใบ้ -1
+                      </span>
+                    )}
                   </div>
                   <div className="space-y-1 text-xs">
                     <div>สารเภสัชรังสี: {sandboxResult.rpMatch ? "✓ ตรงตามโจทย์" : "✗ ไม่ตรง"}</div>
                     <div>กลไก: {sandboxResult.mechMatch ? "✓ ตรงตามโจทย์" : "✗ ไม่ตรง"}</div>
+                    <div>เปิดคำใบ้: {sandboxResult.usedClue ? "ใช่ (หัก 1 แต้มถ้าตอบถูก)" : "ไม่"}</div>
                     <div className="pt-2 border-t border-white/20 mt-2 leading-relaxed">
                       <strong>เหตุผลทางการแพทย์:</strong> {selectedCase.explanationTh}
                     </div>

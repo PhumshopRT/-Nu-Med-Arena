@@ -29,5 +29,5 @@ export const PROTOTYPE_4_CARDS = {
   rp: RADIOPHARMACEUTICAL_DECK.find((c) => c.id === "R-01")!,
   mech: MECHANISM_DECK.find((c) => c.id === "M-03")!,
   caseCard: CASE_DECK.find((c) => c.id === "C-05")!,
-  clue: CLUE_DECK.find((c) => c.id === "T-03")!,
+  clue: CLUE_DECK.find((c) => c.id === "T-01")!,
 };
