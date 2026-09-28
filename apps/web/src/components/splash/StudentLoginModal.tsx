@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -72,6 +72,7 @@ export function StudentLoginModal({
   const [loading, setLoading] = useState(false);
   const [savedAccounts, setSavedAccounts] = useState<NaAccount[]>([]);
   const [registeredSuccessUser, setRegisteredSuccessUser] = useState<StudentUser | null>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
 
   // Sync saved accounts whenever modal opens
   useEffect(() => {
@@ -106,6 +107,9 @@ export function StudentLoginModal({
     setStudentId(account.studentId);
     setPassword("");
     setError(null);
+    setTimeout(() => {
+      passwordInputRef.current?.focus();
+    }, 50);
   };
 
   // Delete saved account from device
@@ -495,6 +499,7 @@ export function StudentLoginModal({
 
                     <div className="relative">
                       <input
+                        ref={passwordInputRef}
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => {

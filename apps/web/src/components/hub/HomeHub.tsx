@@ -30,7 +30,8 @@ import {
   Volume2,
   VolumeX,
   X,
-  ArrowRight
+  ArrowRight,
+  UserCheck
 } from "lucide-react";
 
 interface HomeHubProps {
@@ -156,6 +157,19 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
             title={isMuted ? "เปิดเสียง" : "ปิดเสียง"}
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-rose-300" /> : <Volume2 className="w-4 h-4 text-emerald-300" />}
+          </button>
+
+          {/* Switch Account Button */}
+          <button
+            onClick={() => {
+              sounds.playClick();
+              onLogout();
+            }}
+            className="px-3 py-2 rounded-2xl bg-amber-900/80 hover:bg-amber-800 border border-amber-500/50 text-amber-200 hover:text-white transition-all shadow-lg hover:scale-105 active:scale-95 cursor-pointer flex items-center space-x-1.5 text-xs font-game font-bold"
+            title="สลับบัญชีผู้ใช้งาน"
+          >
+            <UserCheck className="w-4 h-4 text-emerald-300" />
+            <span className="hidden sm:inline">สลับบัญชี</span>
           </button>
 
           {/* Logout Button */}

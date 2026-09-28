@@ -900,6 +900,7 @@ export function loginAccount(studentId: string, rememberMe: boolean = true): Stu
 export function logoutAccount(): void {
   if (typeof window !== "undefined") {
     localStorage.removeItem("nucmed_current_user");
+    localStorage.removeItem("nucmed_remembered_id");
     localStorage.removeItem("na_admin_auth");
   }
 }
