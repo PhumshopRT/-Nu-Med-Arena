@@ -67,7 +67,7 @@ export const RpCard = React.memo(function RpCard({
     >
       <div className="flex flex-col h-full justify-between select-none">
         {/* 1. Top Header Capsule Bar (Matching card-prototype.jpg) */}
-        <div>
+        <div className="shrink-0">
           <div className="flex justify-between items-center mb-0.5">
             {/* Left ID Badge */}
             <div className={clsx(
@@ -84,7 +84,7 @@ export const RpCard = React.memo(function RpCard({
             {/* Right Modality Pill */}
             <div className={clsx(
               "bg-[#2EB8E6] text-white rounded-full font-bold uppercase shadow-xs tracking-wider",
-              size === "sm" ? "px-1.5 py-0.5 text-[8.5px]" : "px-2 py-0.5 text-[9px] md:text-[10px]"
+              size === "sm" ? "px-1.5 py-0.5 text-[8px]" : "px-2 py-0.5 text-[9px] md:text-[10px]"
             )}>
               {card.modality}
             </div>
@@ -94,13 +94,13 @@ export const RpCard = React.memo(function RpCard({
           <div className="text-center mt-0.5 mb-0.5">
             <h3 className={clsx(
               "font-black font-nuclide text-slate-900 leading-tight tracking-tight",
-              size === "sm" ? "text-[11.5px] md:text-[12.5px]" : "text-base md:text-lg"
+              size === "sm" ? "text-[11px]" : "text-base md:text-lg"
             )}>
               {card.titleEn}
             </h3>
             <div className={clsx(
               "text-slate-600 font-medium font-nuclide line-clamp-1",
-              size === "sm" ? "text-[8px] leading-tight mt-0.5" : "text-[9px] md:text-[10.5px]"
+              size === "sm" ? "text-[7.5px] leading-tight mt-0.5" : "text-[9px] md:text-[10.5px]"
             )}>
               ({card.subtitle || card.titleTh})
             </div>
@@ -109,21 +109,21 @@ export const RpCard = React.memo(function RpCard({
 
         {/* 3. Illustration Area (Chemical + Organ / PET scan) */}
         <div className={clsx(
-          "my-auto w-full flex items-center justify-center",
-          size === "sm" ? "h-[36px] py-0 scale-90" : "h-[62px] md:h-18 py-0.5"
+          "w-full flex items-center justify-center my-0.5 shrink-0",
+          size === "sm" ? "h-[30px] scale-85" : "h-[56px] md:h-16 py-0.5"
         )}>
           {renderIllustration()}
         </div>
 
-        {/* 4. Specification Table (4 Key-Value Rows matching prototype, no truncation) */}
+        {/* 4. Specification Table (4 Key-Value Rows matching prototype, guaranteed fit without banner overlap) */}
         <div className={clsx(
-          "border-t border-slate-200/90 leading-tight text-slate-800",
-          size === "sm" ? "pt-1 space-y-[1px] text-[7.5px]" : "pt-0.5 space-y-[2px] text-[8px] md:text-[9.5px]"
+          "border-t border-slate-200/90 text-slate-800 shrink-0",
+          size === "sm" ? "pt-1 pb-1 space-y-[1px] text-[7.2px] leading-[1.22]" : "pt-1 space-y-[2px] text-[8px] md:text-[9.5px] leading-tight"
         )}>
           {/* Target */}
           <div className={clsx(
             "grid items-baseline",
-            size === "sm" ? "grid-cols-[46px_4px_1fr]" : "grid-cols-[56px_6px_1fr]"
+            size === "sm" ? "grid-cols-[44px_4px_1fr]" : "grid-cols-[56px_6px_1fr]"
           )}>
             <span className="font-bold text-slate-900">Target</span>
             <span className="text-slate-400 font-bold">:</span>
@@ -133,7 +133,7 @@ export const RpCard = React.memo(function RpCard({
           {/* Transporter */}
           <div className={clsx(
             "grid items-baseline",
-            size === "sm" ? "grid-cols-[46px_4px_1fr]" : "grid-cols-[56px_6px_1fr]"
+            size === "sm" ? "grid-cols-[44px_4px_1fr]" : "grid-cols-[56px_6px_1fr]"
           )}>
             <span className="font-bold text-slate-900">Transporter</span>
             <span className="text-slate-400 font-bold">:</span>
@@ -143,7 +143,7 @@ export const RpCard = React.memo(function RpCard({
           {/* Mechanism */}
           <div className={clsx(
             "grid items-baseline",
-            size === "sm" ? "grid-cols-[46px_4px_1fr]" : "grid-cols-[56px_6px_1fr]"
+            size === "sm" ? "grid-cols-[44px_4px_1fr]" : "grid-cols-[56px_6px_1fr]"
           )}>
             <span className="font-bold text-slate-900">Mechanism</span>
             <span className="text-slate-400 font-bold">:</span>
@@ -153,7 +153,7 @@ export const RpCard = React.memo(function RpCard({
           {/* Application */}
           <div className={clsx(
             "grid items-baseline",
-            size === "sm" ? "grid-cols-[46px_4px_1fr]" : "grid-cols-[56px_6px_1fr]"
+            size === "sm" ? "grid-cols-[44px_4px_1fr]" : "grid-cols-[56px_6px_1fr]"
           )}>
             <span className="font-bold text-slate-900">Application</span>
             <span className="text-slate-400 font-bold">:</span>

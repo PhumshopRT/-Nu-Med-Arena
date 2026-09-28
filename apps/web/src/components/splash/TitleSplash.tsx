@@ -157,14 +157,51 @@ export function TitleSplash({
           <div className="w-full flex flex-col items-center px-4 md:px-8 pt-3 pointer-events-none">
             {/* Top Bar: Mode status & quick links [z-40] */}
             <div className="w-full flex justify-between items-center pointer-events-auto z-40 mb-1">
-              {/* Left Mode Indicator */}
-              <div className="bg-amber-950/85 backdrop-blur-md text-amber-200 text-xs px-4 py-1.5 rounded-full border-2 border-amber-500/60 flex items-center space-x-2.5 shadow-2xl">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                <span className="font-bold tracking-wider font-game">MODE 1: LOCALIZATION MATCH</span>
-              </div>
+              {/* Left: Active User Plaque OR Mode Indicator */}
+              {rememberedUser ? (
+                <div className="wood-panel px-3.5 py-1.5 rounded-2xl border-2 border-amber-500/80 shadow-2xl flex items-center space-x-2.5 bg-amber-950/95 pointer-events-auto">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 border border-amber-200 flex items-center justify-center text-sm shadow shrink-0">
+                    {getAvatarIcon(rememberedUser.equipped?.avatar)}
+                  </div>
+                  <div className="text-left">
+                    <div className="text-xs font-bold text-white font-game flex items-center space-x-1.5">
+                      <span>{rememberedUser.displayName}</span>
+                      <span className="text-[10px] text-amber-300 font-mono">({rememberedUser.studentId})</span>
+                    </div>
+                    <div className="text-[10.5px] text-amber-200 flex items-center space-x-1 font-mono">
+                      <NucCoinIcon size={13} />
+                      <span>{rememberedUser.coins ?? 120} NucCoin</span>
+                      <span className="text-[8.5px] text-emerald-300 font-sans font-bold ml-1">● บัญชีปัจจุบัน</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sounds.playClick();
+                      setIsLoginOpen(true);
+                    }}
+                    className="ml-2 px-2.5 py-1 bg-amber-900/90 hover:bg-amber-800 text-amber-200 hover:text-white rounded-lg text-[10.5px] font-bold border border-amber-600/60 shadow transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    title="สลับบัญชีหรือสมัครใหม่"
+                  >
+                    สลับบัญชี
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-amber-950/85 backdrop-blur-md text-amber-200 text-xs px-4 py-1.5 rounded-full border-2 border-amber-500/60 flex items-center space-x-2.5 shadow-2xl">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                  <span className="font-bold tracking-wider font-game">MODE 1: LOCALIZATION MATCH</span>
+                </div>
+              )}
 
               {/* Right Action Icons: Gallery & Sound Mute */}
               <div className="flex items-center space-x-2.5">
+                {rememberedUser && (
+                  <div className="hidden lg:flex bg-amber-950/85 backdrop-blur-md text-amber-200 text-xs px-3 py-1.5 rounded-full border border-amber-500/50 items-center space-x-2 shadow-md">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="font-bold tracking-wider font-game text-[11px]">LOCALIZATION MATCH</span>
+                  </div>
+                )}
+
                 <button
                   onClick={() => {
                     sounds.playClick();
@@ -222,43 +259,9 @@ export function TitleSplash({
 
           {/* ----------------------------------------------------
               LAYER 4 & 6: บนเคาน์เตอร์ไม้ (PLAY สี #2EAD4B + 3 ปุ่มใต้ PLAY) [z-30]
+              ไม่มีแผงผู้เล่นมาทับบังตัวละคร mascots อีกต่อไป
               ---------------------------------------------------- */}
           <div className="w-full flex flex-col items-center pointer-events-none z-30 space-y-2">
-            {/* Remembered User Active Profile Banner */}
-            {rememberedUser && (
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="wood-panel px-4 py-1.5 rounded-2xl border-2 border-amber-500/80 shadow-xl flex items-center space-x-3 pointer-events-auto z-40 bg-amber-950/95 max-w-sm"
-              >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 border border-amber-200 flex items-center justify-center text-base shadow shrink-0">
-                  {getAvatarIcon(rememberedUser.equipped?.avatar)}
-                </div>
-                <div className="text-left truncate">
-                  <div className="text-xs font-bold text-white font-game flex items-center space-x-1.5 truncate">
-                    <span className="truncate">{rememberedUser.displayName}</span>
-                    <span className="text-[10px] text-amber-300 font-mono shrink-0">({rememberedUser.studentId})</span>
-                  </div>
-                  <div className="text-[10.5px] text-amber-200 flex items-center space-x-1.5 font-mono">
-                    <NucCoinIcon size={14} />
-                    <span>{rememberedUser.coins ?? 120} NucCoin</span>
-                    <span className="text-[9px] text-emerald-300 font-sans font-bold">● บัญชีปัจจุบัน</span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    sounds.playClick();
-                    setIsLoginOpen(true);
-                  }}
-                  className="ml-auto shrink-0 px-2.5 py-1 bg-amber-900/80 hover:bg-amber-800 text-amber-200 hover:text-white rounded-lg text-[10.5px] font-bold border border-amber-600/60 shadow transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                  title="สลับบัญชีหรือสมัครใหม่"
-                >
-                  สลับบัญชี
-                </button>
-              </motion.div>
-            )}
-
             {/* 4) ปุ่ม PLAY สี #2EAD4B วางบนเคาน์เตอร์ไม้ [z-40] */}
             <motion.div
               whileHover={{ scale: 1.06 }}

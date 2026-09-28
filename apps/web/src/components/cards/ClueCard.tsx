@@ -93,14 +93,17 @@ export const ClueCard = React.memo(function ClueCard({
 
         {/* 3. Illustration Area (Organ drawing) */}
         <div className={clsx(
-          "my-auto w-full flex items-center justify-center",
-          size === "sm" ? "h-[36px] py-0 scale-90" : "h-[60px] md:h-18 py-0.5"
+          "w-full flex items-center justify-center my-0.5 shrink-0",
+          size === "sm" ? "h-[30px] scale-85" : "h-[60px] md:h-18 py-0.5"
         )}>
           {renderIllustration()}
         </div>
 
         {/* 4. Bullet Points Details */}
-        <div className="border-t border-slate-200/90 pt-0.5 space-y-[2px] text-[8px] md:text-[9px] leading-tight text-slate-800">
+        <div className={clsx(
+          "border-t border-slate-200/90 text-slate-800 shrink-0",
+          size === "sm" ? "pt-1 pb-0.5 space-y-[1px] text-[7.2px] leading-[1.22]" : "pt-0.5 space-y-[2px] text-[8px] md:text-[9px] leading-tight"
+        )}>
           {(card.id === "T-03" ? [
             "อวัยวะ: ต่อมไทรอยด์",
             "ลักษณะเฉพาะ: มีการจับไอโอไดด์",

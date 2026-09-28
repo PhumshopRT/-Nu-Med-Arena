@@ -26,9 +26,9 @@ export function CardFrame({
 }: CardFrameProps) {
   // Size presets respecting standard 63/88 trading card ratio with comfortable breathing room
   const sizeClasses = {
-    sm: "w-[196px] h-[282px]",
-    md: "w-[252px] h-[352px]",
-    lg: "w-[297px] h-[415px]",
+    sm: "w-[198px] h-[288px]",
+    md: "w-[252px] h-[356px]",
+    lg: "w-[297px] h-[418px]",
   };
 
   const getThemeConfig = () => {
@@ -77,14 +77,11 @@ export function CardFrame({
         isSelected && theme.selectedGlow,
         className
       )}
-      style={{
-        aspectRatio: "63 / 88",
-      }}
     >
       {/* 1. Inner White Card Container (Houses all contents exactly as in prototype) */}
       <div className={clsx(
-        "relative z-10 w-full flex-1 min-h-0 bg-white rounded-[13px] flex flex-col justify-between overflow-hidden shadow-inner text-slate-900",
-        size === "sm" ? "p-2" : "p-2 md:p-2.5"
+        "relative z-10 w-full flex-1 min-h-0 bg-white rounded-[13px] flex flex-col overflow-hidden shadow-inner text-slate-900",
+        size === "sm" ? "p-2 pb-2.5" : "p-2 md:p-2.5 pb-3"
       )}>
         {children}
       </div>

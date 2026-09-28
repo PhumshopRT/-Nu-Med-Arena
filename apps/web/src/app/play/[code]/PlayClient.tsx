@@ -1146,55 +1146,55 @@ export function PlayClient() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md overflow-y-auto"
+            className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-5 bg-black/85 backdrop-blur-md overflow-y-auto"
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="relative w-full max-w-5xl wood-panel p-5 md:p-6 rounded-[28px] border-4 border-amber-950 shadow-[0_25px_60px_rgba(0,0,0,0.85)] ring-2 ring-amber-500/30 flex flex-col items-center text-center select-none my-auto"
+              className="relative w-full max-w-[1220px] wood-panel p-4 sm:p-6 md:p-7 rounded-[32px] border-4 border-amber-950 shadow-[0_25px_70px_rgba(0,0,0,0.9)] ring-2 ring-amber-500/40 flex flex-col items-center text-center select-none my-auto"
             >
-              {/* Animated Header Badge */}
+              {/* Arcade Header Badge */}
               <div className="relative mb-2">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500/20 via-blue-600/30 to-amber-500/20 border-2 border-cyan-400/60 shadow-[0_0_20px_rgba(34,211,238,0.4)] flex items-center justify-center">
-                  <RefreshCw className="w-7 h-7 text-cyan-300 animate-spin" style={{ animationDuration: "8s" }} />
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 border-3 border-amber-200 shadow-[0_0_24px_rgba(245,158,11,0.6)] flex items-center justify-center">
+                  <RefreshCw className="w-8 h-8 text-amber-950 animate-spin" style={{ animationDuration: "10s" }} />
                 </div>
-                <div className="absolute -top-1 -right-2 px-2 py-0.5 rounded-full bg-amber-500 text-amber-950 font-game font-black text-[9px] tracking-wider uppercase border border-amber-200 shadow-md">
+                <div className="absolute -bottom-1 -right-2 px-2.5 py-0.5 rounded-full bg-rose-600 text-white font-game font-black text-[10px] tracking-wider uppercase border border-rose-300 shadow-md">
                   SWAP
                 </div>
               </div>
 
               {/* Title */}
-              <h2 className="font-game font-black text-2xl sm:text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-amber-300 to-yellow-500 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] tracking-wide">
+              <h2 className="font-game font-black text-2xl sm:text-3xl md:text-4xl text-amber-200 text-shadow-gold-title tracking-wide filter drop-shadow">
                 ช่วงผลัดเปลี่ยนไพ่ (HAND SWAP PHASE)
               </h2>
 
-              {/* Subtitle & Deck HUD */}
+              {/* Subtitle & Deck HUD Bar */}
               <div className="flex flex-wrap items-center justify-center gap-2.5 mt-1.5 mb-4 text-xs">
                 <span className="text-amber-200/90 font-medium">
-                  เลือกทิ้งการ์ด RP ในมือที่ไม่ต้องการ เพื่อสุ่มจั่วการ์ดใหม่จากสำรับกลางก่อนเริ่มรอบต่อไป
+                  แตะการ์ดในมือเพื่อทิ้งและจั่วใบใหม่จากสำรับกลางก่อนเริ่มประลองรอบต่อไป
                 </span>
-                <div className="bg-emerald-950/90 border border-emerald-400/60 text-emerald-300 px-3 py-1 rounded-full text-xs font-mono font-bold flex items-center space-x-1.5 shadow-inner">
+                <div className="bg-emerald-950/90 border-2 border-emerald-400/60 text-emerald-300 px-3.5 py-1 rounded-full text-xs font-mono font-black flex items-center space-x-1.5 shadow-inner">
                   <span>🎴 ไพ่ในสำรับคงเหลือ:</span>
-                  <span className="text-amber-300 font-black">{deck.length} ใบ</span>
+                  <span className="text-amber-300 text-sm">{deck.length} ใบ</span>
                 </div>
               </div>
 
-              {/* Cards in Hand Tray (Arcade Green Felt Table) */}
-              <div className="w-full bg-[#0a2318]/90 border-2 border-emerald-700/60 rounded-2xl p-3 sm:p-5 shadow-[inset_0_4px_24px_rgba(0,0,0,0.7)]">
-                <div className="flex overflow-x-auto lg:grid lg:grid-cols-5 gap-3 sm:gap-4 pb-2 pt-1 px-1 justify-start lg:justify-items-center no-scrollbar">
+              {/* Cards in Hand Tray (Arcade Green Felt Table with Pedestals) */}
+              <div className="w-full bg-[#081f15] border-3 border-emerald-600/70 rounded-2xl p-3 sm:p-5 shadow-[inset_0_4px_30px_rgba(0,0,0,0.85)]">
+                <div className="flex items-stretch justify-start xl:justify-center overflow-x-auto gap-3.5 sm:gap-4.5 pb-2 pt-1 px-1 no-scrollbar">
                   {hand.map((c, i) => (
                     <motion.div
                       key={`${c.id}_${i}`}
                       initial={{ scale: 0.95, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: i * 0.05 }}
-                      className="flex flex-col items-center shrink-0"
+                      className="flex flex-col items-center shrink-0 w-[206px] bg-gradient-to-b from-[#0e3323] via-[#092418] to-[#04120b] border-2 border-emerald-500/40 rounded-2xl p-2.5 shadow-xl ring-1 ring-emerald-400/20"
                     >
                       {/* Slot Badge */}
-                      <div className="mb-1.5 px-2.5 py-0.5 rounded-full bg-emerald-900/90 border border-emerald-500/50 text-[10px] font-game font-bold text-emerald-300 tracking-wider flex items-center space-x-1 shadow-xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        <span>ช่องที่ {i + 1}</span>
+                      <div className="mb-2 px-3 py-0.5 rounded-full bg-emerald-900/90 border border-emerald-400/50 text-[10.5px] font-game font-bold text-emerald-300 tracking-wider flex items-center space-x-1.5 shadow-xs">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>SLOT #{i + 1}</span>
                       </div>
 
                       {/* Card with Click & Hover to Swap */}
@@ -1207,24 +1207,24 @@ export function PlayClient() {
 
                         {/* Hover Overlay Hint */}
                         {deck.length > 0 && (
-                          <div className="absolute inset-0 rounded-[18px] bg-cyan-900/25 opacity-0 group-hover:opacity-100 transition-opacity duration-200 border-2 border-cyan-400/80 flex items-center justify-center pointer-events-none">
-                            <div className="bg-black/85 text-cyan-200 px-3 py-1 rounded-full text-xs font-game font-bold flex items-center space-x-1.5 shadow-xl backdrop-blur-xs">
-                              <RefreshCw className="w-3.5 h-3.5 text-cyan-300 animate-spin" />
+                          <div className="absolute inset-0 rounded-[18px] bg-cyan-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 border-3 border-cyan-300 flex items-center justify-center pointer-events-none">
+                            <div className="bg-black/90 text-cyan-200 px-3.5 py-1.5 rounded-full text-xs font-game font-bold flex items-center space-x-1.5 shadow-2xl backdrop-blur-xs border border-cyan-400/60">
+                              <RefreshCw className="w-4 h-4 text-cyan-300 animate-spin" />
                               <span>แตะเพื่อสลับ</span>
                             </div>
                           </div>
                         )}
                       </div>
 
-                      {/* Swap Button */}
+                      {/* 3D Arcade Swap Button */}
                       <button
                         onClick={() => handleSwapCard(i)}
                         disabled={deck.length === 0}
                         className={clsx(
-                          "mt-2.5 w-full max-w-[196px] py-2 px-3 rounded-xl font-game font-bold text-xs flex items-center justify-center space-x-1.5 transition-all shadow-md active:translate-y-0.5",
+                          "mt-2.5 w-full py-2.5 px-3 rounded-xl font-game font-bold text-xs flex items-center justify-center space-x-1.5 transition-all active:translate-y-1",
                           deck.length > 0
-                            ? "bg-gradient-to-b from-rose-500 via-rose-600 to-red-700 hover:from-rose-400 hover:to-red-600 text-white border border-rose-300/40 shadow-rose-950/50 cursor-pointer"
-                            : "bg-slate-700 text-slate-400 border border-slate-600 cursor-not-allowed"
+                            ? "bg-gradient-to-b from-rose-500 via-rose-600 to-red-700 hover:from-rose-400 hover:to-red-600 text-white border-2 border-rose-300 shadow-[0_4px_0_#881337,0_6px_12px_rgba(0,0,0,0.5)] active:shadow-[0_1px_0_#881337] cursor-pointer"
+                            : "bg-slate-700 text-slate-400 border border-slate-600 cursor-not-allowed shadow-none"
                         )}
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
@@ -1233,19 +1233,24 @@ export function PlayClient() {
                     </motion.div>
                   ))}
                 </div>
+
+                {/* Mobile / Tablet scroll hint */}
+                <div className="text-[11px] text-emerald-300/80 mt-2 flex items-center justify-center space-x-1 xl:hidden">
+                  <span>◀ เลื่อนซ้าย-ขวาเพื่อดูการ์ดทั้ง 5 ช่อง ▶</span>
+                </div>
               </div>
 
               {/* Complete Swap Footer Button */}
               <div className="mt-5 w-full flex flex-col items-center">
                 <button
                   onClick={handleCompleteSwap}
-                  className="w-full sm:w-auto min-w-[300px] py-3.5 px-8 bg-play hover:bg-play-hover border-3 border-play-border rounded-2xl font-game font-black text-base text-white tracking-wider shadow-play-btn active:shadow-play-btn-pressed transition-all flex items-center justify-center space-x-2.5 cursor-pointer"
+                  className="w-full sm:w-auto min-w-[320px] py-4 px-10 bg-play hover:bg-play-hover border-4 border-play-border rounded-2xl font-game font-black text-lg text-white tracking-widest shadow-play-btn active:shadow-play-btn-pressed active:translate-y-1 transition-all flex items-center justify-center space-x-3 cursor-pointer"
                 >
-                  <CheckCircle className="w-5 h-5 text-emerald-200" />
+                  <CheckCircle className="w-6 h-6 text-emerald-200" />
                   <span>เสร็จสิ้นการสับเปลี่ยนไพ่ (พร้อมลุยต่อ)</span>
-                  <ChevronRight className="w-5 h-5 text-emerald-200" />
+                  <ChevronRight className="w-6 h-6 text-emerald-200" />
                 </button>
-                <p className="text-[11px] text-amber-200/70 mt-2 font-medium">
+                <p className="text-[11.5px] text-amber-200/80 mt-2.5 font-medium">
                   แตะที่ตัวการ์ดหรือกดปุ่ม &quot;สลับใบนี้&quot; ได้ตามต้องการ เมื่อพอใจแล้วกดปุ่มเพื่อเริ่มรอบถัดไป
                 </p>
               </div>
