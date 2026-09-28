@@ -84,6 +84,7 @@ export function PlayClient() {
   const [user, setUser] = useState<StudentUser | null>(null);
   const [room, setRoom] = useState<PublicRoomState | null>(null);
   const isClassMode = roomCode && roomCode !== "SOLO_PRACTICE" && roomCode !== "DEMO";
+  const isClassMode = roomCode && roomCode !== "SOLO_PRACTICE" && roomCode !== "DEMO";
 
   // Match State
   const [currentRound, setCurrentRound] = useState(1);
