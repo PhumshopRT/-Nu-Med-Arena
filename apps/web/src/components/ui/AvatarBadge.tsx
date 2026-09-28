@@ -207,13 +207,10 @@ export function AvatarBadge({ avatarId = "avatar-default", size = 32, className 
         return (
           <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="50" cy="50" r="48" fill="url(#trefoilBg)" stroke="#F59E0B" strokeWidth="3" />
-            {/* Central hub */}
-            <circle cx="50" cy="50" r="9" fill="#F59E0B" stroke="#FEF3C7" strokeWidth="2.5" />
-            {/* 3 Radioactive Blades */}
-            <path d="M50 50L40 28A24 24 0 0 1 60 28Z" fill="#FDE047" stroke="#B45309" strokeWidth="1.5" />
-            <path d="M50 50L68 62A24 24 0 0 1 50 74Z" fill="#FDE047" stroke="#B45309" strokeWidth="1.5" />
-            <path d="M50 50L32 62A24 24 0 0 1 32 40Z" fill="#FDE047" stroke="#B45309" strokeWidth="1.5" />
-            <circle cx="50" cy="50" r="4" fill="#78350F" />
+            {/* Emoji Trefoil */}
+            <text x="50" y="50" textAnchor="middle" dominantBaseline="central" fontSize="48" style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.5))" }}>
+              ☢️
+            </text>
             <defs>
               <linearGradient id="trefoilBg" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
                 <stop stopColor="#92400E" />
