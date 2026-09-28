@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Users, 
+  Clock,
   Play, 
   Copy, 
   Check, 
@@ -470,9 +471,69 @@ export function LobbyClient() {
       <main className="relative z-10 flex-1 max-w-7xl mx-auto w-full px-3 md:px-8 py-4 md:py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left / Center Table (8 cols): 3D Felt Oval Arena with 6 Seats */}
         <div className="lg:col-span-8 flex flex-col items-center">
-          {/* The Casino Felt Oval Table */}
-          <div className="relative w-full rounded-[40px] md:rounded-[60px] bg-gradient-to-b from-[#0A3D36] via-[#072824] to-[#041D1A] border-8 md:border-12 border-[#4A281D] shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_0_80px_rgba(0,0,0,0.7)] p-4 md:p-8 flex flex-col justify-between items-center min-h-[460px] md:min-h-[520px]">
-            {/* Brass / Gold Table Rivet Highlights */}
+          
+            {room?.settings.spotlightMode ? (
+              <div className="relative w-full rounded-[40px] md:rounded-[60px] bg-black/50 border-4 border-amber-500/80 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_0_80px_rgba(245,158,11,0.2)] p-6 md:p-10 flex flex-col items-center justify-start min-h-[460px] md:min-h-[520px]">
+                
+                {/* Header */}
+                <div className="w-full flex justify-between items-center mb-6 border-b border-amber-500/30 pb-4">
+                  <div className="flex items-center space-x-3">
+                    <Users className="w-8 h-8 text-amber-400" />
+                    <h2 className="text-2xl md:text-3xl font-black text-amber-300 tracking-wider">ห้องรอผู้เล่น (CLASS MODE)</h2>
+                  </div>
+                  <div className="bg-amber-950/80 px-4 py-2 rounded-xl border border-amber-700 text-amber-300 font-bold">
+                    {room.players.length} / {room.settings.maxPlayers || 55} คน
+                  </div>
+                </div>
+
+                {/* Player Grid */}
+                <div className="flex-1 w-full max-h-[300px] overflow-y-auto custom-scrollbar pr-2 mb-6">
+                  {room.players.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-amber-300/50 text-xl font-bold">
+                      รอผู้เล่นเข้าห้อง...
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap justify-center gap-3 md:gap-4">
+                      {room.players.map((p) => (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          key={p.id}
+                          className="bg-amber-900/40 border-2 border-amber-500/40 px-4 py-2 rounded-2xl flex items-center space-x-2 shadow-lg hover:border-amber-400 transition-colors"
+                        >
+                          <span className="text-2xl">{p.avatar || "👨‍🎓"}</span>
+                          <span className="text-white font-bold">{p.name}</span>
+                          {p.id === room.hostId && <span className="text-amber-400 text-xs ml-1">👑</span>}
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Controls */}
+                <div className="w-full flex justify-center mt-auto">
+                  {isHost ? (
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleStartGame}
+                      disabled={!room || room.players.length < 1}
+                      className="px-10 md:px-16 py-4 bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 border-4 border-amber-200 rounded-2xl text-amber-950 font-game font-black text-xl md:text-3xl tracking-wider shadow-[0_8px_0_#78350f,0_14px_25px_rgba(0,0,0,0.6)] active:translate-y-2 active:shadow-[0_2px_0_#78350f] transition-all flex items-center space-x-3 cursor-pointer disabled:opacity-50"
+                    >
+                      <Play className="w-7 h-7 fill-white text-white filter drop-shadow" />
+                      <span>เริ่มการแข่งขัน (START GAME)</span>
+                    </motion.button>
+                  ) : (
+                    <div className="px-10 py-4 rounded-2xl font-game font-black text-xl tracking-wider border-3 bg-amber-950/80 border-amber-600 text-amber-300 shadow-xl flex items-center space-x-3">
+                       <Clock className="w-6 h-6 animate-pulse" />
+                       <span>รอหัวหน้าห้องเปิดหน้าจอ...</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="relative w-full rounded-[40px] md:rounded-[60px] bg-gradient-to-b from-[#0A3D36] via-[#072824] to-[#041D1A] border-8 md:border-12 border-[#4A281D] shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_0_80px_rgba(0,0,0,0.7)] p-4 md:p-8 flex flex-col justify-between items-center min-h-[460px] md:min-h-[520px]">
+                {/* Brass / Gold Table Rivet Highlights */}
             <div className="absolute top-2 left-6 w-3 h-3 rounded-full bg-amber-400/80 shadow-[0_0_8px_#f59e0b]" />
             <div className="absolute top-2 right-6 w-3 h-3 rounded-full bg-amber-400/80 shadow-[0_0_8px_#f59e0b]" />
             <div className="absolute bottom-2 left-6 w-3 h-3 rounded-full bg-amber-400/80 shadow-[0_0_8px_#f59e0b]" />
@@ -600,7 +661,10 @@ export function LobbyClient() {
             </div>
           </div>
 
-          {/* Quick Reaction Emoji Wheel */}
+          
+            )}
+
+            {/* Quick Reaction Emoji Wheel */}
           <div className="w-full max-w-xl mt-3 flex items-center justify-center space-x-2 bg-amber-950/70 p-2 rounded-2xl border border-amber-700/60 shadow-lg">
             <span className="text-[11px] text-amber-300 font-bold mr-1">ส่งอิโมจิ:</span>
             {quickReactions.map((emoji) => (
