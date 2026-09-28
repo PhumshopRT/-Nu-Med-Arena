@@ -18,7 +18,7 @@ interface MechCardProps {
   size?: "sm" | "md" | "lg";
 }
 
-export function MechCard({
+export const MechCard = React.memo(function MechCard({
   card,
   className,
   isHoverable = true,
@@ -88,4 +88,4 @@ export function MechCard({
       </div>
     </CardFrame>
   );
-}
+});

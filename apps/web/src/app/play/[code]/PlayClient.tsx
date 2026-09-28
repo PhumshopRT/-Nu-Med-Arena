@@ -84,6 +84,7 @@ export function PlayClient() {
   const [lastRoundResult, setLastRoundResult] = useState<any>(null);
   const [isMuted, setIsMuted] = useState(sounds.getMuted());
   const [showExplanation, setShowExplanation] = useState(false);
+  const syncRef = useRef<RoomSyncHandle | null>(null);
 
   // Initialize match
   useEffect(() => {
@@ -155,7 +156,61 @@ export function PlayClient() {
 
     setPlayers(matchPlayers);
     setupRound(1, shuffledRp.slice(5), initialHand);
-  }, [roomCode]);
+
+    // Setup multiplayer sync
+    const handleSyncMessage = (msg: SyncMessage) => {
+      switch (msg.type) {
+        case "PLAYER_LOCK": {
+          sounds.playClick();
+          setPlayers((prev) =>
+            prev.map((p) =>
+              p.id === msg.playerId
+                ? {
+                    ...p,
+                    locked: msg.locked,
+                    selectedRpId: msg.answer?.rpId,
+                    selectedMechId: msg.answer?.mechId
+                  }
+                : p
+            )
+          );
+          break;
+        }
+        case "ROUND_ADVANCE": {
+          sounds.playDraw();
+          setCurrentRound(msg.roundIndex);
+          const nextCase = ALL_CASE_CARDS.find((c) => c.id === msg.caseId) || ALL_CASE_CARDS[(msg.roundIndex - 1) % ALL_CASE_CARDS.length];
+          setCurrentCase(nextCase);
+          setSelectedRp(null);
+          setSelectedMech(null);
+          setIsLocked(false);
+          setShowExplanation(false);
+          setTimeLeft(maxTime);
+          setPhase("THINK");
+          setPlayers((prev) =>
+            prev.map((p) => ({
+              ...p,
+              locked: false,
+              selectedRpId: undefined,
+              selectedMechId: undefined
+            }))
+          );
+          break;
+        }
+        case "ROUND_REVEAL": {
+          revealAnswers();
+          break;
+        }
+      }
+    };
+
+    const syncHandle = createRoomSync(roomCode, handleSyncMessage);
+    syncRef.current = syncHandle;
+
+    return () => {
+      syncHandle.destroy();
+    };
+  }, [roomCode, maxTime]);
 
   // Setup a new round
   const setupRound = (roundNum: number, currentDeck: RadiopharmaceuticalCard[], currentHand: RadiopharmaceuticalCard[]) => {
@@ -279,6 +334,18 @@ export function PlayClient() {
       })
     );
 
+    if (user) {
+      syncRef.current?.publish({
+        type: "PLAYER_LOCK",
+        playerId: `p_${user.studentId}`,
+        locked: true,
+        answer: {
+          rpId: selectedRp?.id || "",
+          mechId: selectedMech?.id || ""
+        }
+      });
+    }
+
     // Transition to REVEAL after 1.2s delay
     setTimeout(() => {
       revealAnswers();
@@ -347,6 +414,12 @@ export function PlayClient() {
     const nextRoundNum = currentRound + 1;
     setCurrentRound(nextRoundNum);
     setupRound(nextRoundNum, deck, hand);
+    const nextCase = ALL_CASE_CARDS[(nextRoundNum - 1) % ALL_CASE_CARDS.length];
+    syncRef.current?.publish({
+      type: "ROUND_ADVANCE",
+      roundIndex: nextRoundNum,
+      caseId: nextCase.id
+    });
   };
 
   const handleSwapCard = (indexToSwap: number) => {

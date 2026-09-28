@@ -20,7 +20,7 @@ interface RpCardProps {
   size?: "sm" | "md" | "lg";
 }
 
-export function RpCard({
+export const RpCard = React.memo(function RpCard({
   card,
   className,
   isHoverable = true,
@@ -131,4 +131,4 @@ export function RpCard({
       </div>
     </CardFrame>
   );
-}
+});

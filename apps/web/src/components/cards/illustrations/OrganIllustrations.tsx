@@ -18,21 +18,26 @@ export function CellMetabolismIllustration({ className = "w-full h-full" }: { cl
         <circle cx="60" cy="36" r="3" fill="#93C5FD" />
       </g>
 
-      {/* Whole Body / Cellular silhouette on Right */}
+      {/* Whole Body / Cellular silhouette on Right - PET Scan with Highlighted Lungs */}
       <g transform="translate(125, 8)">
         <rect width="65" height="104" rx="10" fill="#0B2559" />
         {/* Human Silhouette outline */}
-        {/* Head & Brain with intense metabolic glow */}
-        <circle cx="32" cy="18" r="10" fill="#1D4ED8" />
-        <circle cx="32" cy="18" r="5" fill="#FACC15" />
+        {/* Head & Brain with metabolic activity */}
+        <circle cx="32" cy="18" r="9" fill="#1D4ED8" />
+        <circle cx="32" cy="18" r="4.5" fill="#FACC15" />
         {/* Neck */}
         <rect x="29" y="27" width="6" height="6" fill="#1D4ED8" />
         {/* Torso */}
-        <path d="M18 34 C18 34 24 33 32 33 C40 33 46 34 46 34 L44 65 L20 65 Z" fill="#1D4ED8" />
-        {/* Heart / Myocardium glow */}
-        <ellipse cx="29" cy="46" rx="4" ry="5" fill="#EF4444" />
+        <path d="M18 33 C18 33 24 32 32 32 C40 32 46 33 46 33 L44 65 L20 65 Z" fill="#1D4ED8" />
+        {/* Prominently Highlighted PET Lungs / Thoracic uptake */}
+        <ellipse cx="26" cy="44" rx="5" ry="7" fill="#38BDF8" />
+        <ellipse cx="26" cy="44" rx="2.5" ry="4" fill="#FACC15" />
+        <ellipse cx="38" cy="44" rx="5" ry="7" fill="#38BDF8" />
+        <ellipse cx="38" cy="44" rx="2.5" ry="4" fill="#FACC15" />
+        {/* Heart / Mediastinal marker */}
+        <circle cx="32" cy="45" r="2.5" fill="#EF4444" />
         {/* Bladder excretion glow */}
-        <circle cx="32" cy="62" r="5" fill="#FACC15" />
+        <circle cx="32" cy="61" r="4.5" fill="#FACC15" />
         {/* Limbs */}
         <path d="M18 35 L12 60" stroke="#1D4ED8" strokeWidth="4" strokeLinecap="round" />
         <path d="M46 35 L52 60" stroke="#1D4ED8" strokeWidth="4" strokeLinecap="round" />

@@ -19,7 +19,7 @@ interface ClueCardProps {
   size?: "sm" | "md" | "lg";
 }
 
-export function ClueCard({
+export const ClueCard = React.memo(function ClueCard({
   card,
   className,
   isHoverable = true,
@@ -108,4 +108,4 @@ export function ClueCard({
       </div>
     </CardFrame>
   );
-}
+});

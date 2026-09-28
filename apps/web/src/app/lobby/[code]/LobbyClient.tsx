@@ -72,6 +72,19 @@ export function LobbyClient() {
     const localUser = getLocalUser();
     setUser(localUser);
 
+    const isCreateIntent = searchParams?.get("create") === "true";
+
+    const myPlayerInfo: PublicPlayer = {
+      id: `p_${localUser.studentId}`,
+      name: localUser.displayName,
+      studentId: localUser.studentId,
+      ready: true,
+      locked: false,
+      score: 0,
+      handCount: 5,
+      avatar: "☢️"
+    };
+
     const savedRoomKey = `nucmed_room_${roomCode}`;
     const saved = localStorage.getItem(savedRoomKey);
 
@@ -81,22 +94,13 @@ export function LobbyClient() {
         currentRoom = JSON.parse(saved);
         const existingPlayer = currentRoom.players.find((p) => p.studentId === localUser.studentId);
         if (!existingPlayer && currentRoom.players.length < currentRoom.settings.maxPlayers) {
-          currentRoom.players.push({
-            id: `p_${localUser.studentId}`,
-            name: localUser.displayName,
-            studentId: localUser.studentId,
-            ready: true,
-            locked: false,
-            score: 0,
-            handCount: 5,
-            avatar: "☢️"
-          });
+          currentRoom.players.push(myPlayerInfo);
         }
       } catch {
-        currentRoom = createInitialRoom(roomCode, localUser);
+        currentRoom = createInitialRoom(roomCode, localUser, isCreateIntent);
       }
     } else {
-      currentRoom = createInitialRoom(roomCode, localUser);
+      currentRoom = createInitialRoom(roomCode, localUser, isCreateIntent);
     }
 
     setRoom(currentRoom);
@@ -105,6 +109,7 @@ export function LobbyClient() {
     // 2. Setup Real-time Multi-device Synchronizer
     const handleSyncMessage = (msg: SyncMessage) => {
       switch (msg.type) {
+        case "REQUEST_ROOM_STATE":
         case "PLAYER_JOIN": {
           const hostRoom = roomRef.current;
           if (!hostRoom) return;
@@ -112,26 +117,39 @@ export function LobbyClient() {
           const hostIsMe = hostRoom.hostId === `p_${localUser.studentId}`;
           if (hostIsMe) {
             const playerExists = hostRoom.players.some((p) => p.studentId === msg.player.studentId);
+            let updatedRoom = hostRoom;
             if (!playerExists && hostRoom.players.length < hostRoom.settings.maxPlayers) {
               sounds.playClick();
-              const updatedRoom = {
+              updatedRoom = {
                 ...hostRoom,
                 players: [...hostRoom.players, msg.player]
               };
               setRoom(updatedRoom);
               localStorage.setItem(`nucmed_room_${roomCode}`, JSON.stringify(updatedRoom));
-              syncRef.current?.publish({ type: "ROOM_STATE_SYNC", room: updatedRoom });
-            } else {
-              // Re-broadcast current state so the newcomer receives it
-              syncRef.current?.publish({ type: "ROOM_STATE_SYNC", room: hostRoom });
             }
+            // Always respond with current room state to keep newcomer synced
+            syncRef.current?.publish({ type: "ROOM_STATE_SYNC", room: updatedRoom });
           }
           break;
         }
 
         case "ROOM_STATE_SYNC": {
-          setRoom(msg.room);
-          localStorage.setItem(`nucmed_room_${roomCode}`, JSON.stringify(msg.room));
+          // If we receive authoritative room state from host, sync with it
+          if (msg.room && msg.room.hostId) {
+            setRoom((prev) => {
+              // Ensure myself is retained in players if already present
+              const hasMe = msg.room.players.some((p) => p.studentId === localUser.studentId);
+              let finalRoom = msg.room;
+              if (!hasMe && msg.room.players.length < msg.room.settings.maxPlayers) {
+                finalRoom = {
+                  ...msg.room,
+                  players: [...msg.room.players, myPlayerInfo]
+                };
+              }
+              localStorage.setItem(`nucmed_room_${roomCode}`, JSON.stringify(finalRoom));
+              return finalRoom;
+            });
+          }
           break;
         }
 
@@ -176,31 +194,40 @@ export function LobbyClient() {
 
     const syncHandle = createRoomSync(roomCode, handleSyncMessage, (connected) => {
       setIsConnected(connected);
+      if (connected) {
+        // Send join and request room state once connected
+        syncHandle.publish({ type: "PLAYER_JOIN", player: myPlayerInfo });
+        syncHandle.publish({ type: "REQUEST_ROOM_STATE", player: myPlayerInfo });
+      }
     });
     syncRef.current = syncHandle;
 
-    // Broadcast myself to the room
-    const myPlayerInfo: PublicPlayer = {
-      id: `p_${localUser.studentId}`,
-      name: localUser.displayName,
-      studentId: localUser.studentId,
-      ready: true,
-      locked: false,
-      score: 0,
-      handCount: 5,
-      avatar: "☢️"
-    };
+    // Immediately queue initial broadcast
     syncHandle.publish({ type: "PLAYER_JOIN", player: myPlayerInfo });
+    syncHandle.publish({ type: "REQUEST_ROOM_STATE", player: myPlayerInfo });
+
+    // Periodic Heartbeat: Host broadcasts state, Guest requests state
+    const syncInterval = setInterval(() => {
+      const activeRoom = roomRef.current;
+      if (!activeRoom) return;
+      const hostIsMe = activeRoom.hostId === `p_${localUser.studentId}`;
+      if (hostIsMe) {
+        syncHandle.publish({ type: "ROOM_STATE_SYNC", room: activeRoom });
+      } else {
+        syncHandle.publish({ type: "REQUEST_ROOM_STATE", player: myPlayerInfo });
+      }
+    }, 3500);
 
     return () => {
+      clearInterval(syncInterval);
       syncHandle.destroy();
     };
   }, [roomCode, router]);
 
-  const createInitialRoom = (code: string, host: StudentUser): PublicRoomState => {
+  const createInitialRoom = (code: string, host: StudentUser, isHostRole: boolean = true): PublicRoomState => {
     return {
       code,
-      hostId: `p_${host.studentId}`,
+      hostId: isHostRole ? `p_${host.studentId}` : "",
       phase: "LOBBY",
       roundIndex: 1,
       totalRounds: 10,

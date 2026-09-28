@@ -361,7 +361,7 @@ export function HomeHub({ user, onLogout, onOpenGallery }: HomeHubProps) {
                   sounds.playClick();
                   setShowCreateModal(false);
                   const generated = generateRoomCode();
-                  router.push(`/lobby/?code=${generated}`);
+                  router.push(`/lobby/?code=${generated}&create=true`);
                 }}
                 className="flex-1 py-2.5 bg-play hover:bg-play-hover border-2 border-play-border rounded-xl font-bold text-xs shadow-md cursor-pointer"
               >

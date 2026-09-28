@@ -5,12 +5,14 @@ import { PublicRoomState, PublicPlayer } from "@nucmed/shared";
 
 export type SyncMessage =
   | { type: "PLAYER_JOIN"; player: PublicPlayer }
+  | { type: "REQUEST_ROOM_STATE"; player: PublicPlayer }
   | { type: "PLAYER_LEAVE"; playerId: string }
   | { type: "ROOM_STATE_SYNC"; room: PublicRoomState }
   | { type: "PLAYER_READY"; playerId: string; ready: boolean }
   | { type: "PLAYER_LOCK"; playerId: string; locked: boolean; answer?: { rpId: string; mechId: string } }
   | { type: "MATCH_START"; roomCode: string }
   | { type: "ROUND_ADVANCE"; roundIndex: number; caseId: string }
+  | { type: "ROUND_REVEAL"; roundIndex: number; caseId: string; results?: any }
   | { type: "CHAT_MESSAGE"; message: { id: string; sender: string; text: string; avatar?: string } }
   | { type: "EMOJI_REACTION"; playerId: string; emoji: string };
 
@@ -37,6 +39,7 @@ export function createRoomSync(
   let client: MqttClient | null = null;
   let isConnected = false;
   let broadcastChannel: BroadcastChannel | null = null;
+  const outgoingQueue: SyncMessage[] = [];
 
   // 1. Same-device / local-tab communication via BroadcastChannel
   try {
@@ -52,12 +55,27 @@ export function createRoomSync(
     // BroadcastChannel unsupported or blocked
   }
 
+  const flushQueue = () => {
+    if (client && isConnected && outgoingQueue.length > 0) {
+      while (outgoingQueue.length > 0) {
+        const item = outgoingQueue.shift();
+        if (item) {
+          try {
+            client.publish(topic, JSON.stringify(item), { qos: 0 });
+          } catch {
+            // Drop on fail
+          }
+        }
+      }
+    }
+  };
+
   // 2. Cross-device communication via public secure WebSocket MQTT
   try {
     client = mqtt.connect(BROKER_SERVERS[0], {
       clientId,
       clean: true,
-      connectTimeout: 5000,
+      connectTimeout: 7000,
       reconnectPeriod: 3000,
       keepalive: 30,
     });
@@ -67,7 +85,7 @@ export function createRoomSync(
       if (onStatusChange) onStatusChange(true);
       client?.subscribe(topic, { qos: 0 }, (err) => {
         if (!err) {
-          // Connected & subscribed
+          flushQueue();
         }
       });
     });
@@ -76,7 +94,6 @@ export function createRoomSync(
       if (recvTopic === topic) {
         try {
           const parsed = JSON.parse(payload.toString());
-          // Ignore own messages if sender is specified
           onMessage(parsed);
         } catch {
           // Ignore malformed payloads
@@ -98,20 +115,22 @@ export function createRoomSync(
   }
 
   const publish = (msg: SyncMessage) => {
-    // 1. Broadcast to local tabs
+    // 1. Broadcast to local tabs immediately
     try {
       broadcastChannel?.postMessage(msg);
     } catch {
       // Ignore
     }
 
-    // 2. Publish to MQTT for all other devices
+    // 2. Publish to MQTT or queue if connecting
     if (client && isConnected) {
       try {
         client.publish(topic, JSON.stringify(msg), { qos: 0 });
       } catch {
-        // Fallback
+        outgoingQueue.push(msg);
       }
+    } else {
+      outgoingQueue.push(msg);
     }
   };
 

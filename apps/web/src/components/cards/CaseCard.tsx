@@ -19,7 +19,7 @@ interface CaseCardProps {
   size?: "sm" | "md" | "lg";
 }
 
-export function CaseCard({
+export const CaseCard = React.memo(function CaseCard({
   card,
   className,
   isHoverable = true,
@@ -111,4 +111,4 @@ export function CaseCard({
       </div>
     </CardFrame>
   );
-}
+});
