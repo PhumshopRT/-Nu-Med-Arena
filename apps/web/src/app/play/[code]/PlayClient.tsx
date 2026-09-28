@@ -300,7 +300,9 @@ export function PlayClient() {
     }
 
     setPlayers(matchPlayers);
-    setupRound(1, shuffledRp.slice(5), initialHand);
+    if (!isClassMode) {
+      setupRound(1, shuffledRp.slice(5), initialHand);
+    }
 
     // Setup multiplayer sync
     const handleSyncMessage = (msg: SyncMessage) => {
@@ -511,10 +513,12 @@ export function PlayClient() {
       });
     }
 
-    // Transition to REVEAL after 1.2s delay
-    setTimeout(() => {
-      revealAnswers();
-    }, 1200);
+    if (!isClassMode) {
+      // Transition to REVEAL after 1.2s delay
+      setTimeout(() => {
+        revealAnswers();
+      }, 1200);
+    }
   };
 
   const revealAnswers = () => {
@@ -1358,13 +1362,20 @@ export function PlayClient() {
               </div>
 
               {/* Next Button */}
-              <button
-                onClick={handleNextRound}
-                className="w-full py-3.5 bg-play hover:bg-play-hover border-3 border-play-border rounded-2xl font-game font-black text-lg text-white tracking-wider shadow-play-btn active:shadow-play-btn-pressed transition-all flex items-center justify-center space-x-2 cursor-pointer"
-              >
-                <span>ไปรอบถัดไป</span>
-                <ChevronRight className="w-5 h-5" />
-              </button>
+              {isClassMode ? (
+                  <div className="w-full py-3.5 bg-amber-950 border-3 border-amber-800 rounded-2xl font-game font-black text-lg text-amber-500 tracking-wider shadow-inner flex items-center justify-center space-x-2">
+                    <Clock className="w-5 h-5 animate-pulse" />
+                    <span>รอคุณครู...</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleNextRound}
+                    className="w-full py-3.5 bg-play hover:bg-play-hover border-3 border-play-border rounded-2xl font-game font-black text-lg text-white tracking-wider shadow-play-btn active:shadow-play-btn-pressed transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                  >
+                    <span>ไปรอบถัดไป</span>
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                )}
             </motion.div>
           </motion.div>
         )}

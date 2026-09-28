@@ -366,7 +366,11 @@ export function LobbyClient() {
     };
     saveAndBroadcastRoom(updated);
     syncRef.current?.publish({ type: "MATCH_START", roomCode });
-    router.push(`/play/?code=${roomCode}`);
+    if (room.settings.spotlightMode) {
+      router.push(`/board/?code=${roomCode}`);
+    } else {
+      router.push(`/play/?code=${roomCode}`);
+    }
   };
 
   const sendReaction = (emoji: string) => {
