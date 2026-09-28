@@ -51,6 +51,7 @@ import {
 } from "@/lib/cards";
 import { RpCard } from "@/components/cards/RpCard";
 import { MechCard } from "@/components/cards/MechCard";
+import { ExpandedMechPopup } from "@/components/cards/ExpandedMechPopup";
 import { CaseCard as CaseCardComponent } from "@/components/cards/CaseCard";
 import { ClueCard as ClueCardComponent } from "@/components/cards/ClueCard";
 import { CardBack } from "@/components/cards/CardBack";
@@ -1217,52 +1218,11 @@ export function PlayClient() {
 
       {/* Expanded Mechanism Card Popup */}
       <AnimatePresence>
-        {expandedMechId && (
-          <>
-            {/* Mobile / iPad Portrait: Bottom Sheet (up to 70% screen) */}
-            <motion.div
-              initial={{ y: "100%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "100%", opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="md:hidden fixed inset-x-0 bottom-0 z-[60] flex flex-col items-center justify-end pointer-events-none"
-            >
-              <div className="w-full max-h-[70vh] bg-black/95 backdrop-blur-xl border-t-2 border-amber-500/50 rounded-t-3xl p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.8)] pointer-events-auto flex flex-col items-center pb-8 overflow-y-auto">
-                <div 
-                  className="w-12 h-1.5 bg-slate-600 rounded-full mb-4 cursor-pointer hover:bg-slate-500 transition-colors" 
-                  onClick={() => setExpandedMechId(null)}
-                />
-                
-                {ALL_MECH_CARDS.find(m => m.id === expandedMechId) && (
-                  <MechCard 
-                    card={ALL_MECH_CARDS.find(m => m.id === expandedMechId)!} 
-                    size="md"
-                    isHoverable={false}
-                  />
-                )}
-              </div>
-            </motion.div>
-
-            {/* Desktop / iPad Landscape: Floating Card Above Mechanism Rack */}
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="hidden md:flex fixed z-[60] bottom-[260px] lg:bottom-[280px] left-4 lg:left-12 pointer-events-none"
-            >
-              <div className="pointer-events-auto drop-shadow-2xl">
-                {ALL_MECH_CARDS.find(m => m.id === expandedMechId) && (
-                  <MechCard 
-                    card={ALL_MECH_CARDS.find(m => m.id === expandedMechId)!} 
-                    size="md"
-                    isHoverable={false}
-                    className="shadow-[0_20px_50px_rgba(0,0,0,0.8)] border-2 border-amber-400"
-                  />
-                )}
-              </div>
-            </motion.div>
-          </>
-        )}
+        <ExpandedMechPopup 
+          expandedMechId={expandedMechId}
+          setExpandedMechId={setExpandedMechId}
+          allCards={ALL_MECH_CARDS}
+        />
       </AnimatePresence>
 
       {/* Clue Confirmation Modal */}
