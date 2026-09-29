@@ -460,6 +460,7 @@ export function BoardClient() {
   }
 
   const players = room.players || [];
+  const rankedPlayers = [...players].sort((a, b) => b.score - a.score);
   const lockedCount = players.filter(p => p.locked).length;
   const totalPlayers = players.length;
   const maxLimit = 55;
@@ -469,44 +470,48 @@ export function BoardClient() {
   const correctMech = ALL_MECH_CARDS.find(m => currentCase.acceptedMechIds.includes(m.id));
 
   return (
-    <div className="relative min-h-screen bg-slate-950 text-white flex flex-col justify-between p-6 select-none overflow-hidden font-game">
+    <div className="relative isolate min-h-screen bg-[#07131f] text-[#f6f0de] flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden font-game">
       {/* Background */}
-      <div className="absolute inset-0 bg-radial-vignette opacity-70 pointer-events-none" />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_at_50%_0%,rgba(32,77,86,0.48),transparent_55%),linear-gradient(135deg,#07131f_0%,#0a1d2a_52%,#07131f_100%)]" />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 pointer-events-none opacity-[0.07] [background-image:linear-gradient(rgba(188,218,207,.3)_1px,transparent_1px),linear-gradient(90deg,rgba(188,218,207,.3)_1px,transparent_1px)] [background-size:48px_48px]" />
 
       {/* Header */}
-      <header className="relative z-10 w-full flex justify-between items-center bg-amber-950/80 border-3 border-amber-600/80 p-4 rounded-3xl shadow-2xl backdrop-blur-md">
-        <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-2xl bg-amber-400 border-2 border-amber-200 flex items-center justify-center text-2xl shadow-lg">
+      <header className="relative z-10 w-full flex flex-wrap justify-between items-center gap-4 overflow-hidden bg-[#132a35]/90 border border-[#d79b35]/40 p-4 sm:p-5 rounded-[1.75rem] shadow-[0_18px_60px_rgba(0,0,0,.28)] backdrop-blur-xl">
+        <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1.5 bg-[#f5b942]" />
+        <div className="flex min-w-0 items-center space-x-4">
+          <div className="w-12 h-12 shrink-0 rounded-2xl bg-[#f5b942] border border-[#ffe08a]/70 flex items-center justify-center text-2xl shadow-[0_0_28px_rgba(245,185,66,.23)]">
             ☢️
           </div>
-          <div>
-            <h1 className="font-black text-2xl md:text-3xl text-amber-200 tracking-wide">
-              NucMed Arena — จอภาพสำหรับห้องเรียน (PROJECTOR VIEW)
-            </h1>
-            <p className="text-sm text-amber-300/80 mt-1">
-              รหัสห้องเรียน: <strong className="font-mono text-white text-lg tracking-widest bg-black/40 px-2 py-0.5 rounded">{roomCode}</strong>
-              <span className="ml-4 opacity-70">
-                ผู้เล่น: {totalPlayers}/{maxLimit}
-              </span>
-            </p>
+          <div className="min-w-0">
+            <h1 className="font-black text-xl sm:text-2xl text-[#fff0bd] tracking-wide">NucMed Arena</h1>
+            <p className="text-xs sm:text-sm font-bold tracking-[.12em] text-[#9db4b9] mt-0.5">จอฉายห้องเรียน</p>
+          </div>
+          <div className="hidden h-10 w-px bg-white/10 sm:block" />
+          <div className="hidden sm:block">
+            <div className="text-[11px] font-bold text-[#9db4b9]">รหัสเข้าร่วม</div>
+            <div className="font-mono text-xl font-black tracking-[.18em] text-white">{roomCode}</div>
           </div>
         </div>
 
         {/* Big Timer */}
-        <div className="flex items-center space-x-6">
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <div className="rounded-xl border border-[#58d6c6]/25 bg-[#071a24]/70 px-3 py-2 text-right sm:px-4">
+            <div className="text-[10px] font-bold text-[#8fa9ae] sm:text-xs">ผู้เล่น</div>
+            <div className="font-mono text-lg font-black leading-none text-[#58d6c6] sm:text-xl">{totalPlayers}<span className="text-[#82999e]">/{maxLimit}</span></div>
+          </div>
           {room.phase === "THINK" && (
-            <div className="flex items-center space-x-2 bg-black/60 px-5 py-2.5 rounded-2xl border-2 border-amber-500/60">
-              <Clock className={`w-6 h-6 ${timeLeft <= 10 ? "text-rose-400 animate-bounce" : "text-amber-400"}`} />
-              <span className={`font-mono font-black text-3xl ${timeLeft <= 10 ? "text-rose-400" : "text-white"}`}>
-                {timeLeft}s
+            <div className={`flex items-center gap-2 rounded-xl border px-3 py-2 sm:px-4 ${timeLeft <= 10 ? "border-rose-400/60 bg-rose-950/60" : "border-[#f5b942]/40 bg-[#302719]/70"}`}>
+              <Clock className={`w-5 h-5 ${timeLeft <= 10 ? "text-rose-300" : "text-[#f5b942]"}`} />
+              <span className={`font-mono font-black text-2xl ${timeLeft <= 10 ? "text-rose-200" : "text-[#ffe08a]"}`}>
+                {timeLeft}<span className="ml-0.5 text-xs">วิ</span>
               </span>
             </div>
           )}
 
-          <div className="bg-amber-900/90 border-2 border-amber-400 px-5 py-2 rounded-2xl text-center">
-            <div className="text-[10px] text-amber-300 font-bold uppercase">รอบแข่งขัน</div>
-            <div className="font-black text-2xl text-white">
-              {room.roundIndex} / {room.totalRounds}
+          <div className="bg-[#071a24]/70 border border-white/10 px-3 sm:px-4 py-2 rounded-xl text-center">
+            <div className="text-[10px] text-[#8fa9ae] font-bold">รอบ</div>
+            <div className="font-mono font-black text-xl text-[#fff0bd]">
+              {room.roundIndex}<span className="text-[#82999e]">/{room.totalRounds}</span>
             </div>
           </div>
         </div>
@@ -514,36 +519,55 @@ export function BoardClient() {
 
       {/* Center Arena */}
       
-      <main className="relative z-10 flex-1 flex flex-col w-full h-full p-6">
+      <main className="relative z-10 flex-1 flex flex-col w-full min-h-0 p-2 sm:p-4 lg:p-6">
         {(room.phase === "LOBBY" || room.phase === "DEAL" || room.phase === "SHOW_CASE") ? (
-          <div className="flex flex-col items-center justify-center w-full h-full space-y-8">
-            <div className="bg-black/50 border-4 border-amber-500 rounded-3xl p-12 text-center shadow-[0_0_100px_rgba(245,158,11,0.2)]">
-              <h2 className="text-4xl text-amber-300 font-bold mb-4">เข้าสู่ระบบด้วยรหัสห้อง</h2>
-              <div className="text-8xl md:text-9xl font-black text-white tracking-widest font-mono drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
-                {roomCode}
+          <div className="grid flex-1 items-stretch gap-5 lg:grid-cols-[1.12fr_.88fr] lg:gap-7">
+            <section className="relative flex min-h-[340px] flex-col justify-center overflow-hidden rounded-[2rem] border border-[#f5b942]/45 bg-[#0b1b25]/90 p-6 text-center shadow-[0_24px_80px_rgba(0,0,0,.3)] sm:p-10 lg:min-h-[500px] lg:p-14">
+              <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full border border-[#f5b942]/10 shadow-[0_0_0_28px_rgba(245,185,66,.025),0_0_0_60px_rgba(245,185,66,.02)]" />
+              <div className="relative mx-auto mb-6 flex items-center gap-2 rounded-full border border-[#58d6c6]/25 bg-[#58d6c6]/[0.07] px-4 py-2 text-sm font-bold text-[#8ce6d9]">
+                <span className="relative flex h-2.5 w-2.5"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#58d6c6] opacity-50 motion-reduce:animate-none" /><span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#58d6c6]" /></span>
+                ห้องพร้อมรับผู้เล่น
               </div>
-            </div>
-            <div className="flex items-center space-x-4 bg-amber-950/80 px-8 py-4 rounded-2xl border-2 border-amber-600">
-              <Users className="w-8 h-8 text-amber-400" />
-              <span className="text-2xl text-amber-100 font-bold">รอผู้เล่น... ({players.length} คน)</span>
+              <h2 className="relative text-xl font-bold text-[#b4c5c2] sm:text-2xl">เข้าร่วมเกมด้วยรหัสนี้</h2>
+              <div className="relative mx-auto mt-5 flex max-w-full items-center justify-center gap-1.5 sm:gap-3" aria-label={`รหัสห้อง ${roomCode}`}>
+                {roomCode.split("").map((digit, index) => (
+                  <span key={`${digit}-${index}`} className="grid h-[clamp(3.6rem,11vw,7.8rem)] w-[clamp(2.5rem,9vw,6.4rem)] place-items-center rounded-xl border border-[#f5b942]/55 bg-[linear-gradient(160deg,rgba(245,185,66,.15),rgba(13,29,38,.92)_55%)] font-mono text-[clamp(2.2rem,8vw,5.8rem)] font-black leading-none text-white shadow-[inset_0_1px_rgba(255,255,255,.12),0_12px_30px_rgba(0,0,0,.2)] sm:rounded-2xl">{digit}</span>
+                ))}
+              </div>
+              <div className="relative mt-5 text-sm font-semibold text-[#8fa9ae] sm:text-base">แชร์รหัสนี้กับนักศึกษา · รองรับสูงสุด 55 คน</div>
               {isHost && players.length < (room.settings?.maxPlayers || 55) && (
-                <button
-                  onClick={handleAddBot}
-                  className="ml-4 px-4 py-2 bg-amber-800 hover:bg-amber-700 border border-amber-400 text-amber-200 hover:text-white rounded-xl text-sm font-bold shadow-md transition-all active:scale-95 cursor-pointer flex items-center space-x-1.5"
-                >
-                  <UserPlus className="w-4 h-4 text-amber-300" />
-                  <span>+ เพิ่มบอททดสอบ</span>
+                <button onClick={handleAddBot} className="relative mx-auto mt-7 inline-flex min-h-11 items-center gap-2 rounded-xl border border-[#f5b942]/25 bg-[#172c35] px-4 py-2 text-sm font-bold text-[#d6c99f] transition-colors hover:border-[#f5b942]/60 hover:bg-[#203943] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#58d6c6]">
+                  <UserPlus className="h-4 w-4" /><span>เพิ่มบอททดสอบ</span>
                 </button>
               )}
-            </div>
-            <div className="w-full max-w-5xl flex flex-wrap justify-center gap-4 mt-8 max-h-[300px] overflow-y-auto custom-scrollbar p-4">
-              {players.map(p => (
-                <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} key={p.id} className="bg-amber-900/60 border-2 border-amber-500/50 px-6 py-3 rounded-2xl flex items-center space-x-3">
-                  <span className="text-3xl">{p.avatar || "👨‍🎓"}</span>
-                  <span className="text-xl font-bold text-white">{p.name}</span>
-                </motion.div>
-              ))}
-            </div>
+            </section>
+
+            <section className="flex min-h-[280px] flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[#10232e]/90 shadow-[0_24px_80px_rgba(0,0,0,.24)] lg:min-h-[500px]">
+              <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-5 sm:px-7">
+                <div className="flex items-center gap-3">
+                  <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#58d6c6]/10 text-[#58d6c6]"><Users className="h-5 w-5" /></div>
+                  <div><h3 className="text-lg font-black text-[#f6f0de] sm:text-xl">ผู้เล่นในห้อง</h3><p className="text-xs text-[#91a8ad] sm:text-sm">รายชื่อจะแสดงเมื่อเข้าร่วม</p></div>
+                </div>
+                <div className="font-mono text-2xl font-black text-[#58d6c6]">{totalPlayers}<span className="text-base text-[#789198]"> / 55</span></div>
+              </div>
+              {totalPlayers === 0 ? (
+                <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 text-center">
+                  <div className="mb-4 grid h-20 w-20 place-items-center rounded-full border border-[#58d6c6]/20 bg-[#58d6c6]/[0.06] text-4xl">🧑‍⚕️</div>
+                  <p className="text-lg font-bold text-[#d4dfd9]">รอเพื่อนร่วมชั้นเข้ามา</p>
+                  <p className="mt-1 text-sm text-[#82999e]">แชร์รหัสห้องเพื่อเริ่มรวมทีม</p>
+                </div>
+              ) : (
+                <div className="grid max-h-[52vh] flex-1 content-start grid-cols-1 gap-2 overflow-y-auto p-4 custom-scrollbar sm:grid-cols-2 sm:p-5 lg:grid-cols-1 xl:grid-cols-2">
+                  {players.map((p, index) => (
+                    <motion.div initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} key={p.id} className="flex min-w-0 items-center gap-3 rounded-xl border border-white/[0.07] bg-[#071a24]/60 px-3 py-2.5">
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/[0.06] text-xl">{p.avatar || "👨‍🎓"}</span>
+                      <span className="min-w-0 flex-1 truncate font-bold text-[#e8e8dc]">{p.name}</span>
+                      <span className="font-mono text-xs text-[#6e8c92]">{String(index + 1).padStart(2, "0")}</span>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
         ) : room.phase === "REVEAL" || room.phase === "RESULT" ? (
           <div className="flex flex-col w-full h-full items-center">
@@ -675,8 +699,7 @@ export function BoardClient() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                  {[...players]
-                    .sort((a, b) => b.score - a.score)
+                  {rankedPlayers
                     .slice(0, 55)
                     .map((p, rank) => (
                       <div
@@ -726,11 +749,11 @@ export function BoardClient() {
 
       {/* Host Controls Footer */}
       {isHost ? (
-        <footer className="relative z-20 w-full py-4 bg-amber-950/90 border-t-4 border-amber-600 flex justify-center items-center px-6 gap-4 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+        <footer className="relative z-20 w-full py-4 bg-[#10232e]/95 border-t border-white/10 flex flex-wrap justify-center items-center px-4 sm:px-6 gap-3 sm:gap-4 shadow-[0_-10px_30px_rgba(0,0,0,0.3)]">
           {(room.phase === "LOBBY" || room.phase === "DEAL" || room.phase === "SHOW_CASE" || room.phase === "NEXT_CASE") && (
             <button
               onClick={handleStartRound}
-              className="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-lg flex items-center space-x-2 border-b-4 border-emerald-800 active:translate-y-1 active:border-b-0"
+              className="px-7 py-3 bg-[#188f77] hover:bg-[#20a78a] text-white rounded-xl font-bold text-lg flex items-center space-x-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#58d6c6]"
             >
               <Play className="w-5 h-5" />
               <span>เริ่มจับเวลาข้อ {room.roundIndex}</span>
@@ -740,7 +763,7 @@ export function BoardClient() {
           {room.phase === "THINK" && (
             <button
               onClick={handleReveal}
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-lg flex items-center space-x-2 border-b-4 border-blue-800 active:translate-y-1 active:border-b-0"
+              className="px-7 py-3 bg-[#1a3440] hover:bg-[#234653] text-[#ffe08a] rounded-xl font-bold text-lg flex items-center space-x-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#58d6c6]"
             >
               <SkipForward className="w-5 h-5" />
               <span>ข้ามไปดูเฉลย</span>
@@ -750,7 +773,7 @@ export function BoardClient() {
           {room.phase === "REVEAL" && (
             <button
               onClick={handleNextRound}
-              className="px-8 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold text-lg flex items-center space-x-2 border-b-4 border-amber-800 active:translate-y-1 active:border-b-0"
+              className="px-7 py-3 bg-[#b88222] hover:bg-[#cf982f] text-white rounded-xl font-bold text-lg flex items-center space-x-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#58d6c6]"
             >
               <SkipForward className="w-5 h-5" />
               <span>{room.roundIndex >= room.totalRounds ? "ดูผลการแข่งขัน" : "ไปข้อถัดไป"}</span>
@@ -759,15 +782,15 @@ export function BoardClient() {
 
           <button
             onClick={handleCloseRoom}
-            className="px-6 py-3 bg-rose-700 hover:bg-rose-600 text-white rounded-xl font-bold text-lg flex items-center space-x-2 border-b-4 border-rose-900 active:translate-y-1 active:border-b-0 ml-auto"
+            className="px-5 py-3 bg-rose-950/50 hover:bg-rose-900/70 border border-rose-300/20 text-rose-200 rounded-xl font-bold text-lg flex items-center space-x-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 sm:ml-auto"
           >
             <XSquare className="w-5 h-5" />
             <span>ปิดห้องเรียน</span>
           </button>
         </footer>
       ) : (
-        <footer className="relative z-10 w-full py-2.5 bg-black/60 border-t border-amber-900/60 flex justify-between items-center px-4 text-xs text-amber-300/70">
-          <span>NucMed Arena • Classroom Spotlight View</span>
+        <footer className="relative z-10 w-full py-2.5 bg-[#071a24]/70 border-t border-white/[0.08] flex justify-between items-center px-2 sm:px-4 text-[11px] sm:text-xs text-[#789198]">
+          <span>NucMed Arena · จอฉายห้องเรียน</span>
           <span>กด F11 บนคีย์บอร์ดเพื่อเปิดโหมดเต็มหน้าจอ</span>
         </footer>
       )}
