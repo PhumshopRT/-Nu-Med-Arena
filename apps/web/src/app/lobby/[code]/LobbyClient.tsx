@@ -90,7 +90,7 @@ export function LobbyClient() {
     setUser(localUser);
 
     const isCreateIntent = searchParams?.get("create") === "true";
-    const isKahootInit = !isExplicitTable && (modeParam === "kahoot" || roomCode.startsWith("ROOM"));
+    const isKahootInit = !isExplicitTable && (modeParam === "kahoot" || /^\d{5,8}$/.test(roomCode) || roomCode.startsWith("ROOM"));
     const equipped = getNaEquipped();
     const myAvatar = getAvatarIcon(localUser.equipped?.avatar || equipped.avatar);
     const myTitle = getTitleBadge(localUser.equipped?.title || equipped.title);

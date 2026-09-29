@@ -7,8 +7,10 @@ import {
   Trophy, Clock, Users, Play, SkipForward, XSquare, CheckCircle, XCircle 
 } from "lucide-react";
 import { 
-  ALL_CASE_CARDS, CaseCard, PublicRoomState, PublicPlayer, ALL_RP_CARDS, ALL_MECH_CARDS, StudentUser 
+  ALL_CASE_CARDS, CaseCard, PublicRoomState, PublicPlayer, ALL_RP_CARDS, ALL_MECH_CARDS, StudentUser,
+  gradeAnswer, BOTS, simulateBotAnswer
 } from "@nucmed/shared";
+import { getPlayableCaseCards, getPlayableRpCards } from "@/lib/cards";
 import { CaseCard as CaseCardComponent } from "@/components/cards/CaseCard";
 import { getRememberedUser, getLocalUser } from "@/lib/user";
 import { createRoomSync, RoomSyncHandle, SyncMessage } from "@/lib/sync";
@@ -151,10 +153,26 @@ export function BoardClient() {
         case "PLAYER_LOCK":
           if (isHost && currentRoom) {
             const updatedPlayers = currentRoom.players.map(p => 
-              p.id === msg.playerId ? { ...p, locked: msg.locked } : p
+              (p.id === msg.playerId || p.studentId === msg.playerId.replace(/^p_/, ""))
+                ? { 
+                    ...p, 
+                    locked: msg.locked,
+                    selectedRpId: msg.answer?.rpId || p.selectedRpId,
+                    selectedMechId: msg.answer?.mechId || p.selectedMechId
+                  }
+                : p
             );
-            // Optionally save answer if it was sent, but student verifies on their end or we verify here.
-            // For simplicity, we just mark locked.
+            const updated = { ...currentRoom, players: updatedPlayers };
+            saveAndBroadcast(updated);
+          }
+          break;
+        case "PLAYER_SCORE_UPDATE":
+          if (isHost && currentRoom) {
+            const updatedPlayers = currentRoom.players.map(p => 
+              (p.id === msg.playerId || p.studentId === msg.playerId.replace(/^p_/, ""))
+                ? { ...p, score: msg.score, streak: msg.streak }
+                : p
+            );
             const updated = { ...currentRoom, players: updatedPlayers };
             saveAndBroadcast(updated);
           }
@@ -191,6 +209,11 @@ export function BoardClient() {
           sounds.playTick();
         }
 
+        // Simulate bots locking over time on the host board
+        if (isHost && roomRef.current) {
+          simulateBoardBots(prev);
+        }
+
         if (prev <= 1) {
           clearInterval(timer);
           if (isHost) {
@@ -205,6 +228,38 @@ export function BoardClient() {
     return () => clearInterval(timer);
   }, [room?.phase, isHost]);
 
+  // Simulate bots answering on the board
+  const simulateBoardBots = (currentSeconds: number) => {
+    const currentRoom = roomRef.current;
+    if (!currentRoom || !isHost) return;
+
+    let hasChanges = false;
+    const updatedPlayers = currentRoom.players.map(p => {
+      const isBot = p.id.startsWith("bot_") || p.studentId.startsWith("BOT-");
+      if (isBot && !p.locked) {
+        // Bots lock randomly around 10-25s remaining
+        const shouldLock = Math.random() < 0.18 || currentSeconds < 10;
+        if (shouldLock) {
+          hasChanges = true;
+          const botTemplate = BOTS.find(b => b.avatar === p.avatar) || BOTS[0];
+          const botAns = simulateBotAnswer(botTemplate, currentCase, ALL_RP_CARDS);
+          return {
+            ...p,
+            locked: true,
+            selectedRpId: botAns.rpId,
+            selectedMechId: botAns.mechId
+          };
+        }
+      }
+      return p;
+    });
+
+    if (hasChanges) {
+      const updated = { ...currentRoom, players: updatedPlayers };
+      saveAndBroadcast(updated);
+    }
+  };
+
   // Play fanfare when entering REVEAL phase (Podium)
   useEffect(() => {
     if (room?.phase === "REVEAL") {
@@ -218,11 +273,18 @@ export function BoardClient() {
     sounds.playWin();
     
     // Pick next case
-    const nextCase = ALL_CASE_CARDS[(room.roundIndex - 1) % ALL_CASE_CARDS.length];
+    const playableCases = getPlayableCaseCards();
+    const casePool = playableCases.length > 0 ? playableCases : ALL_CASE_CARDS;
+    const nextCase = casePool[(room.roundIndex - 1) % casePool.length];
     setCurrentCase(nextCase);
     
-    // Reset players lock status
-    const resetPlayers = room.players.map(p => ({ ...p, locked: false }));
+    // Reset players lock status and previous selections
+    const resetPlayers = room.players.map(p => ({ 
+      ...p, 
+      locked: false,
+      selectedRpId: undefined,
+      selectedMechId: undefined
+    }));
     
     const updated: PublicRoomState = {
       ...room,
@@ -239,12 +301,37 @@ export function BoardClient() {
     if (!room || !isHost) return;
     sounds.playSelect();
     
-    // Grade the players?
-    // In this mode, we let PlayClient calculate and send score, or we just reveal the correct answer.
-    // We will broadcast ROUND_REVEAL so students show result.
+    // Ensure all bots lock & grade bots on the board
+    const updatedPlayers = room.players.map(p => {
+      const isBot = p.id.startsWith("bot_") || p.studentId.startsWith("BOT-");
+      if (isBot) {
+        let rpId = p.selectedRpId;
+        let mechId = p.selectedMechId;
+        if (!p.locked || !rpId || !mechId) {
+          const botTemplate = BOTS.find(b => b.avatar === p.avatar) || BOTS[0];
+          const botAns = simulateBotAnswer(botTemplate, currentCase, ALL_RP_CARDS);
+          rpId = botAns.rpId;
+          mechId = botAns.mechId;
+        }
+        const grading = gradeAnswer(currentCase, rpId || "", mechId || "", false);
+        const pts = grading.scoreAwarded;
+        const nextStreak = pts > 0 ? ((p.streak || 0) + 1) : 0;
+        return {
+          ...p,
+          locked: true,
+          score: p.score + pts,
+          streak: nextStreak,
+          selectedRpId: rpId,
+          selectedMechId: mechId
+        };
+      }
+      return p;
+    });
+
     const updated: PublicRoomState = {
       ...room,
-      phase: "REVEAL"
+      phase: "REVEAL",
+      players: updatedPlayers
     };
     saveAndBroadcast(updated);
     syncRef.current?.publish({ type: "ROUND_REVEAL", roundIndex: room.roundIndex, caseId: currentCase.id });

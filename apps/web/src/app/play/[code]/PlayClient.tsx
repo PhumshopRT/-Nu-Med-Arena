@@ -103,6 +103,45 @@ export function PlayClient() {
   const [selectedMech, setSelectedMech] = useState<MechanismCard | null>(null);
   const [expandedMechId, setExpandedMechId] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState(false);
+
+  const deckRef = useRef<RadiopharmaceuticalCard[]>([]);
+  deckRef.current = deck;
+  const handRef = useRef<RadiopharmaceuticalCard[]>([]);
+  handRef.current = hand;
+  const selectedRpRef = useRef<RadiopharmaceuticalCard | null>(null);
+  selectedRpRef.current = selectedRp;
+
+  const replenishHandCard = (cardToReplaceId?: string) => {
+    if (!cardToReplaceId) return { updatedHand: handRef.current, updatedDeck: deckRef.current };
+    const currentHand = handRef.current;
+    const currentDeck = deckRef.current;
+    const cardIdx = currentHand.findIndex((c) => c.id === cardToReplaceId);
+    if (cardIdx === -1) return { updatedHand: currentHand, updatedDeck: currentDeck };
+
+    let nextDeck = [...currentDeck];
+    let drawnCard: RadiopharmaceuticalCard | undefined = nextDeck[0];
+    if (drawnCard) {
+      nextDeck = nextDeck.slice(1);
+    } else {
+      const playable = getPlayableRpCards();
+      const available = playable.filter(
+        (c) => !currentHand.some((h) => h.id === c.id) && c.id !== cardToReplaceId
+      );
+      if (available.length > 0) {
+        drawnCard = available[Math.floor(Math.random() * available.length)];
+      }
+    }
+
+    if (drawnCard) {
+      const nextHand = [...currentHand];
+      nextHand[cardIdx] = drawnCard;
+      setDeck(nextDeck);
+      setHand(nextHand);
+      return { updatedHand: nextHand, updatedDeck: nextDeck };
+    }
+    return { updatedHand: currentHand, updatedDeck: currentDeck };
+  };
+
   const [equippedCosmetics, setEquippedCosmetics] = useState<{
     frame: string;
     back: string;
@@ -331,13 +370,55 @@ export function PlayClient() {
           );
           break;
         }
+        case "PLAYER_SCORE_UPDATE": {
+          setPlayers((prev) =>
+            prev.map((p) =>
+              (p.id === msg.playerId || p.studentId === msg.playerId.replace(/^p_/, ""))
+                ? {
+                    ...p,
+                    score: msg.score,
+                    streak: msg.streak
+                  }
+                : p
+            )
+          );
+          break;
+        }
+        case "ROOM_STATE_SYNC": {
+          if (msg.room?.players) {
+            setPlayers((prev) =>
+              prev.map((p) => {
+                const synced = msg.room.players.find(
+                  (sp) => sp.id === p.id || sp.studentId === p.studentId
+                );
+                return synced ? { ...p, score: synced.score, streak: synced.streak ?? p.streak } : p;
+              })
+            );
+          }
+          break;
+        }
         case "ROUND_ADVANCE": {
           sounds.playDraw();
           setCurrentRound(msg.roundIndex);
+
+          // Replenish used card from hand
+          if (selectedRpRef.current) {
+            replenishHandCard(selectedRpRef.current.id);
+          }
+
           const playableCases = getPlayableCaseCards();
           const casePool = playableCases.length > 0 ? playableCases : ALL_CASE_CARDS;
           const nextCase = casePool.find((c) => c.id === msg.caseId) || casePool[(msg.roundIndex - 1) % casePool.length];
           setCurrentCase(nextCase);
+
+          // STRICT 1-to-1 Clue card matching & reset clue states
+          const playableClues = getPlayableClueCards();
+          const cluePool = playableClues.length > 0 ? playableClues : ALL_CLUE_CARDS;
+          const matchingClue = cluePool.find((c) => c.id === nextCase.clueId) || null;
+          setCurrentClue(matchingClue);
+          setIsClueRevealed(false);
+          setShowClueConfirm(false);
+
           setSelectedRp(null);
           setSelectedMech(null);
           setExpandedMechId(null);
@@ -641,6 +722,19 @@ export function PlayClient() {
         };
       })
     );
+
+    // Broadcast updated score to projector board and other multiplayer peers
+    if (user) {
+      const myCurrentPlayer = players.find((p) => p.studentId === user.studentId);
+      const computedScore = (myCurrentPlayer ? myCurrentPlayer.score : 0) + totalAwarded;
+      syncRef.current?.publish({
+        type: "PLAYER_SCORE_UPDATE",
+        playerId: `p_${user.studentId}`,
+        score: computedScore,
+        streak: nextStreak,
+        lastRoundScore: totalAwarded
+      });
+    }
   };
 
   const handleNextRound = () => {
@@ -659,7 +753,8 @@ export function PlayClient() {
     // Next round
     const nextRoundNum = currentRound + 1;
     setCurrentRound(nextRoundNum);
-    setupRound(nextRoundNum, deck, hand);
+    const { updatedHand, updatedDeck } = replenishHandCard(selectedRpRef.current?.id);
+    setupRound(nextRoundNum, updatedDeck, updatedHand);
     const playableCases = getPlayableCaseCards();
     const casePool = playableCases.length > 0 ? playableCases : ALL_CASE_CARDS;
     const nextCase = casePool[(nextRoundNum - 1) % casePool.length];

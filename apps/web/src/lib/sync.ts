@@ -10,6 +10,7 @@ export type SyncMessage =
   | { type: "ROOM_STATE_SYNC"; room: PublicRoomState }
   | { type: "PLAYER_READY"; playerId: string; ready: boolean }
   | { type: "PLAYER_LOCK"; playerId: string; locked: boolean; answer?: { rpId: string; mechId: string } }
+  | { type: "PLAYER_SCORE_UPDATE"; playerId: string; score: number; streak: number; lastRoundScore?: number }
   | { type: "MATCH_START"; roomCode: string }
   | { type: "ROUND_ADVANCE"; roundIndex: number; caseId: string }
   | { type: "ROUND_REVEAL"; roundIndex: number; caseId: string; results?: any }
