@@ -114,17 +114,21 @@ export async function decideScreenLayout(userIntent: string) {
 
 ---
 
-## 4. Mandatory Real API Execution & Action Protocol
+## 4. Mandatory Real API Execution & Zero-Simulation Strict Protocol
 Whenever executing tasks governed by JEV:
-1. **Open and inspect:**
+1. **Strict Upstream Usage Monitoring:**
+   - The user actively monitors the live TypeSafe Usage Dashboard (`input_tokens`, `output_tokens`, request IDs). All calls must hit `https://api.typesafe.ai` (model `jev-1.13.0`).
+   - Never mock, fake, simulate, or bypass the real API request over the wire.
+   - Use active canonical key (`REVOKED_KEY_REMOVED...`) from `.env` / `.env.local` / User environment.
+2. **Open and inspect:**
    - `.agents/skills/jev-design/SKILL.md`
    - `apps/web/src/lib/jev-engine.ts`
    - `apps/web/src/lib/user.ts`
    - `apps/web/src/lib/sync.ts`
-2. **Execute actual API call:**
+3. **Execute actual API call & Verify Usage:**
    - Dispatch real request via `@typesafe-ai/sdk` (`client.systemOne(...)`) or run the decision script (`scripts/run_jev_kahoot_lobby.ts`).
-   - Must send the actual request; do not skip or simulate.
-3. **Report before edit:**
-   - Report the opened files, functions called, and returned values with confidence ratings.
-4. **Clean UI Constraint:**
+   - Log and verify returned token usage: `[JEV Live API Usage] Model: jev-1.13.0 | Input Tokens: X | Output Tokens: Y`.
+4. **Report before edit:**
+   - Report the opened files, functions called, and returned values with confidence ratings and actual token counts.
+5. **Clean UI Constraint:**
    - Never render "JEV" or developer badges on public user-facing interfaces.

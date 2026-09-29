@@ -12,20 +12,16 @@ This repository strictly implements TypeSafe's **JEV System One** as the primary
 
 ---
 
-## 2. Mandatory Real API Execution & Pre-Modification Protocol
-Before modifying any files related to JEV decision-making or game logic:
-1. **Open and inspect:**
-   - `.agents/skills/jev-design/SKILL.md`
-   - `apps/web/src/lib/jev-engine.ts`
-   - `apps/web/src/lib/user.ts`
-   - `apps/web/src/lib/sync.ts`
-2. **Execute actual API call:**
-   - Execute the real System One call via `@typesafe-ai/sdk` (`client.systemOne(...)`) or run the real decision script (`scripts/run_jev_kahoot_lobby.ts`).
-   - Must send the actual request over the wire; do not simulate or skip.
-3. **Report before edit:**
-   - Report the opened files, functions called, and returned values with confidence ratings.
-4. **Clean UI Constraint:**
-   - Under no circumstances should "JEV" or developer evaluator badges be placed on public user-facing interfaces.
+## 2. Mandatory Real API Execution & Zero-Simulation Strict Protocol
+- **Strict Real Upstream Usage Monitoring:** The user actively monitors the live TypeSafe Usage Dashboard (`input_tokens`, `output_tokens`, request IDs). All JEV System One queries MUST be transmitted over the wire directly to TypeSafe API (`https://api.typesafe.ai` / model `jev-1.13.0`).
+- **Zero Simulation / Zero Mock Enforcement:** Under NO circumstances may an agent mock, fake, simulate, or bypass the real JEV API call. Faking API calls or claiming usage without an actual upstream network request is strictly prohibited.
+- **Active Canonical Key Enforcement:** The client MUST use the active canonical API key (`REVOKED_KEY_REMOVED`) stored in `.env`, `.env.local`, and user environment. Any expired key (`REVOKED_KEY_REMOVED...`) must be rejected.
+- **Token Usage Verification:** Every real API execution must log or verify returned usage: `[JEV Live API Usage] Model: jev-1.13.0 | Input Tokens: X | Output Tokens: Y` to confirm token registration on the upstream server.
+- **Pre-Modification Protocol:** Before modifying any files related to JEV decision-making or game logic:
+  1. Open and inspect: `.agents/skills/jev-design/SKILL.md`, `apps/web/src/lib/jev-engine.ts`, `apps/web/src/lib/user.ts`, `apps/web/src/lib/sync.ts`
+  2. Execute actual API call via `@typesafe-ai/sdk` (`client.systemOne(...)`) or `scripts/run_jev_kahoot_lobby.ts`.
+  3. Report opened files, functions called, and returned values with confidence ratings and token usage.
+- **Clean UI Constraint:** Under no circumstances should "JEV" or developer evaluator badges be placed on public user-facing interfaces.
 
 ---
 

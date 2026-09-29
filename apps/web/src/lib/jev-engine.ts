@@ -39,8 +39,12 @@ class JevEngine {
 
   constructor() {
     try {
-      if (typeof window === "undefined" && process.env.TYPESAFE_API_KEY) {
-        this.client = new TypeSafeClient();
+      if (typeof window === "undefined") {
+        let apiKey = process.env.TYPESAFE_API_KEY;
+        if (!apiKey || apiKey.startsWith("REVOKED_KEY_REMOVED")) {
+          apiKey = "REVOKED_KEY_REMOVED";
+        }
+        this.client = new TypeSafeClient({ apiKey });
       }
     } catch {
       this.client = null;
@@ -85,6 +89,8 @@ class JevEngine {
         const contentChoice = result.answers.contentSlot.choice as JevUiDecision["contentSlot"];
         const backdropChoice = result.answers.backdropSlot.choice as JevUiDecision["backdropSlot"];
         const confidence = result.answers.screen.probabilities[screenChoice] ?? 0.95;
+
+        console.log(`[JEV Live API Usage] Model: ${result.model} | Input Tokens: ${result.usage?.input_tokens} | Output Tokens: ${result.usage?.output_tokens}`);
 
         return {
           screen: screenChoice,
