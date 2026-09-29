@@ -10,7 +10,7 @@ import {
   ALL_CASE_CARDS, CaseCard, PublicRoomState, PublicPlayer, ALL_RP_CARDS, ALL_MECH_CARDS, StudentUser 
 } from "@nucmed/shared";
 import { CaseCard as CaseCardComponent } from "@/components/cards/CaseCard";
-import { getRememberedUser } from "@/lib/user";
+import { getRememberedUser, getLocalUser } from "@/lib/user";
 import { createRoomSync, RoomSyncHandle, SyncMessage } from "@/lib/sync";
 import { sounds } from "@/lib/sound";
 
@@ -26,10 +26,6 @@ export function BoardClient() {
   const [timeLeft, setTimeLeft] = useState(30);
   
   const [user, setUser] = useState<StudentUser | null>(null);
-
-  useEffect(() => {
-    setUser(getRememberedUser());
-  }, []);
   const syncRef = useRef<RoomSyncHandle | null>(null);
   const roomRef = useRef<PublicRoomState | null>(null);
   roomRef.current = room;
@@ -37,19 +33,95 @@ export function BoardClient() {
   const isHost = Boolean(user && room && room.hostId === `p_${user.studentId}`);
 
   useEffect(() => {
-    // 1. Initially load room from local storage if host
+    const localUser = getRememberedUser() || getLocalUser();
+    setUser(localUser);
+
+    // 1. Initially load room from local storage or create fallback if opening board directly
+    let activeRoom: PublicRoomState;
     try {
       const saved = localStorage.getItem(`nucmed_room_${roomCode}`);
       if (saved) {
-        const parsed = JSON.parse(saved);
-        setRoom(parsed);
-        setTimeLeft(parsed.settings?.thinkSeconds || 30);
-        const cid = parsed.caseCardId;
-        const foundCase = ALL_CASE_CARDS.find(c => c.id === cid);
-        if (foundCase) setCurrentCase(foundCase);
+        activeRoom = JSON.parse(saved);
+      } else {
+        activeRoom = {
+          code: roomCode,
+          hostId: localUser ? `p_${localUser.studentId}` : "host_board",
+          phase: "LOBBY",
+          roundIndex: 1,
+          totalRounds: 10,
+          caseCardId: ALL_CASE_CARDS[0]?.id || null,
+          clueCardId: null,
+          sharedMechanisms: [],
+          endsAt: 0,
+          players: localUser ? [{
+            id: `p_${localUser.studentId}`,
+            name: localUser.displayName,
+            studentId: localUser.studentId,
+            ready: true,
+            locked: false,
+            score: 0,
+            handCount: 5,
+            avatar: "👨‍🏫"
+          }] : [],
+          settings: {
+            totalRounds: 10,
+            thinkSeconds: 30,
+            basicCount: 5,
+            clinicalCount: 5,
+            hintAtPercent: 50,
+            swapEvery: 3,
+            maxPlayers: 55,
+            minPlayersToStart: 1,
+            allowBots: false,
+            spotlightMode: "big-card"
+          }
+        };
       }
-    } catch {}
+    } catch {
+      activeRoom = {
+        code: roomCode,
+        hostId: localUser ? `p_${localUser.studentId}` : "host_board",
+        phase: "LOBBY",
+        roundIndex: 1,
+        totalRounds: 10,
+        caseCardId: ALL_CASE_CARDS[0]?.id || null,
+        clueCardId: null,
+        sharedMechanisms: [],
+        endsAt: 0,
+        players: localUser ? [{
+          id: `p_${localUser.studentId}`,
+          name: localUser.displayName,
+          studentId: localUser.studentId,
+          ready: true,
+          locked: false,
+          score: 0,
+          handCount: 5,
+          avatar: "👨‍🏫"
+        }] : [],
+        settings: {
+          totalRounds: 10,
+          thinkSeconds: 30,
+          basicCount: 5,
+          clinicalCount: 5,
+          hintAtPercent: 50,
+          swapEvery: 3,
+          maxPlayers: 55,
+          minPlayersToStart: 1,
+          allowBots: false,
+          spotlightMode: "big-card"
+        }
+      };
+    }
 
+    setRoom(activeRoom);
+    setTimeLeft(activeRoom.settings?.thinkSeconds || 30);
+    const cid = activeRoom.caseCardId;
+    const foundCase = ALL_CASE_CARDS.find(c => c.id === cid);
+    if (foundCase) setCurrentCase(foundCase);
+    localStorage.setItem(`nucmed_room_${roomCode}`, JSON.stringify(activeRoom));
+  }, [roomCode]);
+
+  useEffect(() => {
     const handleSync = (msg: SyncMessage) => {
       const currentRoom = roomRef.current;
       
@@ -189,6 +261,17 @@ export function BoardClient() {
     saveAndBroadcast(updated);
   };
 
+  // Check if everyone locked
+  useEffect(() => {
+    if (!room || !isHost) return;
+    const pList = room.players || [];
+    const total = pList.length;
+    const locked = pList.filter(p => p.locked).length;
+    if (room.phase === "THINK" && total > 0 && locked >= total) {
+      handleReveal();
+    }
+  }, [room?.players, room?.phase, isHost]);
+
   const handleCloseRoom = () => {
     if (!room || !isHost) return;
     sounds.playWrong();
@@ -197,7 +280,12 @@ export function BoardClient() {
   };
 
   if (!room) {
-    return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">กำลังโหลดข้อมูลห้อง...</div>;
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-amber-200 font-game">
+        <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-xl font-bold">กำลังเชื่อมต่อกระดานห้องเรียน...</p>
+      </div>
+    );
   }
 
   const players = room.players || [];
@@ -205,13 +293,6 @@ export function BoardClient() {
   const totalPlayers = players.length;
   const maxLimit = room.settings.maxPlayers || 55;
   const displayMode = room.settings.spotlightMode || "big-card";
-
-  // Check if everyone locked
-  useEffect(() => {
-    if (isHost && room.phase === "THINK" && totalPlayers > 0 && lockedCount >= totalPlayers) {
-      handleReveal();
-    }
-  }, [lockedCount, totalPlayers, room?.phase, isHost]);
 
   const correctRp = ALL_RP_CARDS.find(r => currentCase.acceptedRpIds.includes(r.id));
   const correctMech = ALL_MECH_CARDS.find(m => currentCase.acceptedMechIds.includes(m.id));
