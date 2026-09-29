@@ -248,6 +248,49 @@ class JevEngine {
       reason: `อนุมัติการซื้อ สำเร็จคงเหลือ ${userCoins - itemPrice} เหรียญ`,
     };
   }
+
+  /**
+   * Generic Speculative Fan-Out Execution
+   * Dispatches orthogonal questions to TypeSafe System One in a single batched call
+   */
+  async decideSpeculativeFanOut<T>(
+    state: Record<string, any>,
+    questions: Record<string, any>,
+    fallback: () => T
+  ): Promise<{ answers?: any; result: T; source: "live_api" | "deterministic_fallback" }> {
+    if (this.client) {
+      try {
+        const res = await this.client.systemOne({ state, questions });
+        return {
+          answers: res.answers,
+          result: fallback(),
+          source: "live_api"
+        };
+      } catch (err) {
+        console.warn("Jev API call fallback:", err);
+      }
+    }
+    return {
+      result: fallback(),
+      source: "deterministic_fallback"
+    };
+  }
+
+  /**
+   * Confidence Gating Utility
+   * Automatically executes high-confidence actions, or escalates when uncertain
+   */
+  withConfidenceGate<T>(
+    confidence: number,
+    threshold: number = 0.80,
+    onHighConfidence: () => T,
+    onEscalate: () => T
+  ): T {
+    if (confidence >= threshold) {
+      return onHighConfidence();
+    }
+    return onEscalate();
+  }
 }
 
 export const jev = new JevEngine();

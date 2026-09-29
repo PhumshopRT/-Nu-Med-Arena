@@ -94,13 +94,37 @@ export async function decideScreenLayout(userIntent: string) {
 
 ---
 
-## 3. Decision-Making & Orchestration Rules
+## 3. The 5 Efficiency Pillars for Maximum JEV Performance
 
-1. **Autonomous Decisions with Confidence Gating**:
-   - If Jev's choice confidence $\ge 0.70$: Automatically execute the selected design or routing action.
-   - If confidence $< 0.70$: Use sensible defaults or request human confirmation.
-2. **Deterministic Fallback**:
-   - In environments without an active `TYPESAFE_API_KEY` (e.g. offline dev, static demo), execute a local deterministic rubric that mirrors Jev's decision matrix so the app never fails or halts.
-3. **No Unchecked Code Generation**:
-   - Keep styling in Tailwind CSS and structured components.
-   - Let Jev pick the layout slots, color themes, and game bot strategies; let React render verified components.
+1. **Selection Over Generation (Slot Registry):**
+   - Pre-build and verify components in code.
+   - Let JEV output typed Enums (`screen`, `slot`, `theme`).
+   - React consumes Enums deterministically. Zero syntax hallucination.
+2. **Speculative Fan-Out (Parallel Batched Questions):**
+   - Query multiple orthogonal dimensions in a single `systemOne` request (~100ms) rather than sequential round-trips.
+3. **Confidence Gating & Escalation:**
+   - $\ge 0.80$: Execute autonomously without prompting.
+   - $0.60 - 0.79$: Apply safe default or render a fast confirmation chip.
+   - $< 0.60$: Escalate to heavier reasoning model or prompt the user.
+4. **Code Owns Rules & Math, JEV Supplies Semantic Judgment:**
+   - Calculations, point scoring, Regex, and PIN generators remain in deterministic code.
+   - Human intent, layout slot picking, and AI bot personalities remain in JEV.
+5. **Deterministic Local Matrix Fallback:**
+   - Always maintain a calibrated local decision matrix in `jev-engine.ts` so the application never halts if offline or when API keys are absent.
+
+---
+
+## 4. Mandatory Real API Execution & Action Protocol
+Whenever executing tasks governed by JEV:
+1. **Open and inspect:**
+   - `.agents/skills/jev-design/SKILL.md`
+   - `apps/web/src/lib/jev-engine.ts`
+   - `apps/web/src/lib/user.ts`
+   - `apps/web/src/lib/sync.ts`
+2. **Execute actual API call:**
+   - Dispatch real request via `@typesafe-ai/sdk` (`client.systemOne(...)`) or run the decision script (`scripts/run_jev_kahoot_lobby.ts`).
+   - Must send the actual request; do not skip or simulate.
+3. **Report before edit:**
+   - Report the opened files, functions called, and returned values with confidence ratings.
+4. **Clean UI Constraint:**
+   - Never render "JEV" or developer badges on public user-facing interfaces.
