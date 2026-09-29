@@ -44,6 +44,23 @@ function notifyStatus(connected: boolean) {
   });
 }
 
+function getAccountLatestTime(acc: NaAccount): number {
+  const times: number[] = [
+    new Date(acc.createdAt || 0).getTime(),
+    new Date(acc.lastLoginAt || 0).getTime(),
+    new Date(acc.lastPlayedAt || 0).getTime(),
+    new Date(acc.updatedAt || 0).getTime()
+  ];
+  if (acc.coinHistory && acc.coinHistory.length > 0) {
+    const latestHistoryTime = new Date(acc.coinHistory[0].timestamp || 0).getTime();
+    if (!isNaN(latestHistoryTime)) {
+      times.push(latestHistoryTime);
+    }
+  }
+  const valid = times.filter((t) => !isNaN(t) && t > 0);
+  return valid.length > 0 ? Math.max(...valid) : 0;
+}
+
 /**
  * Merge two lists of NaAccounts with union logic and conflict resolution.
  */
@@ -69,19 +86,20 @@ export function mergeAccountLists(local: NaAccount[], incoming: NaAccount[]): { 
       map.set(key, { ...inc });
       hasChanges = true;
     } else {
-      // Conflict resolution: compare timestamp or highest progress
-      const incTime = new Date(inc.lastLoginAt || inc.createdAt || 0).getTime();
-      const existTime = new Date(existing.lastLoginAt || existing.createdAt || 0).getTime();
+      // Conflict resolution: compare latest activity timestamp or highest progress
+      const incTime = getAccountLatestTime(inc);
+      const existTime = getAccountLatestTime(existing);
 
       let shouldUpdate = false;
 
-      // If incoming has later login/activity, take incoming
+      // If incoming has later activity or transaction, take incoming
       if (incTime > existTime) {
         shouldUpdate = true;
-      } else if (inc.coins !== existing.coins || inc.xp !== existing.xp || inc.disabled !== existing.disabled) {
-        // If coins or xp differs, take the higher or more recent
-        if (inc.coins > existing.coins || inc.xp > existing.xp) {
-          shouldUpdate = true;
+      } else if (incTime === existTime) {
+        if (inc.coins !== existing.coins || inc.xp !== existing.xp || inc.disabled !== existing.disabled) {
+          if (inc.coins > existing.coins || inc.xp > existing.xp) {
+            shouldUpdate = true;
+          }
         }
       }
 

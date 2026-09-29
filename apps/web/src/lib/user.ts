@@ -360,6 +360,7 @@ export function setNaWallet(wallet: NaWallet): void {
       const acc = accounts.find(a => a.studentId === u.studentId);
       if (acc) {
         acc.coins = wallet.coins;
+        acc.updatedAt = new Date().toISOString();
         saveNaAccounts(accounts);
       }
     } catch {
@@ -420,6 +421,7 @@ export function setNaInventory(inventory: NaInventory): void {
       const acc = accounts.find(a => a.studentId === u.studentId);
       if (acc) {
         acc.inventory = normalized;
+        acc.updatedAt = new Date().toISOString();
         saveNaAccounts(accounts);
       }
     } catch {}
@@ -497,6 +499,7 @@ export function setNaEquipped(equipped: NaEquipped): void {
       if (acc) {
         acc.equipped = { ...equipped };
         acc.avatarId = equipped.avatar;
+        acc.updatedAt = new Date().toISOString();
         saveNaAccounts(accounts);
       }
     } catch {
@@ -585,6 +588,7 @@ export interface NaAccount {
   createdAt: string;
   lastLoginAt: string;
   lastPlayedAt?: string;
+  updatedAt?: string;
   disabled?: boolean;
   avatarId?: string;
   inventory?: string[];
@@ -918,6 +922,7 @@ export function adminUpdateCoins(studentId: string, delta: number, reason: strin
 
   const account = accounts[idx];
   account.coins = Math.max(0, account.coins + delta);
+  account.updatedAt = new Date().toISOString();
   if (!account.coinHistory) account.coinHistory = [];
   account.coinHistory.unshift({
     timestamp: new Date().toISOString(),
@@ -955,6 +960,7 @@ export function adminResetCoins(studentId: string): { success: boolean; error?: 
   const account = accounts[idx];
   const oldCoins = account.coins;
   account.coins = 120;
+  account.updatedAt = new Date().toISOString();
   if (!account.coinHistory) account.coinHistory = [];
   account.coinHistory.unshift({
     timestamp: new Date().toISOString(),
@@ -993,6 +999,7 @@ export function adminToggleDisable(studentId: string): { success: boolean; error
   }
 
   accounts[idx].disabled = !accounts[idx].disabled;
+  accounts[idx].updatedAt = new Date().toISOString();
   saveNaAccounts(accounts);
   return { success: true };
 }
@@ -1010,6 +1017,7 @@ export function recordMatchPlayed(params: {
     acc.coins += params.coinsEarned;
     acc.correctCount = (acc.correctCount || 0) + params.correctCases;
     acc.lastPlayedAt = new Date().toISOString();
+    acc.updatedAt = new Date().toISOString();
     if (!acc.coinHistory) acc.coinHistory = [];
     acc.coinHistory.unshift({
       timestamp: new Date().toISOString(),
