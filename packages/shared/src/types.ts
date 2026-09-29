@@ -96,6 +96,7 @@ export interface PublicPlayer {
   avatar?: string;
   title?: string;
   frame?: string;
+  streak?: number;
 }
 
 export interface PublicRoomState {

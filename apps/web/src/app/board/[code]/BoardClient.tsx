@@ -113,6 +113,12 @@ export function BoardClient() {
     
     const timer = setInterval(() => {
       setTimeLeft(prev => {
+        if (prev <= 10 && prev > 1) {
+          sounds.playUrgentTick(1 + (10 - prev) * 0.08);
+        } else if (prev > 10 && prev % 2 === 0) {
+          sounds.playTick();
+        }
+
         if (prev <= 1) {
           clearInterval(timer);
           if (isHost) {
@@ -126,6 +132,13 @@ export function BoardClient() {
     }, 1000);
     return () => clearInterval(timer);
   }, [room?.phase, isHost]);
+
+  // Play fanfare when entering REVEAL phase (Podium)
+  useEffect(() => {
+    if (room?.phase === "REVEAL") {
+      sounds.playPodiumFanfare();
+    }
+  }, [room?.phase]);
 
   // Host Controls
   const handleStartRound = () => {
@@ -298,7 +311,14 @@ export function BoardClient() {
                   <motion.div initial={{ y: 200, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="flex flex-col items-center justify-end w-1/3 max-w-[200px]">
                     <div className="text-4xl mb-2">{[...players].sort((a,b)=>b.score-a.score)[1].avatar || "👨‍🎓"}</div>
                     <div className="font-bold text-white text-xl truncate w-full text-center px-2">{[...players].sort((a,b)=>b.score-a.score)[1].name}</div>
-                    <div className="font-mono text-amber-300 font-bold mb-4">{[...players].sort((a,b)=>b.score-a.score)[1].score} PTS</div>
+                    <div className="font-mono text-amber-300 font-bold mb-4 flex items-center space-x-1">
+                      <span>{[...players].sort((a,b)=>b.score-a.score)[1].score} PTS</span>
+                      {Boolean(([...players].sort((a,b)=>b.score-a.score)[1].streak || 0) >= 2) && (
+                        <span className="text-xs bg-rose-600 text-white px-1.5 py-0.5 rounded-full border border-rose-300 font-sans shadow-md animate-pulse">
+                          🔥x{[...players].sort((a,b)=>b.score-a.score)[1].streak}
+                        </span>
+                      )}
+                    </div>
                     <div className="w-full h-40 bg-slate-300 rounded-t-xl border-t-8 border-slate-400 flex justify-center pt-4 shadow-2xl relative overflow-hidden">
                        <span className="text-5xl font-black text-slate-500">2</span>
                        <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
@@ -312,7 +332,14 @@ export function BoardClient() {
                     <div className="absolute -top-12 animate-bounce"><Trophy className="w-12 h-12 text-yellow-400" /></div>
                     <div className="text-5xl mb-2">{[...players].sort((a,b)=>b.score-a.score)[0].avatar || "👨‍🎓"}</div>
                     <div className="font-bold text-white text-2xl truncate w-full text-center px-2 drop-shadow-md">{[...players].sort((a,b)=>b.score-a.score)[0].name}</div>
-                    <div className="font-mono text-yellow-300 font-black mb-4 text-lg">{[...players].sort((a,b)=>b.score-a.score)[0].score} PTS</div>
+                    <div className="font-mono text-yellow-300 font-black mb-4 text-lg flex items-center space-x-1.5">
+                      <span>{[...players].sort((a,b)=>b.score-a.score)[0].score} PTS</span>
+                      {Boolean(([...players].sort((a,b)=>b.score-a.score)[0].streak || 0) >= 2) && (
+                        <span className="text-xs bg-rose-600 text-white px-2 py-0.5 rounded-full border border-rose-300 font-sans shadow-md animate-pulse">
+                          🔥x{[...players].sort((a,b)=>b.score-a.score)[0].streak}
+                        </span>
+                      )}
+                    </div>
                     <div className="w-full h-56 bg-yellow-400 rounded-t-xl border-t-8 border-yellow-200 flex justify-center pt-4 shadow-[0_0_40px_rgba(250,204,21,0.5)] relative overflow-hidden">
                        <span className="text-6xl font-black text-yellow-700">1</span>
                        <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent pointer-events-none"></div>
@@ -325,7 +352,14 @@ export function BoardClient() {
                   <motion.div initial={{ y: 200, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0 }} className="flex flex-col items-center justify-end w-1/3 max-w-[180px]">
                     <div className="text-4xl mb-2">{[...players].sort((a,b)=>b.score-a.score)[2].avatar || "👨‍🎓"}</div>
                     <div className="font-bold text-white text-lg truncate w-full text-center px-2">{[...players].sort((a,b)=>b.score-a.score)[2].name}</div>
-                    <div className="font-mono text-orange-300 font-bold mb-4">{[...players].sort((a,b)=>b.score-a.score)[2].score} PTS</div>
+                    <div className="font-mono text-orange-300 font-bold mb-4 flex items-center space-x-1">
+                      <span>{[...players].sort((a,b)=>b.score-a.score)[2].score} PTS</span>
+                      {Boolean(([...players].sort((a,b)=>b.score-a.score)[2].streak || 0) >= 2) && (
+                        <span className="text-xs bg-rose-600 text-white px-1.5 py-0.5 rounded-full border border-rose-300 font-sans shadow-md animate-pulse">
+                          🔥x{[...players].sort((a,b)=>b.score-a.score)[2].streak}
+                        </span>
+                      )}
+                    </div>
                     <div className="w-full h-32 bg-orange-600 rounded-t-xl border-t-8 border-orange-400 flex justify-center pt-4 shadow-2xl relative overflow-hidden">
                        <span className="text-5xl font-black text-orange-900">3</span>
                        <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>

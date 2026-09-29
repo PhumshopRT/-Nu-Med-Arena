@@ -125,6 +125,14 @@ export function PlayClient() {
   // Players & Bots in match
   const [players, setPlayers] = useState<PublicPlayer[]>([]);
   const [lastRoundResult, setLastRoundResult] = useState<any>(null);
+  const [streak, setStreak] = useState(0);
+  const [lockTimeLeft, setLockTimeLeft] = useState<number | null>(null);
+  const [bonusDetails, setBonusDetails] = useState<{
+    speedBonus: number;
+    streakBonus: number;
+    streakCount: number;
+    isFast: boolean;
+  }>({ speedBonus: 0, streakBonus: 0, streakCount: 0, isFast: false });
   const [isMuted, setIsMuted] = useState(sounds.getMuted());
   const [showExplanation, setShowExplanation] = useState(false);
   const [matchReward, setMatchReward] = useState<{
@@ -334,6 +342,7 @@ export function PlayClient() {
           setSelectedMech(null);
           setExpandedMechId(null);
           setIsLocked(false);
+          setLockTimeLeft(null);
           setShowExplanation(false);
           setTimeLeft(maxTime);
           setPhase("THINK");
@@ -395,6 +404,7 @@ export function PlayClient() {
     setSelectedMech(null);
     setExpandedMechId(null);
     setIsLocked(false);
+    setLockTimeLeft(null);
     setShowExplanation(false);
     setTimeLeft(maxTime);
     setPhase("THINK");
@@ -424,8 +434,10 @@ export function PlayClient() {
           return 0;
         }
 
-        // Play tick in last 5 seconds
-        if (prev <= 6 && prev > 1) {
+        // Play urgent countdown sound in last 10 seconds!
+        if (prev <= 10 && prev > 1) {
+          sounds.playUrgentTick(1 + (10 - prev) * 0.08);
+        } else if (prev > 10 && prev % 2 === 0) {
           sounds.playTick();
         }
 
@@ -470,6 +482,7 @@ export function PlayClient() {
     sounds.playClick();
     setIsLocked(true);
     setPhase("LOCKED");
+    setLockTimeLeft(timeLeft);
 
     if (equippedCosmetics.fx === "fx-lock" || equippedCosmetics.fx === "fx-gamma") {
       setActiveFx("lock");
@@ -532,10 +545,37 @@ export function PlayClient() {
       isClueRevealed
     );
 
-    setLastRoundResult(result);
+    let speedBonus = 0;
+    let streakBonus = 0;
+    let nextStreak = 0;
+    let isFast = false;
 
     if (result.scoreAwarded > 0) {
       userCorrectCountRef.current += 1;
+      nextStreak = streak + 1;
+      setStreak(nextStreak);
+
+      // Speed bonus:
+      // If locked with >= 60% time remaining (e.g. 18s+ out of 30s) -> +2 pts
+      // If locked with >= 30% time remaining (e.g. 9s+ out of 30s) -> +1 pt
+      const timeRemaining = lockTimeLeft !== null ? lockTimeLeft : timeLeft;
+      const ratio = timeRemaining / Math.max(1, maxTime);
+      if (ratio >= 0.6) {
+        speedBonus = 2;
+        isFast = true;
+      } else if (ratio >= 0.3) {
+        speedBonus = 1;
+        isFast = true;
+      }
+
+      // Streak bonus:
+      if (nextStreak >= 3) {
+        streakBonus = 2;
+      } else if (nextStreak === 2) {
+        streakBonus = 1;
+      }
+
+      sounds.playCombo(nextStreak);
       sounds.playCorrect();
       if (equippedCosmetics.fx === "fx-win" || equippedCosmetics.fx === "fx-gamma") {
         setActiveFx("win");
@@ -547,8 +587,27 @@ export function PlayClient() {
         origin: { y: 0.6 }
       });
     } else {
+      setStreak(0);
       sounds.playWrong();
     }
+
+    const totalAwarded = result.scoreAwarded > 0 ? (result.scoreAwarded + speedBonus + streakBonus) : 0;
+
+    setBonusDetails({
+      speedBonus,
+      streakBonus,
+      streakCount: nextStreak,
+      isFast
+    });
+
+    setLastRoundResult({
+      ...result,
+      scoreAwarded: totalAwarded,
+      baseScore: result.scoreAwarded,
+      speedBonus,
+      streakBonus,
+      streakCount: nextStreak
+    });
 
     // Grade and update all players' scores (Bots do NOT open clues!)
     setPlayers((prev) =>
@@ -559,14 +618,17 @@ export function PlayClient() {
         const usedClue = isMe ? isClueRevealed : false; // Bots do not open clues!
 
         const grading = gradeAnswer(currentCase, rpId, mechId, usedClue);
+        const ptsToAdd = isMe ? totalAwarded : grading.scoreAwarded;
+        const pStreak = isMe ? nextStreak : (grading.scoreAwarded > 0 ? ((p.streak || 0) + 1) : 0);
 
         return {
           ...p,
-          score: p.score + grading.scoreAwarded,
+          score: p.score + ptsToAdd,
+          streak: pStreak,
           usedClue,
           lastAnswerResult: {
-            correct: grading.scoreAwarded > 0,
-            points: grading.scoreAwarded,
+            correct: ptsToAdd > 0,
+            points: ptsToAdd,
             rpOk: grading.rpMatch,
             mechOk: grading.mechMatch,
             usedClue: grading.usedClue,
@@ -734,6 +796,16 @@ export function PlayClient() {
 
         {/* Right: Sound & Score Summary */}
         <div className="flex items-center space-x-1.5 sm:space-x-2">
+          {/* Streak Flame Badge */}
+          {streak >= 2 && (
+            <div className="bg-gradient-to-r from-orange-600 via-rose-600 to-amber-600 border border-amber-300 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full flex items-center space-x-1 shadow-lg animate-pulse">
+              <span className="text-xs sm:text-sm">🔥</span>
+              <span className="font-mono font-black text-[10px] sm:text-xs text-white">
+                x{streak}
+              </span>
+            </div>
+          )}
+
           {/* My Score Badge */}
           <div className="bg-amber-950/60 border border-amber-500/60 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center space-x-1 sm:space-x-1.5 shadow-inner backdrop-blur-xs">
             <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
@@ -1313,8 +1385,27 @@ export function PlayClient() {
                   ? `ยอดเยี่ยม! +${lastRoundResult.scoreAwarded} คะแนน`
                   : "ยังไม่ถูกต้อง (0 คะแนน)"}
               </h2>
+
+              {lastRoundResult.scoreAwarded > 0 && (
+                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-2">
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/70 text-emerald-300 text-xs font-bold shadow-sm">
+                    คะแนนโจทย์ +{lastRoundResult.baseScore || (currentCase.points - (lastRoundResult.cluePenalty || 0))} PTS
+                  </span>
+                  {lastRoundResult.speedBonus > 0 && (
+                    <span className="px-2.5 py-1 rounded-full bg-amber-900/90 border border-amber-400 text-amber-200 text-xs font-black animate-pulse flex items-center space-x-1 shadow-sm">
+                      <span>⚡️ ความเร็ว +{lastRoundResult.speedBonus} PTS</span>
+                    </span>
+                  )}
+                  {lastRoundResult.streakBonus > 0 && (
+                    <span className="px-2.5 py-1 rounded-full bg-rose-950/90 border border-rose-400 text-rose-200 text-xs font-black flex items-center space-x-1 shadow-sm">
+                      <span>🔥 Streak x{lastRoundResult.streakCount} (+{lastRoundResult.streakBonus} PTS)</span>
+                    </span>
+                  )}
+                </div>
+              )}
+
               {lastRoundResult.cluePenalty > 0 && (
-                <div className="mt-1 px-3 py-1 bg-amber-950/90 border border-amber-500/70 rounded-full text-xs font-bold text-amber-300 inline-flex items-center space-x-1.5">
+                <div className="mt-2 px-3 py-1 bg-amber-950/90 border border-amber-500/70 rounded-full text-xs font-bold text-amber-300 inline-flex items-center space-x-1.5">
                   <Lightbulb className="w-3.5 h-3.5 text-amber-300 shrink-0" />
                   <span>หัก 1 คะแนนจากการเปิดคำใบ้ส่วนตัว</span>
                 </div>
