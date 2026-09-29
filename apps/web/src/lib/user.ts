@@ -688,7 +688,7 @@ export function getNaAccounts(): NaAccount[] {
   }
 }
 
-export function saveNaAccounts(accounts: NaAccount[]): void {
+export function saveNaAccounts(accounts: NaAccount[], skipBroadcast: boolean = false): void {
   if (typeof window === "undefined") return;
   try {
     const obfuscated = accounts.map(acc => ({
@@ -696,6 +696,9 @@ export function saveNaAccounts(accounts: NaAccount[]): void {
       password: acc.password && !acc.password.startsWith("b64:") ? `b64:${btoa(encodeURIComponent(acc.password))}` : acc.password
     }));
     localStorage.setItem("na_accounts", JSON.stringify(obfuscated));
+    if (!skipBroadcast) {
+      window.dispatchEvent(new CustomEvent("na_accounts_saved", { detail: accounts }));
+    }
   } catch {}
 }
 
@@ -768,6 +771,9 @@ export function registerNaAccount(params: {
 
   accounts.unshift(newAccount);
   saveNaAccounts(accounts);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("na_account_upserted", { detail: newAccount }));
+  }
 
   const user: StudentUser = {
     studentId: cleanId,

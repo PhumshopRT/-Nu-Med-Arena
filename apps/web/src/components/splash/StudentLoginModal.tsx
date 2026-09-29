@@ -31,6 +31,7 @@ import {
   NaAccount,
   setAdminAuthenticated
 } from "@/lib/user";
+import { requestAccountsSync } from "@/lib/account-sync";
 import { sounds } from "@/lib/sound";
 import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
 
@@ -73,7 +74,7 @@ export function StudentLoginModal({
   const [registeredSuccessUser, setRegisteredSuccessUser] = useState<StudentUser | null>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync saved accounts whenever modal opens
+  // Sync saved accounts whenever modal opens and listen for real-time mesh updates
   useEffect(() => {
     if (isOpen) {
       const accounts = getNaAccounts();
@@ -81,6 +82,18 @@ export function StudentLoginModal({
       setError(null);
       setPassword("");
       setRegisteredSuccessUser(null);
+      requestAccountsSync();
+
+      const handleAccountsUpdated = (e: any) => {
+        if (e.detail && Array.isArray(e.detail)) {
+          setSavedAccounts(e.detail);
+        }
+      };
+
+      window.addEventListener("na_accounts_updated", handleAccountsUpdated);
+      return () => {
+        window.removeEventListener("na_accounts_updated", handleAccountsUpdated);
+      };
     }
   }, [isOpen]);
 

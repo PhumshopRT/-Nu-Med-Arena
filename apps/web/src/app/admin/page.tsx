@@ -34,7 +34,10 @@ import {
   ToggleLeft,
   ToggleRight,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Share2,
+  Radio,
+  Copy
 } from "lucide-react";
 import { 
   RadiopharmaceuticalCard,
@@ -45,6 +48,7 @@ import {
 } from "@nucmed/shared";
 import { 
   getNaAccounts, 
+  saveNaAccounts,
   adminUpdateCoins, 
   adminResetCoins, 
   adminToggleDisable,
@@ -53,6 +57,13 @@ import {
   NaAccount,
   getLocalUser
 } from "@/lib/user";
+import { 
+  initAccountSync, 
+  requestAccountsSync, 
+  broadcastAllAccounts, 
+  subscribeAccountSyncStatus,
+  mergeAccountLists 
+} from "@/lib/account-sync";
 import { 
   getStoredRpCards, 
   saveStoredRpCards,
@@ -108,6 +119,12 @@ export default function AdminPage() {
   const [students, setStudents] = useState<NaAccount[]>([]);
   const [studentsLoadedAt, setStudentsLoadedAt] = useState<Date | null>(null);
   const [studentSearch, setStudentSearch] = useState("");
+
+  // Multi-device real-time sync states
+  const [isSyncConnected, setIsSyncConnected] = useState<boolean>(false);
+  const [showSyncJsonModal, setShowSyncJsonModal] = useState<boolean>(false);
+  const [syncJsonInput, setSyncJsonInput] = useState<string>("");
+  const [syncJsonStatus, setSyncJsonStatus] = useState<string>("");
 
   // Student Password Reveal states
   const [showPasswordModal, setShowPasswordModal] = useState<{ isOpen: boolean; studentId: string; studentName: string; } | null>(null);
@@ -246,13 +263,19 @@ export default function AdminPage() {
     }
   }, []);
 
-  // Listen to window focus and storage changes to keep students list fresh
+  // Multi-device real-time sync & window focus listeners to keep students list fresh
   useEffect(() => {
     if (!isAuthenticated) return;
     
+    // 1. Initialize real-time cross-device sync mesh (MQTT + BroadcastChannel)
+    const cleanupSync = initAccountSync();
+    requestAccountsSync();
+    broadcastAllAccounts();
+
     const handleFocus = () => {
       setStudents(getNaAccounts());
       setStudentsLoadedAt(new Date());
+      requestAccountsSync();
     };
     
     const handleStorage = (e: StorageEvent) => {
@@ -262,16 +285,37 @@ export default function AdminPage() {
       }
     };
 
+    const handleAccountsUpdated = (e: any) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        setStudents(e.detail);
+        setStudentsLoadedAt(new Date());
+      }
+    };
+
     window.addEventListener("focus", handleFocus);
     window.addEventListener("storage", handleStorage);
+    window.addEventListener("na_accounts_updated", handleAccountsUpdated);
+    const unsubscribeStatus = subscribeAccountSyncStatus(setIsSyncConnected);
+
+    // Periodic heartbeat sync every 15s to guarantee parity across iPad, phone, and PC
+    const interval = setInterval(() => {
+      requestAccountsSync();
+    }, 15000);
+
     return () => {
+      clearInterval(interval);
+      cleanupSync();
+      unsubscribeStatus();
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("na_accounts_updated", handleAccountsUpdated);
     };
   }, [isAuthenticated]);
 
   const handleManualRefresh = () => {
     sounds.playClick();
+    requestAccountsSync();
+    broadcastAllAccounts();
     setStudents(getNaAccounts());
     setStudentsLoadedAt(new Date());
   };
@@ -1601,21 +1645,47 @@ export default function AdminPage() {
               </div>
 
               {/* Student Table Controls */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-black/35 backdrop-blur-md p-4 rounded-2xl border border-amber-500/30">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 bg-black/35 backdrop-blur-md p-4 rounded-2xl border border-amber-500/30">
+                <div className="flex flex-wrap items-center gap-3">
                   <div>
                     <h3 className="text-base font-black font-game text-white">รายชื่อนักศึกษาและบัญชีผู้เล่น</h3>
                     <p className="text-xs text-amber-300/80">คลิกที่แถวเพื่อปรับเหรียญ, รีเซ็ตยอด, หรือระงับบัญชี</p>
                   </div>
-                  <button 
-                    onClick={handleManualRefresh}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/40 border border-amber-500/50 rounded-lg text-amber-300 font-bold text-xs transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    รีเฟรชรายชื่อ
-                  </button>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button 
+                      onClick={handleManualRefresh}
+                      className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/40 border border-amber-500/50 rounded-lg text-amber-300 font-bold text-xs transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      รีเฟรชรายชื่อ
+                    </button>
+
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+                      isSyncConnected
+                        ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                        : "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                    }`}>
+                      <span className={`w-2 h-2 rounded-full ${isSyncConnected ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`} />
+                      {isSyncConnected ? "ซิงค์ข้ามอุปกรณ์ออนไลน์" : "กำลังเชื่อมต่อซิงค์..."}
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        sounds.playClick();
+                        setSyncJsonInput(JSON.stringify(getNaAccounts(), null, 2));
+                        setShowSyncJsonModal(true);
+                        setSyncJsonStatus("");
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 rounded-lg text-blue-300 font-bold text-xs transition-colors"
+                      title="คัดลอกหรือวาง JSON เพื่อย้ายบัญชีข้ามเครื่องทันที"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                      แชร์ / สำรอง JSON
+                    </button>
+                  </div>
                 </div>
 
                 <div className="relative w-full sm:w-64">
@@ -2568,6 +2638,124 @@ export default function AdminPage() {
                   } ${selectedStudentForCoins.studentId.toLowerCase() === "admin" ? "opacity-40 cursor-not-allowed" : ""}`}
                 >
                   {selectedStudentForCoins.disabled ? "เปิดใช้งานบัญชี" : "ปิดระงับบัญชี"}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ----------------------------------------------------
+          MODAL: Multi-device Account Sync & JSON Backup
+         ---------------------------------------------------- */}
+      <AnimatePresence>
+        {showSyncJsonModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <div className="bg-[#12161f] border border-blue-500/40 rounded-3xl p-6 max-w-xl w-full text-white shadow-2xl relative">
+              <button
+                onClick={() => setShowSyncJsonModal(false)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white p-2"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-2xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
+                  <Share2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold font-game text-white">ระบบซิงค์ข้ามอุปกรณ์ & สำรองบัญชี</h3>
+                  <p className="text-xs text-blue-300/70">
+                    สถานะการเชื่อมต่อ: {isSyncConnected ? "🟢 ออนไลน์ (MQTT Mesh Active)" : "🟡 กำลังเชื่อมต่อ..."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-black/40 border border-white/10 rounded-2xl p-4 mb-4 text-xs text-slate-300 space-y-2">
+                <p>
+                  ⚡ <strong className="text-white">ซิงค์อัตโนมัติ:</strong> อุปกรณ์ที่เปิดเว็บอยู่ (คอมพิวเตอร์, iPad, มือถือ) จะซิงค์รายชื่อนักศึกษาและเหรียญเข้าหากันโดยอัตโนมัติผ่านเครือข่ายเรียลไทม์
+                </p>
+                <p>
+                  📋 <strong className="text-white">ส่งต่อทันทีด้วย JSON:</strong> หากต้องการนำเข้ารายชื่อจากเครื่องอื่น หรือสำรองข้อมูล สามารถคัดลอกหรือวางข้อความด้านล่างนี้ได้เลย
+                </p>
+              </div>
+
+              <div className="mb-3">
+                <div className="flex justify-between items-center mb-1 text-xs">
+                  <span className="text-slate-400">ข้อมูลบัญชีผู้เล่น ({getNaAccounts().length} บัญชีในเครื่องนี้):</span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(syncJsonInput);
+                      sounds.playClick();
+                      setSyncJsonStatus("คัดลอก JSON สำเร็จแล้ว!");
+                      setTimeout(() => setSyncJsonStatus(""), 3000);
+                    }}
+                    className="flex items-center gap-1 text-blue-400 hover:text-blue-300 font-bold"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    คัดลอก JSON
+                  </button>
+                </div>
+                <textarea
+                  value={syncJsonInput}
+                  onChange={(e) => setSyncJsonInput(e.target.value)}
+                  rows={8}
+                  className="w-full bg-black/60 border border-white/20 rounded-xl p-3 font-mono text-xs text-amber-200 focus:outline-none focus:border-blue-400"
+                  placeholder="วาง JSON ของบัญชีที่นี่เพื่อผสานข้อมูล..."
+                />
+              </div>
+
+              {syncJsonStatus && (
+                <div className="mb-3 p-2.5 rounded-xl bg-blue-950/60 border border-blue-500/50 text-xs text-blue-200 font-bold text-center">
+                  {syncJsonStatus}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    sounds.playClick();
+                    try {
+                      const parsed = JSON.parse(syncJsonInput);
+                      if (!Array.isArray(parsed)) {
+                        setSyncJsonStatus("รูปแบบ JSON ไม่ถูกต้อง (ต้องเป็น Array ของบัญชี)");
+                        return;
+                      }
+                      const current = getNaAccounts();
+                      const { merged, hasChanges } = mergeAccountLists(current, parsed);
+                      saveNaAccounts(merged, false);
+                      broadcastAllAccounts();
+                      setStudents(merged);
+                      setStudentsLoadedAt(new Date());
+                      sounds.playWin();
+                      setSyncJsonStatus(`ผสานข้อมูลสำเร็จ! มีทั้งหมด ${merged.length} บัญชี (และส่งซิงค์ไปยังอุปกรณ์อื่นแล้ว)`);
+                    } catch (err: any) {
+                      setSyncJsonStatus("เกิดข้อผิดพลาดในการอ่าน JSON: " + err.message);
+                    }
+                  }}
+                  className="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl font-bold text-xs text-white shadow-lg cursor-pointer"
+                >
+                  ผสานและนำเข้าบัญชีจาก JSON
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    sounds.playClick();
+                    broadcastAllAccounts();
+                    requestAccountsSync();
+                    setSyncJsonStatus("ส่งคำขอซิงค์ไปยังทุกอุปกรณ์ที่เปิดอยู่แล้ว!");
+                    setTimeout(() => setSyncJsonStatus(""), 3000);
+                  }}
+                  className="px-4 py-2.5 bg-emerald-700/60 hover:bg-emerald-600/70 border border-emerald-500/50 rounded-xl font-bold text-xs text-emerald-200 cursor-pointer"
+                >
+                  📡 ยิงซิงค์ทุกอุปกรณ์เดี๋ยวนี้
                 </button>
               </div>
             </div>

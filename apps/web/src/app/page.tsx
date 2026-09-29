@@ -6,6 +6,7 @@ import { TitleSplash } from "@/components/splash/TitleSplash";
 import { HomeHub } from "@/components/hub/HomeHub";
 import { StudentUser } from "@nucmed/shared";
 import { createDefaultUser, getRememberedUser, logoutAccount } from "@/lib/user";
+import { initAccountSync } from "@/lib/account-sync";
 import { useRouter } from "next/navigation";
 
 type ScreenState = "boot" | "splash" | "hub";
@@ -16,7 +17,7 @@ export default function HomePage() {
   const [autoOpenLogin, setAutoOpenLogin] = useState(false);
   const router = useRouter();
 
-  // Check saved session on mount
+  // Check saved session on mount and initialize multi-device account sync
   useEffect(() => {
     try {
       const remembered = getRememberedUser();
@@ -26,6 +27,10 @@ export default function HomePage() {
     } catch {
       // Ignore parse errors
     }
+    const cleanupSync = initAccountSync();
+    return () => {
+      cleanupSync();
+    };
   }, []);
 
   const handleBootComplete = () => {

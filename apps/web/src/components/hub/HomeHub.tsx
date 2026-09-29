@@ -15,6 +15,7 @@ import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
 import { AvatarBadge } from "@/components/ui/AvatarBadge";
 import { TrefoilIcon } from "@/components/ui/TrefoilIcon";
 import { getNaWallet } from "@/lib/user";
+import { initAccountSync, requestAccountsSync } from "@/lib/account-sync";
 import { 
   PlusCircle, 
   LogIn, 
@@ -80,8 +81,20 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
     };
 
     syncUser();
+    const cleanupSync = initAccountSync();
+    requestAccountsSync();
+
+    const handleAccountsUpdated = (e: any) => {
+      syncUser();
+    };
+
     window.addEventListener("focus", syncUser);
-    return () => window.removeEventListener("focus", syncUser);
+    window.addEventListener("na_accounts_updated", handleAccountsUpdated);
+    return () => {
+      cleanupSync();
+      window.removeEventListener("focus", syncUser);
+      window.removeEventListener("na_accounts_updated", handleAccountsUpdated);
+    };
   }, [user]);
 
   // Level calculation
