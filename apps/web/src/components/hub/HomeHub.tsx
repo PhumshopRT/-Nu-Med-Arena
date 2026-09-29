@@ -50,7 +50,6 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
   const [joinCode, setJoinCode] = useState("");
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createRoomType, setCreateRoomType] = useState<"kahoot" | "table">("kahoot");
   const [showHowToModal, setShowHowToModal] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
 
@@ -290,7 +289,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
               <div className="w-[1px] h-3.5 bg-amber-600/40" />
               <div className="flex items-center space-x-1 text-amber-300 font-bold">
                 <Zap className="w-3 h-3 text-amber-400" />
-                <span>JEV DECISION ENGINE READY</span>
+                <span>CLASSROOM SYSTEM READY</span>
               </div>
             </div>
           </div>
@@ -659,47 +658,18 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
                 </button>
               </div>
 
-              {/* Mode Selection */}
-              <div className="mb-3">
-                <span className="text-xs text-amber-300 font-bold block mb-1.5">เลือกรูปแบบห้อง:</span>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => { sounds.playSelect(); setCreateRoomType("kahoot"); }}
-                    className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                      createRoomType === "kahoot"
-                        ? "bg-amber-900/90 border-amber-300 text-white shadow-md ring-1 ring-amber-400"
-                        : "bg-black/40 border-amber-800/40 text-amber-200/70 hover:bg-black/60"
-                    }`}
-                  >
-                    <span className="font-bold text-xs flex items-center space-x-1">
-                      <span>🎓 ห้องเรียน Kahoot</span>
-                    </span>
-                    <span className="text-[10px] text-amber-300/80 mt-1 leading-tight">จุได้ 55 คน • จอโปรเจกเตอร์</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => { sounds.playSelect(); setCreateRoomType("table"); }}
-                    className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                      createRoomType === "table"
-                        ? "bg-amber-900/90 border-amber-300 text-white shadow-md ring-1 ring-amber-400"
-                        : "bg-black/40 border-amber-800/40 text-amber-200/70 hover:bg-black/60"
-                    }`}
-                  >
-                    <span className="font-bold text-xs flex items-center space-x-1">
-                      <span>🎴 โต๊ะคาสิโน</span>
-                    </span>
-                    <span className="text-[10px] text-amber-300/80 mt-1 leading-tight">6 ที่นั่ง • ประลองวงปิด</span>
-                  </button>
-                </div>
+              <div className="mb-3 rounded-xl border border-amber-500/40 bg-black/35 p-3">
+                <div className="font-bold text-amber-100 text-sm">🎴 โต๊ะแข่งขันทั่วไป</div>
+                <p className="mt-1 text-[10px] leading-tight text-amber-300/80">
+                  ห้องเรียน 55 คนเปิดแยกจากปุ่มจอฉายของอาจารย์
+                </p>
               </div>
 
               <div className="space-y-2 text-xs text-amber-200/90 mb-4 bg-black/35 p-3 rounded-xl border border-amber-600/30">
                 <div className="flex justify-between items-center">
                   <span>ความจุผู้เล่นสูงสุด:</span>
                   <span className="font-bold text-emerald-400 bg-black/50 px-2 py-0.5 rounded border border-emerald-500/30">
-                    {createRoomType === "kahoot" ? "55 คน (Classroom)" : "6 คน (Table)"}
+                    6 คน (Table)
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -709,7 +679,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
                 <div className="flex justify-between items-center">
                   <span>เวลาคิดต่อข้อ:</span>
                   <span className="font-bold text-white bg-black/50 px-2 py-0.5 rounded border border-amber-500/30">
-                    {createRoomType === "kahoot" ? "30 วินาที" : "45 วินาที"}
+                    45 วินาที
                   </span>
                 </div>
               </div>
@@ -728,13 +698,8 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
                   onClick={() => {
                     sounds.playClick();
                     setShowCreateModal(false);
-                    if (createRoomType === "kahoot") {
-                      const pin = generateKahootPin();
-                      router.push(`/board/?code=${pin}`);
-                    } else {
-                      const code = generateRoomCode();
-                      router.push(`/lobby/?code=${code}&create=true&mode=table`);
-                    }
+                    const code = generateRoomCode();
+                    router.push(`/lobby/?code=${code}&create=true&mode=table`);
                   }}
                   className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 border-2 border-emerald-400 rounded-xl font-bold text-xs shadow-md cursor-pointer flex items-center justify-center space-x-1.5"
                 >

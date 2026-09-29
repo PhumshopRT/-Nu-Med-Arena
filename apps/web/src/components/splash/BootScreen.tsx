@@ -17,7 +17,7 @@ const TIPS = [
   "กำลังเร่งอนุภาคไซโคลตรอนผลิต ¹⁸F สำหรับ PET Scan 511 keV...",
   "กำลังจัดเรียงสำรับการ์ด 4 หมวด (RP, MECH, CASE, CLUE)...",
   "กำลังปรับเทียบตัวตรวจจับ Coincidence Detection ในระบบ PET...",
-  "JEV Engine กำลังวิเคราะห์สิทธิ์และตรวจสอบความพร้อมระบบ...",
+  "กำลังตรวจสอบสิทธิ์และความพร้อมของระบบ...",
 ];
 
 export function BootScreen({ onComplete }: BootScreenProps) {
@@ -71,7 +71,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
       <div className="w-full flex justify-between items-center p-4 md:p-6 z-20">
         <div className="bg-slate-950/85 backdrop-blur-md text-amber-200 text-xs px-3.5 py-1.5 rounded-full border border-amber-400/40 flex items-center space-x-2 shadow-xl">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-          <span className="font-mono tracking-wider font-bold">CYCLOTRON REACTOR LAB • JEV SYSTEM ONE ONLINE</span>
+          <span className="font-mono tracking-wider font-bold">CYCLOTRON REACTOR LAB • SYSTEM ONLINE</span>
         </div>
 
         <button
@@ -155,7 +155,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
           <span className="text-amber-600">•</span>
           <div className="flex items-center space-x-1 text-amber-300 font-bold">
             <Zap className="w-3 h-3 text-amber-400" />
-            <span>JEV ORCHESTRATION</span>
+            <span>REACTOR READY</span>
           </div>
         </div>
       </div>

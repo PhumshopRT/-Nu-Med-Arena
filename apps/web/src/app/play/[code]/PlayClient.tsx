@@ -40,6 +40,7 @@ import {
   PublicPlayer,
   StudentUser,
   gradeAnswer,
+  calculateKahootScore,
   BOTS,
   simulateBotAnswer
 } from "@nucmed/shared";
@@ -87,6 +88,8 @@ export function PlayClient() {
 
   // Match State
   const [currentRound, setCurrentRound] = useState(1);
+  const currentRoundRef = useRef(1);
+  currentRoundRef.current = currentRound;
   const [totalRounds, setTotalRounds] = useState(10);
   const [phase, setPhase] = useState<"DEAL" | "SHOW_CASE" | "THINK" | "LOCKED" | "REVEAL" | "SWAP" | "RESULT">("THINK");
   
@@ -182,6 +185,8 @@ export function PlayClient() {
     isTie: boolean;
   } | null>(null);
   const userCorrectCountRef = useRef(0);
+  const revealedRoundRef = useRef<number | null>(null);
+  const matchFinishedRef = useRef(false);
   const syncRef = useRef<RoomSyncHandle | null>(null);
   const mechScrollRef = useRef<HTMLDivElement>(null);
   const handScrollRef = useRef<HTMLDivElement>(null);
@@ -429,6 +434,7 @@ export function PlayClient() {
               });
             });
             if (msg.room.roundIndex && msg.room.roundIndex !== currentRound) {
+              currentRoundRef.current = msg.room.roundIndex;
               setCurrentRound(msg.room.roundIndex);
             }
             if (msg.room.caseCardId) {
@@ -442,6 +448,8 @@ export function PlayClient() {
         }
         case "ROUND_ADVANCE": {
           sounds.playDraw();
+          revealedRoundRef.current = null;
+          currentRoundRef.current = msg.roundIndex;
           setCurrentRound(msg.roundIndex);
 
           // Replenish used card from hand
@@ -481,7 +489,11 @@ export function PlayClient() {
           break;
         }
         case "ROUND_REVEAL": {
-          revealAnswers();
+          if (msg.roundIndex === currentRoundRef.current) revealAnswers();
+          break;
+        }
+        case "MATCH_FINISH": {
+          finishMatch();
           break;
         }
       }
@@ -659,6 +671,8 @@ export function PlayClient() {
   };
 
   const revealAnswers = () => {
+    if (revealedRoundRef.current === currentRound) return;
+    revealedRoundRef.current = currentRound;
     setPhase("REVEAL");
 
     // Grade current user's answer (private clue reveal only affects player)
@@ -673,34 +687,26 @@ export function PlayClient() {
     let streakBonus = 0;
     let nextStreak = 0;
     let isFast = false;
+    const isExplicitKahoot = searchParams?.get("mode") === "kahoot" || /^\d{5,8}$/.test(roomCode);
+    const isKahootMode = isExplicitKahoot && searchParams?.get("mode") !== "table";
+    const timeRemaining = lockTimeLeft !== null ? lockTimeLeft : timeLeft;
+    const kahootAward = calculateKahootScore(result.scoreAwarded > 0, timeRemaining, maxTime);
 
     if (result.scoreAwarded > 0) {
       userCorrectCountRef.current += 1;
       nextStreak = streak + 1;
       setStreak(nextStreak);
 
-      // Speed bonus ONLY IN KAHOOT / CLASSROOM MODE (ห้ามใช้ในโหมดทั่วไป/ซ้อมเดี่ยวเด็ดขาด)
-      const isExplicitKahoot = searchParams?.get("mode") === "kahoot" || Boolean(room?.settings?.spotlightMode) || (Boolean(room?.settings?.maxPlayers) && (room?.settings?.maxPlayers ?? 0) > 6) || /^\d{5,8}$/.test(roomCode);
-      const isGeneralTable = searchParams?.get("mode") === "table" || !isClassMode || (!isExplicitKahoot);
-      const isKahootMode = !isGeneralTable && isExplicitKahoot;
-
       if (isKahootMode) {
-        const timeRemaining = lockTimeLeft !== null ? lockTimeLeft : timeLeft;
-        const ratio = timeRemaining / Math.max(1, maxTime);
-        if (ratio >= 0.6) {
-          speedBonus = 2;
-          isFast = true;
-        } else if (ratio >= 0.3) {
-          speedBonus = 1;
-          isFast = true;
+        speedBonus = Math.max(0, kahootAward - result.scoreAwarded);
+        isFast = timeRemaining > 0;
+      } else {
+        // Preserve the existing deterministic streak bonus for ordinary table/practice.
+        if (nextStreak >= 3) {
+          streakBonus = 2;
+        } else if (nextStreak === 2) {
+          streakBonus = 1;
         }
-      }
-
-      // Streak bonus:
-      if (nextStreak >= 3) {
-        streakBonus = 2;
-      } else if (nextStreak === 2) {
-        streakBonus = 1;
       }
 
       sounds.playCombo(nextStreak);
@@ -719,7 +725,9 @@ export function PlayClient() {
       sounds.playWrong();
     }
 
-    const totalAwarded = result.scoreAwarded > 0 ? (result.scoreAwarded + speedBonus + streakBonus) : 0;
+    const totalAwarded = result.scoreAwarded > 0
+      ? (isKahootMode ? kahootAward : result.scoreAwarded + streakBonus)
+      : 0;
 
     setBonusDetails({
       speedBonus,
@@ -795,6 +803,8 @@ export function PlayClient() {
 
     // Next round
     const nextRoundNum = currentRound + 1;
+    currentRoundRef.current = nextRoundNum;
+    revealedRoundRef.current = null;
     setCurrentRound(nextRoundNum);
     const { updatedHand, updatedDeck } = replenishHandCard(selectedRpRef.current?.id);
     setupRound(nextRoundNum, updatedDeck, updatedHand);
@@ -823,11 +833,14 @@ export function PlayClient() {
   const handleCompleteSwap = () => {
     sounds.playClick();
     const nextRoundNum = currentRound + 1;
+    currentRoundRef.current = nextRoundNum;
     setCurrentRound(nextRoundNum);
     setupRound(nextRoundNum, deck, hand);
   };
 
   const finishMatch = () => {
+    if (matchFinishedRef.current) return;
+    matchFinishedRef.current = true;
     sounds.playWin();
     setPhase("RESULT");
 
@@ -872,11 +885,13 @@ export function PlayClient() {
       isTie
     });
 
-    setUser({
+    const updatedUser = {
       ...user,
       coins: totalRemaining,
       xp: (user.xp || 0) + myScore * 10
-    });
+    };
+    saveLocalUser(updatedUser);
+    setUser(updatedUser);
   };
 
   return (

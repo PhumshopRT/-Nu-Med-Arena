@@ -14,6 +14,7 @@ export type SyncMessage =
   | { type: "MATCH_START"; roomCode: string }
   | { type: "ROUND_ADVANCE"; roundIndex: number; caseId: string }
   | { type: "ROUND_REVEAL"; roundIndex: number; caseId: string; results?: any }
+  | { type: "MATCH_FINISH"; roundIndex: number }
   | { type: "CHAT_MESSAGE"; message: { id: string; sender: string; text: string; avatar?: string } }
   | { type: "EMOJI_REACTION"; playerId: string; emoji: string };
 

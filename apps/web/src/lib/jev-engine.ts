@@ -40,11 +40,8 @@ class JevEngine {
   constructor() {
     try {
       if (typeof window === "undefined") {
-        let apiKey = process.env.TYPESAFE_API_KEY;
-        if (!apiKey || apiKey.startsWith("REVOKED_KEY_REMOVED")) {
-          apiKey = "REVOKED_KEY_REMOVED";
-        }
-        this.client = new TypeSafeClient({ apiKey });
+        const apiKey = process.env.TYPESAFE_API_KEY;
+        if (apiKey) this.client = new TypeSafeClient({ apiKey });
       }
     } catch {
       this.client = null;

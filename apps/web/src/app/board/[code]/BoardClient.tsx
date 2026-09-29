@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { 
   ALL_CASE_CARDS, CaseCard, PublicRoomState, PublicPlayer, ALL_RP_CARDS, ALL_MECH_CARDS, StudentUser,
-  gradeAnswer, BOTS, simulateBotAnswer
+  gradeAnswer, BOTS, simulateBotAnswer, upsertRoomPlayer
 } from "@nucmed/shared";
 import { getPlayableCaseCards, getPlayableRpCards } from "@/lib/cards";
 import { CaseCard as CaseCardComponent } from "@/components/cards/CaseCard";
@@ -30,6 +30,9 @@ export function BoardClient() {
   const [user, setUser] = useState<StudentUser | null>(null);
   const syncRef = useRef<RoomSyncHandle | null>(null);
   const roomRef = useRef<PublicRoomState | null>(null);
+  const revealedRoundRef = useRef<number | null>(null);
+  const advancingRoundRef = useRef<number | null>(null);
+  const advanceRoundHandlerRef = useRef<() => void>(() => {});
   roomRef.current = room;
 
   const isHost = Boolean(
@@ -48,6 +51,11 @@ export function BoardClient() {
       const saved = localStorage.getItem(`nucmed_room_${roomCode}`);
       if (saved) {
         activeRoom = JSON.parse(saved);
+        activeRoom.settings = {
+          ...activeRoom.settings,
+          maxPlayers: 55,
+          spotlightMode: activeRoom.settings?.spotlightMode || "big-card",
+        };
         if (!activeRoom.hostId) {
           activeRoom.hostId = hostId;
         }
@@ -109,6 +117,7 @@ export function BoardClient() {
     }
 
     setRoom(activeRoom);
+    roomRef.current = activeRoom;
     setTimeLeft(activeRoom.settings?.thinkSeconds || 30);
     const cid = activeRoom.caseCardId;
     const foundCase = ALL_CASE_CARDS.find(c => c.id === cid);
@@ -123,6 +132,7 @@ export function BoardClient() {
       switch (msg.type) {
         case "ROOM_STATE_SYNC":
           if (msg.room) {
+            roomRef.current = msg.room;
             setRoom(msg.room);
             const cid = msg.room.caseCardId;
             const foundCase = ALL_CASE_CARDS.find(c => c.id === cid);
@@ -141,10 +151,15 @@ export function BoardClient() {
             if (msg.player.id === currentRoom.hostId || (user && msg.player.studentId === user.studentId)) {
               break;
             }
-            const exists = currentRoom.players.some(p => p.studentId === msg.player.studentId);
             let updated = currentRoom;
-            if (!exists && currentRoom.players.length < (currentRoom.settings.maxPlayers || 55)) {
-              updated = { ...currentRoom, players: [...currentRoom.players, msg.player] };
+            const nextPlayers = upsertRoomPlayer(
+              currentRoom.players,
+              msg.player,
+              55
+            );
+            if (nextPlayers !== currentRoom.players) {
+              updated = { ...currentRoom, players: nextPlayers };
+              roomRef.current = updated;
               setRoom(updated);
               localStorage.setItem(`nucmed_room_${roomCode}`, JSON.stringify(updated));
             }
@@ -194,6 +209,7 @@ export function BoardClient() {
   }, [roomCode, isHost, user]);
 
   const saveAndBroadcast = (updated: PublicRoomState) => {
+    roomRef.current = updated;
     setRoom(updated);
     localStorage.setItem(`nucmed_room_${roomCode}`, JSON.stringify(updated));
     syncRef.current?.publish({ type: "ROOM_STATE_SYNC", room: updated });
@@ -311,10 +327,13 @@ export function BoardClient() {
       selectedMechId: undefined
     }));
     
+    revealedRoundRef.current = null;
+    advancingRoundRef.current = null;
     const updated: PublicRoomState = {
       ...room,
       phase: "THINK",
       caseCardId: nextCase.id,
+      endsAt: Date.now() + (room.settings.thinkSeconds || 30) * 1000,
       players: resetPlayers
     };
     setTimeLeft(room.settings.thinkSeconds || 30);
@@ -323,11 +342,13 @@ export function BoardClient() {
   };
 
   const handleReveal = () => {
-    if (!room || !isHost) return;
+    const activeRoom = roomRef.current;
+    if (!activeRoom || !isHost || activeRoom.phase !== "THINK" || revealedRoundRef.current === activeRoom.roundIndex) return;
+    revealedRoundRef.current = activeRoom.roundIndex;
     sounds.playSelect();
     
     // Ensure all bots lock & grade bots on the board
-    const updatedPlayers = room.players.map(p => {
+    const updatedPlayers = activeRoom.players.map(p => {
       const isBot = p.id.startsWith("bot_") || p.studentId.startsWith("BOT-");
       if (isBot) {
         let rpId = p.selectedRpId;
@@ -338,7 +359,8 @@ export function BoardClient() {
           rpId = botAns.rpId;
           mechId = botAns.mechId;
         }
-        const grading = gradeAnswer(currentCase, rpId || "", mechId || "", false);
+        const activeCase = ALL_CASE_CARDS.find((card) => card.id === activeRoom.caseCardId) || currentCase;
+        const grading = gradeAnswer(activeCase, rpId || "", mechId || "", false);
         const pts = grading.scoreAwarded;
         const nextStreak = pts > 0 ? ((p.streak || 0) + 1) : 0;
         return {
@@ -354,24 +376,61 @@ export function BoardClient() {
     });
 
     const updated: PublicRoomState = {
-      ...room,
+      ...activeRoom,
       phase: "REVEAL",
       players: updatedPlayers
     };
     saveAndBroadcast(updated);
-    syncRef.current?.publish({ type: "ROUND_REVEAL", roundIndex: room.roundIndex, caseId: currentCase.id });
+    syncRef.current?.publish({ type: "ROUND_REVEAL", roundIndex: activeRoom.roundIndex, caseId: activeRoom.caseCardId || currentCase.id });
   };
   
   const handleNextRound = () => {
-    if (!room || !isHost) return;
+    const activeRoom = roomRef.current;
+    if (!activeRoom || !isHost || activeRoom.phase !== "REVEAL" || advancingRoundRef.current === activeRoom.roundIndex) return;
+    advancingRoundRef.current = activeRoom.roundIndex;
     sounds.playClick();
+    if (activeRoom.roundIndex >= activeRoom.totalRounds) {
+      const finished = { ...activeRoom, phase: "RESULT" as const, endsAt: 0 };
+      saveAndBroadcast(finished);
+      syncRef.current?.publish({ type: "MATCH_FINISH", roundIndex: activeRoom.roundIndex });
+      return;
+    }
+
+    const nextRoundIndex = activeRoom.roundIndex + 1;
+    const playableCases = getPlayableCaseCards();
+    const casePool = playableCases.length > 0 ? playableCases : ALL_CASE_CARDS;
+    const nextCase = casePool[(nextRoundIndex - 1) % casePool.length];
+    const nextPlayers = activeRoom.players.map((player) => ({
+      ...player,
+      locked: false,
+      selectedRpId: undefined,
+      selectedMechId: undefined,
+      lastAnswerResult: undefined,
+    }));
     const updated: PublicRoomState = {
-      ...room,
-      phase: "SHOW_CASE",
-      roundIndex: room.roundIndex + 1
+      ...activeRoom,
+      phase: "THINK",
+      roundIndex: nextRoundIndex,
+      caseCardId: nextCase.id,
+      endsAt: Date.now() + (activeRoom.settings.thinkSeconds || 30) * 1000,
+      players: nextPlayers,
     };
+    setCurrentCase(nextCase);
+    setTimeLeft(activeRoom.settings.thinkSeconds || 30);
+    revealedRoundRef.current = null;
+    advancingRoundRef.current = null;
     saveAndBroadcast(updated);
+    syncRef.current?.publish({ type: "ROUND_ADVANCE", roundIndex: nextRoundIndex, caseId: nextCase.id });
   };
+
+  advanceRoundHandlerRef.current = handleNextRound;
+
+  // Keep the projector advancing like a quiz show without requiring two host clicks.
+  useEffect(() => {
+    if (!isHost || room?.phase !== "REVEAL") return;
+    const timer = setTimeout(() => advanceRoundHandlerRef.current(), 5000);
+    return () => clearTimeout(timer);
+  }, [isHost, room?.phase, room?.roundIndex]);
 
   // Check if everyone locked
   useEffect(() => {
@@ -403,7 +462,7 @@ export function BoardClient() {
   const players = room.players || [];
   const lockedCount = players.filter(p => p.locked).length;
   const totalPlayers = players.length;
-  const maxLimit = room.settings.maxPlayers || 55;
+  const maxLimit = 55;
   const displayMode = room.settings.spotlightMode || "big-card";
 
   const correctRp = ALL_RP_CARDS.find(r => currentCase.acceptedRpIds.includes(r.id));
@@ -486,7 +545,7 @@ export function BoardClient() {
               ))}
             </div>
           </div>
-        ) : room.phase === "REVEAL" ? (
+        ) : room.phase === "REVEAL" || room.phase === "RESULT" ? (
           <div className="flex flex-col w-full h-full items-center">
             <div className="w-full flex justify-between items-start mb-8">
                <div className="bg-emerald-950/90 border-4 border-emerald-500 rounded-3xl p-6 shadow-2xl flex flex-col items-center max-w-2xl">
@@ -506,7 +565,7 @@ export function BoardClient() {
 
             {/* Podium */}
             <div className="flex-1 flex flex-col items-center justify-end w-full max-w-5xl mt-auto pb-10">
-              <h2 className="text-4xl text-amber-300 font-black mb-10 drop-shadow-lg">สรุปอันดับ (LEADERBOARD)</h2>
+              <h2 className="text-4xl text-amber-300 font-black mb-10 drop-shadow-lg">{room.phase === "RESULT" ? "จบการแข่งขัน • สรุปอันดับ" : "สรุปอันดับ (LEADERBOARD)"}</h2>
               <div className="flex items-end justify-center space-x-4 h-64 w-full">
                 {/* 2nd Place */}
                 {players.length > 1 && (
@@ -618,7 +677,7 @@ export function BoardClient() {
                 <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                   {[...players]
                     .sort((a, b) => b.score - a.score)
-                    .slice(0, 50)
+                    .slice(0, 55)
                     .map((p, rank) => (
                       <div
                         key={p.id}
@@ -688,13 +747,13 @@ export function BoardClient() {
             </button>
           )}
 
-          {room.phase === "REVEAL" && room.roundIndex < room.totalRounds && (
+          {room.phase === "REVEAL" && (
             <button
               onClick={handleNextRound}
               className="px-8 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold text-lg flex items-center space-x-2 border-b-4 border-amber-800 active:translate-y-1 active:border-b-0"
             >
               <SkipForward className="w-5 h-5" />
-              <span>ไปยังข้อถัดไป</span>
+              <span>{room.roundIndex >= room.totalRounds ? "ดูผลการแข่งขัน" : "ไปข้อถัดไป"}</span>
             </button>
           )}
 

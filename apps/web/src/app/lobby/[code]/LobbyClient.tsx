@@ -31,7 +31,8 @@ import {
   PublicRoomState, 
   DEFAULT_ROOM_SETTINGS, 
   BOTS, 
-  StudentUser 
+  StudentUser,
+  upsertRoomPlayer
 } from "@nucmed/shared";
 import { 
   getLocalUser, 
@@ -162,6 +163,7 @@ export function LobbyClient() {
     }
 
     setRoom(currentRoom);
+    roomRef.current = currentRoom;
     localStorage.setItem(savedRoomKey, JSON.stringify(currentRoom));
 
     // 2. Setup Real-time Multi-device Synchronizer
@@ -174,15 +176,16 @@ export function LobbyClient() {
           // Only host manages and broadcasts state updates to avoid conflicts
           const hostIsMe = hostRoom.hostId === `p_${localUser.studentId}`;
           if (hostIsMe) {
-            const playerExists = hostRoom.players.some((p) => p.studentId === msg.player.studentId);
-            let updatedRoom = hostRoom;
             const maxCapacity = (hostRoom.settings.spotlightMode || (hostRoom.settings.maxPlayers && hostRoom.settings.maxPlayers > 6) || isKahootInit) ? 55 : (hostRoom.settings.maxPlayers || 6);
-            if (!playerExists && hostRoom.players.length < maxCapacity) {
+            const nextPlayers = upsertRoomPlayer(hostRoom.players, msg.player, maxCapacity);
+            let updatedRoom = hostRoom;
+            if (nextPlayers !== hostRoom.players) {
               sounds.playClick();
               updatedRoom = {
                 ...hostRoom,
-                players: [...hostRoom.players, msg.player]
+                players: nextPlayers
               };
+              roomRef.current = updatedRoom;
               setRoom(updatedRoom);
               localStorage.setItem(`nucmed_room_${roomCode}`, JSON.stringify(updatedRoom));
             }
@@ -203,9 +206,10 @@ export function LobbyClient() {
               if (!hasMe && msg.room.players.length < maxCapacity) {
                 finalRoom = {
                   ...msg.room,
-                  players: [...msg.room.players, myPlayerInfo]
+                  players: upsertRoomPlayer(msg.room.players, myPlayerInfo, maxCapacity)
                 };
               }
+              roomRef.current = finalRoom;
               localStorage.setItem(`nucmed_room_${roomCode}`, JSON.stringify(finalRoom));
               return finalRoom;
             });
@@ -340,6 +344,7 @@ export function LobbyClient() {
   };
 
   const saveAndBroadcastRoom = (updated: PublicRoomState) => {
+    roomRef.current = updated;
     setRoom(updated);
     localStorage.setItem(`nucmed_room_${roomCode}`, JSON.stringify(updated));
     syncRef.current?.publish({ type: "ROOM_STATE_SYNC", room: updated });

@@ -36,6 +36,33 @@ export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
   spotlightMode: "big-card",
 };
 
+/** Add or refresh one participant without exceeding the room's actual capacity. */
+export function upsertRoomPlayer(
+  players: PublicPlayer[],
+  incoming: PublicPlayer,
+  capacity: number
+): PublicPlayer[] {
+  const existingIndex = players.findIndex(
+    (player) => player.studentId === incoming.studentId || player.id === incoming.id
+  );
+
+  if (existingIndex >= 0) {
+    const updated = [...players];
+    const existing = updated[existingIndex];
+    updated[existingIndex] = {
+      ...existing,
+      name: incoming.name,
+      avatar: incoming.avatar ?? existing.avatar,
+      title: incoming.title ?? existing.title,
+      frame: incoming.frame ?? existing.frame,
+    };
+    return updated;
+  }
+
+  if (players.length >= Math.max(0, capacity)) return players;
+  return [...players, incoming];
+}
+
 export interface BotProfile {
   id: string;
   name: string;
