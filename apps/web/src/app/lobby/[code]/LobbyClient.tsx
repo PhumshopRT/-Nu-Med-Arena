@@ -50,6 +50,8 @@ export function LobbyClient() {
   // Support both /lobby/?code=XYZ and /lobby/XYZ
   const rawCode = (searchParams?.get("code") || params?.code || "ROOM01") as string;
   const roomCode = rawCode.toUpperCase();
+  const modeParam = searchParams?.get("mode");
+  const isExplicitTable = modeParam === "table";
 
   const [user, setUser] = useState<StudentUser | null>(null);
   const [room, setRoom] = useState<PublicRoomState | null>(null);
@@ -66,13 +68,20 @@ export function LobbyClient() {
   const roomRef = useRef<PublicRoomState | null>(null);
   roomRef.current = room;
 
+  const isKahootMode = !isExplicitTable && (
+    Boolean(room?.settings?.spotlightMode) ||
+    (Boolean(room?.settings?.maxPlayers) && (room?.settings?.maxPlayers ?? 0) > 6) ||
+    modeParam === "kahoot" ||
+    roomCode.startsWith("ROOM")
+  );
+
   const isHost = Boolean(user && room && room.hostId === `p_${user.studentId}`);
   const myPlayer = room?.players.find((p) => p.studentId === user?.studentId);
 
   // Computed invite URL
   const inviteUrl = typeof window !== "undefined"
-    ? `${window.location.origin}${window.location.pathname.startsWith("/RTGAME") ? "/RTGAME" : ""}/lobby/?code=${roomCode}`
-    : `https://masterphum07-web.github.io/RTGAME/lobby/?code=${roomCode}`;
+    ? `${window.location.origin}${window.location.pathname.startsWith("/RTGAME") ? "/RTGAME" : ""}/lobby/?code=${roomCode}${isKahootMode ? "&mode=kahoot" : "&mode=table"}`
+    : `https://masterphum07-web.github.io/RTGAME/lobby/?code=${roomCode}${isKahootMode ? "&mode=kahoot" : "&mode=table"}`;
 
   // 1. Initialize user & initial room
   useEffect(() => {
@@ -80,6 +89,7 @@ export function LobbyClient() {
     setUser(localUser);
 
     const isCreateIntent = searchParams?.get("create") === "true";
+    const isKahootInit = !isExplicitTable && (modeParam === "kahoot" || roomCode.startsWith("ROOM"));
     const equipped = getNaEquipped();
     const myAvatar = getAvatarIcon(localUser.equipped?.avatar || equipped.avatar);
     const myTitle = getTitleBadge(localUser.equipped?.title || equipped.title);
@@ -105,6 +115,19 @@ export function LobbyClient() {
     if (saved) {
       try {
         currentRoom = JSON.parse(saved);
+        if (isKahootInit) {
+          currentRoom.settings = {
+            ...currentRoom.settings,
+            maxPlayers: Math.max(currentRoom.settings?.maxPlayers || 0, 55),
+            spotlightMode: currentRoom.settings?.spotlightMode || "big-card"
+          };
+        } else if (isExplicitTable) {
+          currentRoom.settings = {
+            ...currentRoom.settings,
+            maxPlayers: 6,
+            spotlightMode: undefined
+          };
+        }
         currentRoom.players = (currentRoom.players || []).map((p) => {
           if (p.studentId === localUser.studentId) {
             return {
@@ -117,14 +140,15 @@ export function LobbyClient() {
           return p;
         });
         const existingPlayer = currentRoom.players.find((p) => p.studentId === localUser.studentId);
-        if (!existingPlayer && currentRoom.players.length < currentRoom.settings.maxPlayers) {
+        const maxCapacity = (currentRoom.settings.spotlightMode || (currentRoom.settings.maxPlayers && currentRoom.settings.maxPlayers > 6) || isKahootInit) ? 55 : (currentRoom.settings.maxPlayers || 6);
+        if (!existingPlayer && currentRoom.players.length < maxCapacity) {
           currentRoom.players.push(myPlayerInfo);
         }
       } catch {
-        currentRoom = createInitialRoom(roomCode, localUser, isCreateIntent, myAvatar, myTitle || undefined, myFrame);
+        currentRoom = createInitialRoom(roomCode, localUser, isCreateIntent, myAvatar, myTitle || undefined, myFrame, isKahootInit);
       }
     } else {
-      currentRoom = createInitialRoom(roomCode, localUser, isCreateIntent, myAvatar, myTitle || undefined, myFrame);
+      currentRoom = createInitialRoom(roomCode, localUser, isCreateIntent, myAvatar, myTitle || undefined, myFrame, isKahootInit);
     }
 
     setRoom(currentRoom);
@@ -142,7 +166,8 @@ export function LobbyClient() {
           if (hostIsMe) {
             const playerExists = hostRoom.players.some((p) => p.studentId === msg.player.studentId);
             let updatedRoom = hostRoom;
-            if (!playerExists && hostRoom.players.length < hostRoom.settings.maxPlayers) {
+            const maxCapacity = (hostRoom.settings.spotlightMode || (hostRoom.settings.maxPlayers && hostRoom.settings.maxPlayers > 6) || isKahootInit) ? 55 : (hostRoom.settings.maxPlayers || 6);
+            if (!playerExists && hostRoom.players.length < maxCapacity) {
               sounds.playClick();
               updatedRoom = {
                 ...hostRoom,
@@ -164,7 +189,8 @@ export function LobbyClient() {
               // Ensure myself is retained in players if already present
               const hasMe = msg.room.players.some((p) => p.studentId === localUser.studentId);
               let finalRoom = msg.room;
-              if (!hasMe && msg.room.players.length < msg.room.settings.maxPlayers) {
+              const maxCapacity = (msg.room.settings.spotlightMode || (msg.room.settings.maxPlayers && msg.room.settings.maxPlayers > 6) || isKahootInit) ? 55 : (msg.room.settings.maxPlayers || 6);
+              if (!hasMe && msg.room.players.length < maxCapacity) {
                 finalRoom = {
                   ...msg.room,
                   players: [...msg.room.players, myPlayerInfo]
@@ -194,7 +220,8 @@ export function LobbyClient() {
 
         case "MATCH_START": {
           sounds.playWin();
-          router.push(`/play/?code=${roomCode}`);
+          const targetMode = (roomRef.current?.settings.spotlightMode || (roomRef.current?.settings.maxPlayers && roomRef.current.settings.maxPlayers > 6) || isKahootInit) ? "kahoot" : "table";
+          router.push(`/play/?code=${roomCode}&mode=${targetMode}`);
           break;
         }
 
@@ -254,7 +281,8 @@ export function LobbyClient() {
     isHostRole: boolean = true,
     avatar: string = "☢️",
     title?: string,
-    frame?: string
+    frame?: string,
+    isKahoot: boolean = false
   ): PublicRoomState => {
     return {
       code,
@@ -266,7 +294,12 @@ export function LobbyClient() {
       clueCardId: null,
       sharedMechanisms: [],
       endsAt: 0,
-      settings: { ...DEFAULT_ROOM_SETTINGS },
+      settings: {
+        ...DEFAULT_ROOM_SETTINGS,
+        maxPlayers: isKahoot ? 55 : 6,
+        spotlightMode: isKahoot ? "big-card" : undefined,
+        thinkSeconds: isKahoot ? 30 : 45
+      },
       players: [
         {
           id: `p_${host.studentId}`,
@@ -305,7 +338,8 @@ export function LobbyClient() {
   };
 
   const handleAddBot = (seatIdx: number) => {
-    if (!room || room.players.length >= 6) return;
+    const maxCapacity = isKahootMode ? 55 : 6;
+    if (!room || room.players.length >= maxCapacity) return;
     sounds.playClick();
     const botTemplate = BOTS[seatIdx % BOTS.length];
     const newBot: PublicPlayer = {
@@ -367,10 +401,10 @@ export function LobbyClient() {
     };
     saveAndBroadcastRoom(updated);
     syncRef.current?.publish({ type: "MATCH_START", roomCode });
-    if (room.settings.spotlightMode) {
+    if (isKahootMode) {
       router.push(`/board/?code=${roomCode}`);
     } else {
-      router.push(`/play/?code=${roomCode}`);
+      router.push(`/play/?code=${roomCode}&mode=table`);
     }
   };
 
@@ -422,7 +456,7 @@ export function LobbyClient() {
           </button>
           <div>
             <h1 className="font-game font-black text-lg md:text-xl text-amber-200 tracking-wide flex items-center space-x-2">
-              <span>โต๊ะแข่งขัน 6 ที่นั่ง (MATCH LOBBY)</span>
+              <span>{isKahootMode ? "ห้องรอประลองโหมดห้องเรียน (KAHOOT CLASS 55 คน)" : "โต๊ะแข่งขัน 6 ที่นั่ง (MATCH LOBBY)"}</span>
             </h1>
             <p className="text-[10px] text-amber-300/80">
               {isHost ? "คุณคือหัวหน้าห้อง (Host) — สามารถตั้งค่าและกดเริ่มเกมได้" : "รอหัวหน้าห้องเริ่มการแข่งขัน"}
@@ -469,64 +503,144 @@ export function LobbyClient() {
 
       {/* Main Tabletop Arena Area */}
       <main className="relative z-10 flex-1 max-w-7xl mx-auto w-full px-3 md:px-8 py-4 md:py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left / Center Table (8 cols): 3D Felt Oval Arena with 6 Seats */}
+        {/* Left / Center Table (8 cols): 3D Felt Oval Arena with 6 Seats OR 55-Player Kahoot Stage */}
         <div className="lg:col-span-8 flex flex-col items-center">
           
-            {room?.settings.spotlightMode ? (
-              <div className="relative w-full rounded-[40px] md:rounded-[60px] bg-black/50 border-4 border-amber-500/80 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_0_80px_rgba(245,158,11,0.2)] p-6 md:p-10 flex flex-col items-center justify-start min-h-[460px] md:min-h-[520px]">
+            {isKahootMode ? (
+              <div className="relative w-full rounded-[32px] md:rounded-[48px] bg-gradient-to-b from-[#0e2a22] via-[#091e18] to-[#04120f] border-4 md:border-6 border-amber-500/90 shadow-[0_20px_50px_rgba(0,0,0,0.85),inset_0_0_80px_rgba(245,158,11,0.2)] p-4 sm:p-6 md:p-8 flex flex-col items-center justify-between min-h-[480px] md:min-h-[540px]">
                 
-                {/* Header */}
-                <div className="w-full flex justify-between items-center mb-6 border-b border-amber-500/30 pb-4">
-                  <div className="flex items-center space-x-3">
-                    <Users className="w-8 h-8 text-amber-400" />
-                    <h2 className="text-2xl md:text-3xl font-black text-amber-300 tracking-wider">ห้องรอผู้เล่น (CLASS MODE)</h2>
+                {/* Header with Title and Player Count */}
+                <div className="w-full flex flex-wrap justify-between items-center gap-2 mb-4 pb-3 border-b border-amber-500/30">
+                  <div className="flex items-center space-x-2.5">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-amber-300 shadow">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl md:text-2xl font-black text-amber-300 tracking-wider">
+                        ห้องรอผู้เรียน (KAHOOT CLASS MODE)
+                      </h2>
+                      <p className="text-[11px] text-amber-300/80">
+                        {isHost ? "กดเริ่มเกมได้ทันทีเมื่อทุกคนพร้อม (ไม่ต้องรอเวลานับถอยหลัง)" : "รอหัวหน้าห้อง/อาจารย์ผู้สอนกดเริ่มการแข่งขัน"}
+                      </p>
+                    </div>
                   </div>
-                  <div className="bg-amber-950/80 px-4 py-2 rounded-xl border border-amber-700 text-amber-300 font-bold">
-                    {room.players.length} / {room.settings.maxPlayers || 55} คน
+                  <div className="bg-amber-950/90 px-3.5 py-1.5 rounded-2xl border-2 border-amber-500 text-amber-200 font-bold text-xs sm:text-sm shadow">
+                    👥 ผู้เล่น: <span className="text-emerald-400 font-black text-base">{room?.players.length ?? 0}</span> / {room?.settings.maxPlayers || 55} คน
                   </div>
                 </div>
 
-                {/* Player Grid */}
-                <div className="flex-1 w-full max-h-[300px] overflow-y-auto custom-scrollbar pr-2 mb-6">
-                  {room.players.length === 0 ? (
-                    <div className="flex items-center justify-center h-full text-amber-300/50 text-xl font-bold">
-                      รอผู้เล่นเข้าห้อง...
+                {/* Kahoot Prominent PIN Plaque */}
+                <div className="w-full max-w-xl wood-panel px-6 py-3 rounded-2xl border-3 border-amber-950 shadow-xl flex flex-col items-center mb-4 text-center">
+                  <span className="text-[10px] md:text-xs text-amber-300 font-bold uppercase tracking-wider">
+                    รหัส PIN สำหรับเข้าร่วมห้อง (GAME PIN)
+                  </span>
+                  <div className="font-mono font-black text-3xl md:text-5xl text-amber-100 tracking-[0.2em] text-shadow-gold-title filter drop-shadow my-0.5">
+                    {roomCode}
+                  </div>
+
+                  <div className="flex items-center space-x-2 mt-1.5">
+                    <button
+                      onClick={handleCopyCode}
+                      className="px-3 py-1 bg-amber-900/80 hover:bg-amber-800 text-amber-200 rounded-xl text-xs font-bold border border-amber-600 flex items-center space-x-1.5 transition-all active:scale-95 cursor-pointer shadow"
+                    >
+                      {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedCode ? "คัดลอก PIN แล้ว!" : "คัดลอก PIN"}</span>
+                    </button>
+
+                    <button
+                      onClick={handleCopyLink}
+                      className="px-3 py-1 bg-blue-900/80 hover:bg-blue-800 text-blue-200 rounded-xl text-xs font-bold border border-blue-500 flex items-center space-x-1.5 transition-all active:scale-95 cursor-pointer shadow"
+                    >
+                      {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Share2 className="w-3.5 h-3.5" />}
+                      <span>{copiedLink ? "คัดลอกลิงก์แล้ว!" : "คัดลอกลิงก์"}</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        sounds.playClick();
+                        setShowQrModal(true);
+                      }}
+                      className="p-1 bg-emerald-900/80 hover:bg-emerald-800 text-emerald-200 rounded-xl border border-emerald-500 shadow transition-all active:scale-95 cursor-pointer"
+                      title="แสดง QR Code"
+                    >
+                      <QrCode className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* 55-Player Grid Display */}
+                <div className="flex-1 w-full max-h-[260px] md:max-h-[300px] overflow-y-auto custom-scrollbar px-2 py-2 mb-4">
+                  {(!room || room.players.length === 0) ? (
+                    <div className="flex items-center justify-center h-full text-amber-300/60 text-lg font-bold">
+                      รอผู้เรียนเข้าร่วมห้อง...
                     </div>
                   ) : (
-                    <div className="flex flex-wrap justify-center gap-3 md:gap-4">
-                      {room.players.map((p) => (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          key={p.id}
-                          className="bg-amber-900/40 border-2 border-amber-500/40 px-4 py-2 rounded-2xl flex items-center space-x-2 shadow-lg hover:border-amber-400 transition-colors"
-                        >
-                          <span className="text-2xl">{p.avatar || "👨‍🎓"}</span>
-                          <span className="text-white font-bold">{p.name}</span>
-                          {p.id === room.hostId && <span className="text-amber-400 text-xs ml-1">👑</span>}
-                        </motion.div>
-                      ))}
+                    <div className="flex flex-wrap justify-center gap-2.5 md:gap-3">
+                      {room.players.map((p) => {
+                        const isMe = p.studentId === user?.studentId;
+                        const isRoomHost = p.id === room.hostId;
+                        return (
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            key={p.id}
+                            className={`group relative px-3.5 py-1.5 rounded-2xl flex items-center space-x-2 border-2 shadow-md transition-all ${
+                              isMe 
+                                ? "bg-amber-900/90 border-amber-300 text-white ring-2 ring-amber-400/50" 
+                                : "bg-black/50 border-amber-600/50 hover:border-amber-400 text-amber-100"
+                            }`}
+                          >
+                            <span className="text-xl md:text-2xl">{p.avatar || (p.isBot ? "🤖" : "👨‍🎓")}</span>
+                            <div className="flex flex-col text-left">
+                              <span className="font-bold text-xs md:text-sm text-white flex items-center space-x-1">
+                                <span className="truncate max-w-[120px]">{p.name}</span>
+                                {isRoomHost && <Crown className="w-3.5 h-3.5 text-amber-400 fill-amber-400 shrink-0 inline" />}
+                                {isMe && <span className="text-[9px] bg-blue-600 text-white font-black px-1 rounded ml-1">YOU</span>}
+                              </span>
+                              <span className="text-[9px] text-amber-300/70 font-mono">
+                                {p.studentId}
+                              </span>
+                            </div>
+
+                            {/* Host remove button */}
+                            {isHost && !isMe && (
+                              <button
+                                onClick={() => handleRemovePlayer(p.id)}
+                                className="w-5 h-5 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ml-1 cursor-pointer"
+                                title="เตะผู้เล่นออก"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            )}
+                          </motion.div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
 
-                {/* Controls */}
-                <div className="w-full flex justify-center mt-auto">
+                {/* Bottom Start Controls */}
+                <div className="w-full flex flex-col items-center justify-center pt-2 border-t border-amber-500/20">
                   {isHost ? (
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleStartGame}
-                      disabled={!room || room.players.length < 1}
-                      className="px-10 md:px-16 py-4 bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 border-4 border-amber-200 rounded-2xl text-amber-950 font-game font-black text-xl md:text-3xl tracking-wider shadow-[0_8px_0_#78350f,0_14px_25px_rgba(0,0,0,0.6)] active:translate-y-2 active:shadow-[0_2px_0_#78350f] transition-all flex items-center space-x-3 cursor-pointer disabled:opacity-50"
-                    >
-                      <Play className="w-7 h-7 fill-white text-white filter drop-shadow" />
-                      <span>เริ่มการแข่งขัน (START GAME)</span>
-                    </motion.button>
+                    <div className="flex flex-col items-center space-y-1">
+                      <motion.button
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={handleStartGame}
+                        disabled={!room || room.players.length < 1}
+                        className="px-8 md:px-14 py-3 bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 border-3 border-amber-200 rounded-2xl text-amber-950 font-game font-black text-lg md:text-2xl tracking-wider shadow-[0_8px_0_#78350f,0_14px_25px_rgba(0,0,0,0.6)] active:translate-y-2 active:shadow-[0_2px_0_#78350f] transition-all flex items-center space-x-3 cursor-pointer disabled:opacity-50"
+                      >
+                        <Play className="w-6 h-6 fill-amber-950 text-amber-950" />
+                        <span>เริ่มการแข่งขัน (START GAME)</span>
+                      </motion.button>
+                      <span className="text-[11px] text-amber-300/80">
+                        กดเริ่มได้เองทันทีเมื่อทุกคนเข้าห้องครบ (ไม่ต้องรอเวลานับถอยหลัง)
+                      </span>
+                    </div>
                   ) : (
-                    <div className="px-10 py-4 rounded-2xl font-game font-black text-xl tracking-wider border-3 bg-amber-950/80 border-amber-600 text-amber-300 shadow-xl flex items-center space-x-3">
-                       <Clock className="w-6 h-6 animate-pulse" />
-                       <span>รอหัวหน้าห้องเปิดหน้าจอ...</span>
+                    <div className="px-8 py-3 rounded-2xl font-game font-bold text-sm md:text-base tracking-wider border-2 bg-amber-950/80 border-amber-600 text-amber-300 shadow-xl flex items-center space-x-2">
+                      <Clock className="w-5 h-5 animate-pulse text-amber-400" />
+                      <span>รอหัวหน้าห้อง/อาจารย์กดเริ่มเกม...</span>
                     </div>
                   )}
                 </div>
@@ -692,6 +806,60 @@ export function LobbyClient() {
               </div>
 
               <div className="space-y-3 text-xs text-amber-200/90">
+                {/* Room Mode Toggle */}
+                <div>
+                  <span className="text-[11px] text-amber-300 font-bold block mb-1">รูปแบบห้องแข่งขัน:</span>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sounds.playSelect();
+                        if (room) {
+                          saveAndBroadcastRoom({
+                            ...room,
+                            settings: {
+                              ...room.settings,
+                              maxPlayers: 55,
+                              spotlightMode: "big-card"
+                            }
+                          });
+                        }
+                      }}
+                      className={`p-2 rounded-xl border text-center transition-all cursor-pointer font-bold text-[11px] ${
+                        isKahootMode
+                          ? "bg-amber-900/90 border-amber-300 text-white shadow ring-1 ring-amber-400"
+                          : "bg-black/40 border-amber-800/40 text-amber-300/60 hover:bg-black/60"
+                      }`}
+                    >
+                      🎓 ห้องเรียน (55 คน)
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sounds.playSelect();
+                        if (room) {
+                          saveAndBroadcastRoom({
+                            ...room,
+                            settings: {
+                              ...room.settings,
+                              maxPlayers: 6,
+                              spotlightMode: undefined
+                            }
+                          });
+                        }
+                      }}
+                      className={`p-2 rounded-xl border text-center transition-all cursor-pointer font-bold text-[11px] ${
+                        !isKahootMode
+                          ? "bg-amber-900/90 border-amber-300 text-white shadow ring-1 ring-amber-400"
+                          : "bg-black/40 border-amber-800/40 text-amber-300/60 hover:bg-black/60"
+                      }`}
+                    >
+                      🎴 โต๊ะคาสิโน (6 ที่)
+                    </button>
+                  </div>
+                </div>
+
                 <div className="flex justify-between items-center">
                   <span>จำนวนรอบแข่งขัน:</span>
                   <select
@@ -708,27 +876,28 @@ export function LobbyClient() {
                   </select>
                 </div>
 
-                  <div className="flex justify-between items-center">
-                    <span>เวลาต่อข้อ:</span>
-                    <select
-                      value={room?.settings.thinkSeconds ?? 30}
-                      onChange={(e) => {
-                        sounds.playSelect();
-                        if (room) {
-                          const newSettings = { ...room.settings, thinkSeconds: Number(e.target.value) };
-                          saveAndBroadcastRoom({ ...room, settings: newSettings });
-                        }
-                      }}
-                      className="bg-amber-950 border border-amber-600 rounded-lg px-2.5 py-1 text-white font-bold outline-none focus:ring-1 focus:ring-amber-400"
-                    >
-                      <option value={15}>15 วินาที</option>
-                      <option value={20}>20 วินาที</option>
-                      <option value={30}>30 วินาที</option>
-                      <option value={45}>45 วินาที</option>
-                      <option value={60}>60 วินาที</option>
-                    </select>
-                  </div>
+                <div className="flex justify-between items-center">
+                  <span>เวลาต่อข้อ:</span>
+                  <select
+                    value={room?.settings.thinkSeconds ?? 30}
+                    onChange={(e) => {
+                      sounds.playSelect();
+                      if (room) {
+                        const newSettings = { ...room.settings, thinkSeconds: Number(e.target.value) };
+                        saveAndBroadcastRoom({ ...room, settings: newSettings });
+                      }
+                    }}
+                    className="bg-amber-950 border border-amber-600 rounded-lg px-2.5 py-1 text-white font-bold outline-none focus:ring-1 focus:ring-amber-400"
+                  >
+                    <option value={15}>15 วินาที</option>
+                    <option value={20}>20 วินาที</option>
+                    <option value={30}>30 วินาที</option>
+                    <option value={45}>45 วินาที</option>
+                    <option value={60}>60 วินาที</option>
+                  </select>
+                </div>
 
+                {isKahootMode && (
                   <div className="flex justify-between items-center">
                     <span>รูปแบบจอสปอตไลต์:</span>
                     <select
@@ -746,33 +915,13 @@ export function LobbyClient() {
                       <option value="text">แบบข้อความ (Text Mode)</option>
                     </select>
                   </div>
-
-                <div className="flex justify-between items-center">
-                  <span>เวลาคิดต่อข้อ:</span>
-                  <select
-                    value={room?.settings.thinkSeconds ?? 45}
-                    onChange={(e) => {
-                      sounds.playSelect();
-                      if (room) {
-                        saveAndBroadcastRoom({
-                          ...room,
-                          settings: { ...room.settings, thinkSeconds: Number(e.target.value) }
-                        });
-                      }
-                    }}
-                    className="bg-amber-950 border border-amber-600 rounded-lg px-2.5 py-1 text-white font-bold"
-                  >
-                    <option value={30}>30 วินาที</option>
-                    <option value={45}>45 วินาที</option>
-                    <option value={60}>60 วินาที</option>
-                  </select>
-                </div>
+                )}
 
                 <div className="pt-2 border-t border-amber-900/60 flex justify-between items-center">
                   <span className="text-[11px] text-amber-300">บอท AI อัตโนมัติ:</span>
                   <button
                     onClick={() => handleAddBot((room?.players.length ?? 0))}
-                    disabled={(room?.players.length ?? 0) >= 6}
+                    disabled={(room?.players.length ?? 0) >= (isKahootMode ? 55 : 6)}
                     className="bg-purple-700 hover:bg-purple-600 text-white text-[11px] font-bold px-3 py-1 rounded-lg border border-purple-400 flex items-center space-x-1 disabled:opacity-50 cursor-pointer shadow active:scale-95"
                   >
                     <Bot className="w-3.5 h-3.5" />

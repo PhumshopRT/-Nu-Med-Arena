@@ -555,17 +555,21 @@ export function PlayClient() {
       nextStreak = streak + 1;
       setStreak(nextStreak);
 
-      // Speed bonus:
-      // If locked with >= 60% time remaining (e.g. 18s+ out of 30s) -> +2 pts
-      // If locked with >= 30% time remaining (e.g. 9s+ out of 30s) -> +1 pt
-      const timeRemaining = lockTimeLeft !== null ? lockTimeLeft : timeLeft;
-      const ratio = timeRemaining / Math.max(1, maxTime);
-      if (ratio >= 0.6) {
-        speedBonus = 2;
-        isFast = true;
-      } else if (ratio >= 0.3) {
-        speedBonus = 1;
-        isFast = true;
+      // Speed bonus ONLY IN KAHOOT / CLASSROOM MODE (ห้ามใช้ในโหมดทั่วไป/ซ้อมเดี่ยวเด็ดขาด)
+      const isExplicitKahoot = searchParams?.get("mode") === "kahoot" || Boolean(room?.settings?.spotlightMode) || (Boolean(room?.settings?.maxPlayers) && (room?.settings?.maxPlayers ?? 0) > 6);
+      const isGeneralTable = searchParams?.get("mode") === "table" || !isClassMode || (!isExplicitKahoot);
+      const isKahootMode = !isGeneralTable && isExplicitKahoot;
+
+      if (isKahootMode) {
+        const timeRemaining = lockTimeLeft !== null ? lockTimeLeft : timeLeft;
+        const ratio = timeRemaining / Math.max(1, maxTime);
+        if (ratio >= 0.6) {
+          speedBonus = 2;
+          isFast = true;
+        } else if (ratio >= 0.3) {
+          speedBonus = 1;
+          isFast = true;
+        }
       }
 
       // Streak bonus:
