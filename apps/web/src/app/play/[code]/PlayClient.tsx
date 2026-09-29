@@ -556,7 +556,7 @@ export function PlayClient() {
       setStreak(nextStreak);
 
       // Speed bonus ONLY IN KAHOOT / CLASSROOM MODE (ห้ามใช้ในโหมดทั่วไป/ซ้อมเดี่ยวเด็ดขาด)
-      const isExplicitKahoot = searchParams?.get("mode") === "kahoot" || Boolean(room?.settings?.spotlightMode) || (Boolean(room?.settings?.maxPlayers) && (room?.settings?.maxPlayers ?? 0) > 6);
+      const isExplicitKahoot = searchParams?.get("mode") === "kahoot" || Boolean(room?.settings?.spotlightMode) || (Boolean(room?.settings?.maxPlayers) && (room?.settings?.maxPlayers ?? 0) > 6) || /^\d{5,8}$/.test(roomCode);
       const isGeneralTable = searchParams?.get("mode") === "table" || !isClassMode || (!isExplicitKahoot);
       const isKahootMode = !isGeneralTable && isExplicitKahoot;
 

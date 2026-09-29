@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { StudentUser, PROTOTYPE_4_CARDS, generateRoomCode } from "@nucmed/shared";
+import { StudentUser, PROTOTYPE_4_CARDS, generateRoomCode, generateKahootPin } from "@nucmed/shared";
 import { sounds } from "@/lib/sound";
 import { getAssetPath } from "@/lib/assets";
 import { AmbientMotes } from "../splash/AmbientMotes";
@@ -379,7 +379,8 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
             <button
               onClick={() => {
                 sounds.playClick();
-                router.push("/board/ROOM01");
+                const pin = generateKahootPin();
+                router.push(`/lobby/?code=${pin}&create=true&mode=kahoot`);
               }}
               className="wood-panel px-3.5 py-1.5 rounded-xl text-white text-xs font-bold flex items-center space-x-1.5 hover:scale-105 active:scale-95 transition-all border border-purple-400/50 shadow-md cursor-pointer hover:border-purple-300"
             >
@@ -575,14 +576,14 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
               </div>
 
               <p className="text-xs text-amber-200/80 mb-4">
-                กรอกรหัสห้อง 6 ตัวอักษรที่ได้รับจากเพื่อนหรืออาจารย์
+                กรอกรหัส PIN (ตัวเลข 6 หลัก) หรือรหัสห้องที่ได้รับจากเพื่อนหรืออาจารย์
               </p>
 
               <input
                 type="text"
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                placeholder="เช่น ROOM01 หรือ 7K3Q2P"
+                placeholder="เช่น 582914 หรือ K7M2N9"
                 maxLength={8}
                 className="w-full px-4 py-3 bg-amber-950/90 border-2 border-amber-500 rounded-xl text-center text-xl font-mono font-bold tracking-widest text-amber-100 uppercase focus:outline-hidden focus:border-amber-300 shadow-inner"
               />
@@ -605,7 +606,9 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
                     }
                     sounds.playClick();
                     setShowJoinModal(false);
-                    router.push(`/lobby/?code=${joinCode.trim().toUpperCase()}`);
+                    const clean = joinCode.trim().toUpperCase();
+                    const isPin = /^\d{5,8}$/.test(clean);
+                    router.push(`/lobby/?code=${clean}${isPin ? "&mode=kahoot" : ""}`);
                   }}
                   className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 border-2 border-emerald-400 rounded-xl font-bold text-xs shadow-md cursor-pointer flex items-center justify-center space-x-1.5"
                 >
@@ -712,7 +715,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
                   onClick={() => {
                     sounds.playClick();
                     setShowCreateModal(false);
-                    const generated = generateRoomCode();
+                    const generated = createRoomType === "kahoot" ? generateKahootPin() : generateRoomCode();
                     router.push(`/lobby/?code=${generated}&create=true&mode=${createRoomType}`);
                   }}
                   className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 border-2 border-emerald-400 rounded-xl font-bold text-xs shadow-md cursor-pointer flex items-center justify-center space-x-1.5"

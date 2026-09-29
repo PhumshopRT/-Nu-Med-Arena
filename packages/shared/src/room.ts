@@ -4,7 +4,17 @@ import { ALL_RP_CARDS, ALL_MECH_CARDS } from "./cards/seed";
 // Room code alphabet excluding ambiguous characters: 0, O, 1, I, L
 const SAFE_ROOM_CHARS = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
 
-export function generateRoomCode(length: number = 6): string {
+/**
+ * Generate a 6-digit numeric Game PIN for Kahoot classroom mode (e.g. "482915")
+ */
+export function generateKahootPin(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+export function generateRoomCode(mode: "kahoot" | "table" = "table", length: number = 6): string {
+  if (mode === "kahoot") {
+    return generateKahootPin();
+  }
   let result = "";
   for (let i = 0; i < length; i++) {
     const randomIndex = Math.floor(Math.random() * SAFE_ROOM_CHARS.length);

@@ -48,10 +48,10 @@ export function LobbyClient() {
   const router = useRouter();
 
   // Support both /lobby/?code=XYZ and /lobby/XYZ
-  const rawCode = (searchParams?.get("code") || params?.code || "ROOM01") as string;
-  const roomCode = rawCode.toUpperCase();
   const modeParam = searchParams?.get("mode");
   const isExplicitTable = modeParam === "table";
+  const rawCode = (searchParams?.get("code") || params?.code || (isExplicitTable ? "TABLE1" : "582914")) as string;
+  const roomCode = rawCode.toUpperCase();
 
   const [user, setUser] = useState<StudentUser | null>(null);
   const [room, setRoom] = useState<PublicRoomState | null>(null);
@@ -72,6 +72,7 @@ export function LobbyClient() {
     Boolean(room?.settings?.spotlightMode) ||
     (Boolean(room?.settings?.maxPlayers) && (room?.settings?.maxPlayers ?? 0) > 6) ||
     modeParam === "kahoot" ||
+    /^\d{5,8}$/.test(roomCode) ||
     roomCode.startsWith("ROOM")
   );
 
