@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Trophy, Clock, Users, Play, SkipForward, XSquare, CheckCircle, XCircle 
+  Trophy, Clock, Users, Play, SkipForward, XSquare, CheckCircle, XCircle, UserPlus 
 } from "lucide-react";
 import { 
   ALL_CASE_CARDS, CaseCard, PublicRoomState, PublicPlayer, ALL_RP_CARDS, ALL_MECH_CARDS, StudentUser,
@@ -32,7 +32,10 @@ export function BoardClient() {
   const roomRef = useRef<PublicRoomState | null>(null);
   roomRef.current = room;
 
-  const isHost = Boolean(user && room && room.hostId === `p_${user.studentId}`);
+  const isHost = Boolean(
+    (user && room && room.hostId === `p_${user.studentId}`) ||
+    (room && (room.hostId === "host_board" || !room.hostId))
+  );
 
   useEffect(() => {
     const localUser = getRememberedUser() || getLocalUser();
@@ -40,14 +43,22 @@ export function BoardClient() {
 
     // 1. Initially load room from local storage or create fallback if opening board directly
     let activeRoom: PublicRoomState;
+    const hostId = localUser ? `p_${localUser.studentId}` : "host_board";
     try {
       const saved = localStorage.getItem(`nucmed_room_${roomCode}`);
       if (saved) {
         activeRoom = JSON.parse(saved);
+        if (!activeRoom.hostId) {
+          activeRoom.hostId = hostId;
+        }
+        // CRITICAL: Teacher is the Host/Presenter, NOT a player. Remove host from players list!
+        activeRoom.players = (activeRoom.players || []).filter(
+          (p) => p.id !== activeRoom.hostId && p.id !== hostId && (!localUser || p.studentId !== localUser.studentId)
+        );
       } else {
         activeRoom = {
           code: roomCode,
-          hostId: localUser ? `p_${localUser.studentId}` : "host_board",
+          hostId,
           phase: "LOBBY",
           roundIndex: 1,
           totalRounds: 10,
@@ -55,16 +66,7 @@ export function BoardClient() {
           clueCardId: null,
           sharedMechanisms: [],
           endsAt: 0,
-          players: localUser ? [{
-            id: `p_${localUser.studentId}`,
-            name: localUser.displayName,
-            studentId: localUser.studentId,
-            ready: true,
-            locked: false,
-            score: 0,
-            handCount: 5,
-            avatar: "👨‍🏫"
-          }] : [],
+          players: [], // Teacher is presenter only, players are students
           settings: {
             totalRounds: 10,
             thinkSeconds: 30,
@@ -82,7 +84,7 @@ export function BoardClient() {
     } catch {
       activeRoom = {
         code: roomCode,
-        hostId: localUser ? `p_${localUser.studentId}` : "host_board",
+        hostId,
         phase: "LOBBY",
         roundIndex: 1,
         totalRounds: 10,
@@ -90,16 +92,7 @@ export function BoardClient() {
         clueCardId: null,
         sharedMechanisms: [],
         endsAt: 0,
-        players: localUser ? [{
-          id: `p_${localUser.studentId}`,
-          name: localUser.displayName,
-          studentId: localUser.studentId,
-          ready: true,
-          locked: false,
-          score: 0,
-          handCount: 5,
-          avatar: "👨‍🏫"
-        }] : [],
+        players: [],
         settings: {
           totalRounds: 10,
           thinkSeconds: 30,
@@ -141,13 +134,22 @@ export function BoardClient() {
             }
           }
           break;
+        case "REQUEST_ROOM_STATE":
         case "PLAYER_JOIN":
           if (isHost && currentRoom) {
-            const exists = currentRoom.players.some(p => p.studentId === msg.player.studentId);
-            if (!exists && currentRoom.players.length < (currentRoom.settings.maxPlayers || 55)) {
-              const updated = { ...currentRoom, players: [...currentRoom.players, msg.player] };
-              saveAndBroadcast(updated);
+            // Teacher/Host must never be added as a player
+            if (msg.player.id === currentRoom.hostId || (user && msg.player.studentId === user.studentId)) {
+              break;
             }
+            const exists = currentRoom.players.some(p => p.studentId === msg.player.studentId);
+            let updated = currentRoom;
+            if (!exists && currentRoom.players.length < (currentRoom.settings.maxPlayers || 55)) {
+              updated = { ...currentRoom, players: [...currentRoom.players, msg.player] };
+              setRoom(updated);
+              localStorage.setItem(`nucmed_room_${roomCode}`, JSON.stringify(updated));
+            }
+            // Authoritative response from Board/Host to newly connected student
+            syncRef.current?.publish({ type: "ROOM_STATE_SYNC", room: updated });
           }
           break;
         case "PLAYER_LOCK":
@@ -184,7 +186,7 @@ export function BoardClient() {
     syncRef.current = sync;
     
     // Request initial state if guest
-    if (user && roomRef.current?.hostId !== `p_${user.studentId}`) {
+    if (user && roomRef.current?.hostId !== `p_${user.studentId}` && roomRef.current?.hostId !== "host_board") {
       sync.publish({ type: "REQUEST_ROOM_STATE", player: { id: `p_${user.studentId}`, name: user.displayName, studentId: user.studentId, ready: true, locked: false, score: 0, handCount: 5, avatar: "👨‍🎓" } });
     }
 
@@ -258,6 +260,29 @@ export function BoardClient() {
       const updated = { ...currentRoom, players: updatedPlayers };
       saveAndBroadcast(updated);
     }
+  };
+
+  const handleAddBot = () => {
+    if (!room || !isHost) return;
+    sounds.playClick();
+    const idx = room.players.length;
+    const botTemplate = BOTS[idx % BOTS.length];
+    const newBot: PublicPlayer = {
+      id: `bot_${Date.now()}_${idx}`,
+      name: `${botTemplate.name}`,
+      studentId: `BOT-${Math.floor(100 + Math.random() * 900)}`,
+      ready: true,
+      locked: false,
+      score: 0,
+      handCount: 5,
+      avatar: botTemplate.avatar,
+      isBot: true
+    };
+    const updated = {
+      ...room,
+      players: [...room.players, newBot]
+    };
+    saveAndBroadcast(updated);
   };
 
   // Play fanfare when entering REVEAL phase (Podium)
@@ -442,6 +467,15 @@ export function BoardClient() {
             <div className="flex items-center space-x-4 bg-amber-950/80 px-8 py-4 rounded-2xl border-2 border-amber-600">
               <Users className="w-8 h-8 text-amber-400" />
               <span className="text-2xl text-amber-100 font-bold">รอผู้เล่น... ({players.length} คน)</span>
+              {isHost && players.length < (room.settings?.maxPlayers || 55) && (
+                <button
+                  onClick={handleAddBot}
+                  className="ml-4 px-4 py-2 bg-amber-800 hover:bg-amber-700 border border-amber-400 text-amber-200 hover:text-white rounded-xl text-sm font-bold shadow-md transition-all active:scale-95 cursor-pointer flex items-center space-x-1.5"
+                >
+                  <UserPlus className="w-4 h-4 text-amber-300" />
+                  <span>+ เพิ่มบอททดสอบ</span>
+                </button>
+              )}
             </div>
             <div className="w-full max-w-5xl flex flex-wrap justify-center gap-4 mt-8 max-h-[300px] overflow-y-auto custom-scrollbar p-4">
               {players.map(p => (

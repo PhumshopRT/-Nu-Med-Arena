@@ -284,20 +284,33 @@ export function PlayClient() {
     const saved = localStorage.getItem(savedRoomKey);
     let matchPlayers: PublicPlayer[] = [];
 
+    const isExplicitKahoot = searchParams?.get("mode") === "kahoot" || /^\d{5,8}$/.test(roomCode);
+
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        matchPlayers = (parsed.players || []).map((p: PublicPlayer) => {
-          if (p.studentId === localUser.studentId) {
-            return {
-              ...p,
-              avatar: myAvatar,
-              title: myTitle || p.title,
-              frame: myFrame || p.frame
-            };
-          }
-          return p;
-        });
+        const isKahootRoom = isExplicitKahoot || parsed.settings?.spotlightMode === "big-card" || (parsed.settings?.maxPlayers && parsed.settings?.maxPlayers > 6);
+        
+        // SAFEGUARD: Teacher / Host in Kahoot mode must NEVER be in the play screen!
+        // Redirect immediately to the Projector Board
+        if (isKahootRoom && parsed.hostId === `p_${localUser.studentId}`) {
+          router.replace(`/board/?code=${roomCode}`);
+          return;
+        }
+
+        matchPlayers = (parsed.players || [])
+          .filter((p: PublicPlayer) => isKahootRoom ? (p.id !== parsed.hostId) : true)
+          .map((p: PublicPlayer) => {
+            if (p.studentId === localUser.studentId) {
+              return {
+                ...p,
+                avatar: myAvatar,
+                title: myTitle || p.title,
+                frame: myFrame || p.frame
+              };
+            }
+            return p;
+          });
         setTotalRounds(parsed.totalRounds || 10);
         setMaxTime(parsed.settings?.thinkSeconds || 45);
         setTimeLeft(parsed.settings?.thinkSeconds || 45);
@@ -307,43 +320,60 @@ export function PlayClient() {
     }
 
     if (matchPlayers.length === 0) {
-      // Create solo practice with 2 bots
-      matchPlayers = [
-        {
-          id: `p_${localUser.studentId}`,
-          name: localUser.displayName,
-          studentId: localUser.studentId,
-          ready: true,
-          locked: false,
-          score: 0,
-          handCount: 5,
-          avatar: myAvatar,
-          title: myTitle || undefined,
-          frame: myFrame
-        },
-        {
-          id: "bot_1",
-          name: "บอท-เรซิน",
-          studentId: "BOT-101",
-          ready: true,
-          locked: false,
-          score: 0,
-          handCount: 5,
-          isBot: true,
-          avatar: "avatar-niw"
-        },
-        {
-          id: "bot_2",
-          name: "บอท-คอลลอยด์",
-          studentId: "BOT-102",
-          ready: true,
-          locked: false,
-          score: 0,
-          handCount: 5,
-          isBot: true,
-          avatar: "avatar-med"
-        }
-      ];
+      if (isExplicitKahoot) {
+        matchPlayers = [
+          {
+            id: `p_${localUser.studentId}`,
+            name: localUser.displayName,
+            studentId: localUser.studentId,
+            ready: true,
+            locked: false,
+            score: 0,
+            handCount: 5,
+            avatar: myAvatar,
+            title: myTitle || undefined,
+            frame: myFrame
+          }
+        ];
+      } else {
+        // Create solo practice with 2 bots
+        matchPlayers = [
+          {
+            id: `p_${localUser.studentId}`,
+            name: localUser.displayName,
+            studentId: localUser.studentId,
+            ready: true,
+            locked: false,
+            score: 0,
+            handCount: 5,
+            avatar: myAvatar,
+            title: myTitle || undefined,
+            frame: myFrame
+          },
+          {
+            id: "bot_1",
+            name: "บอท-เรซิน",
+            studentId: "BOT-101",
+            ready: true,
+            locked: false,
+            score: 0,
+            handCount: 5,
+            isBot: true,
+            avatar: "avatar-niw"
+          },
+          {
+            id: "bot_2",
+            name: "บอท-คอลลอยด์",
+            studentId: "BOT-102",
+            ready: true,
+            locked: false,
+            score: 0,
+            handCount: 5,
+            isBot: true,
+            avatar: "avatar-med"
+          }
+        ];
+      }
     }
 
     setPlayers(matchPlayers);
@@ -385,15 +415,28 @@ export function PlayClient() {
           break;
         }
         case "ROOM_STATE_SYNC": {
-          if (msg.room?.players) {
-            setPlayers((prev) =>
-              prev.map((p) => {
-                const synced = msg.room.players.find(
-                  (sp) => sp.id === p.id || sp.studentId === p.studentId
-                );
-                return synced ? { ...p, score: synced.score, streak: synced.streak ?? p.streak } : p;
-              })
-            );
+          if (msg.room) {
+            setRoom(msg.room);
+            const hostId = msg.room.hostId;
+            const nonHostPlayers = (msg.room.players || []).filter((p) => p.id !== hostId);
+            setPlayers((prev) => {
+              const myPlayer = prev.find((p) => p.studentId === localUser.studentId);
+              const existsInRoom = nonHostPlayers.some((p) => p.studentId === localUser.studentId);
+              const base = existsInRoom ? nonHostPlayers : (myPlayer ? [...nonHostPlayers, myPlayer] : nonHostPlayers);
+              return base.map((p) => {
+                const localP = prev.find((lp) => lp.studentId === p.studentId);
+                return localP ? { ...p, score: p.score ?? localP.score, streak: p.streak ?? localP.streak, locked: localP.locked || p.locked, selectedRpId: localP.selectedRpId || p.selectedRpId, selectedMechId: localP.selectedMechId || p.selectedMechId } : p;
+              });
+            });
+            if (msg.room.roundIndex && msg.room.roundIndex !== currentRound) {
+              setCurrentRound(msg.room.roundIndex);
+            }
+            if (msg.room.caseCardId) {
+              const playableCases = getPlayableCaseCards();
+              const casePool = playableCases.length > 0 ? playableCases : ALL_CASE_CARDS;
+              const foundCase = casePool.find((c) => c.id === msg.room.caseCardId);
+              if (foundCase) setCurrentCase(foundCase);
+            }
           }
           break;
         }

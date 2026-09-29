@@ -380,7 +380,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
               onClick={() => {
                 sounds.playClick();
                 const pin = generateKahootPin();
-                router.push(`/lobby/?code=${pin}&create=true&mode=kahoot`);
+                router.push(`/board/?code=${pin}`);
               }}
               className="wood-panel px-3.5 py-1.5 rounded-xl text-white text-xs font-bold flex items-center space-x-1.5 hover:scale-105 active:scale-95 transition-all border border-purple-400/50 shadow-md cursor-pointer hover:border-purple-300"
             >
@@ -715,8 +715,13 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
                   onClick={() => {
                     sounds.playClick();
                     setShowCreateModal(false);
-                    const generated = createRoomType === "kahoot" ? generateKahootPin() : generateRoomCode();
-                    router.push(`/lobby/?code=${generated}&create=true&mode=${createRoomType}`);
+                    if (createRoomType === "kahoot") {
+                      const pin = generateKahootPin();
+                      router.push(`/board/?code=${pin}`);
+                    } else {
+                      const code = generateRoomCode();
+                      router.push(`/lobby/?code=${code}&create=true&mode=table`);
+                    }
                   }}
                   className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 border-2 border-emerald-400 rounded-xl font-bold text-xs shadow-md cursor-pointer flex items-center justify-center space-x-1.5"
                 >

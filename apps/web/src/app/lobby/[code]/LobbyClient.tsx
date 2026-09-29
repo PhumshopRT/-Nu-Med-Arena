@@ -22,7 +22,8 @@ import {
   Share2,
   Crown,
   Wifi,
-  WifiOff
+  WifiOff,
+  UserPlus
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { 
@@ -129,21 +130,29 @@ export function LobbyClient() {
             spotlightMode: undefined
           };
         }
-        currentRoom.players = (currentRoom.players || []).map((p) => {
-          if (p.studentId === localUser.studentId) {
-            return {
-              ...p,
-              avatar: myAvatar,
-              title: myTitle || p.title,
-              frame: myFrame || p.frame
-            };
+        const isHostUser = isCreateIntent || currentRoom.hostId === `p_${localUser.studentId}`;
+        if (isKahootInit && isHostUser) {
+          // Remove host from players list in Kahoot mode: Teacher is presenter, NOT player
+          currentRoom.players = (currentRoom.players || []).filter(
+            (p) => p.id !== currentRoom.hostId && p.studentId !== localUser.studentId
+          );
+        } else {
+          currentRoom.players = (currentRoom.players || []).map((p) => {
+            if (p.studentId === localUser.studentId) {
+              return {
+                ...p,
+                avatar: myAvatar,
+                title: myTitle || p.title,
+                frame: myFrame || p.frame
+              };
+            }
+            return p;
+          });
+          const existingPlayer = currentRoom.players.find((p) => p.studentId === localUser.studentId);
+          const maxCapacity = (currentRoom.settings.spotlightMode || (currentRoom.settings.maxPlayers && currentRoom.settings.maxPlayers > 6) || isKahootInit) ? 55 : (currentRoom.settings.maxPlayers || 6);
+          if (!existingPlayer && currentRoom.players.length < maxCapacity) {
+            currentRoom.players.push(myPlayerInfo);
           }
-          return p;
-        });
-        const existingPlayer = currentRoom.players.find((p) => p.studentId === localUser.studentId);
-        const maxCapacity = (currentRoom.settings.spotlightMode || (currentRoom.settings.maxPlayers && currentRoom.settings.maxPlayers > 6) || isKahootInit) ? 55 : (currentRoom.settings.maxPlayers || 6);
-        if (!existingPlayer && currentRoom.players.length < maxCapacity) {
-          currentRoom.players.push(myPlayerInfo);
         }
       } catch {
         currentRoom = createInitialRoom(roomCode, localUser, isCreateIntent, myAvatar, myTitle || undefined, myFrame, isKahootInit);
@@ -222,6 +231,11 @@ export function LobbyClient() {
         case "MATCH_START": {
           sounds.playWin();
           const targetMode = (roomRef.current?.settings.spotlightMode || (roomRef.current?.settings.maxPlayers && roomRef.current.settings.maxPlayers > 6) || isKahootInit) ? "kahoot" : "table";
+          const hostIsMe = roomRef.current?.hostId === `p_${localUser.studentId}` || isCreateIntent;
+          if (hostIsMe && (targetMode === "kahoot" || isKahootInit)) {
+            router.push(`/board/?code=${roomCode}`);
+            return;
+          }
           router.push(`/play/?code=${roomCode}&mode=${targetMode}`);
           break;
         }
@@ -247,16 +261,21 @@ export function LobbyClient() {
     const syncHandle = createRoomSync(roomCode, handleSyncMessage, (connected) => {
       setIsConnected(connected);
       if (connected) {
-        // Send join and request room state once connected
-        syncHandle.publish({ type: "PLAYER_JOIN", player: myPlayerInfo });
-        syncHandle.publish({ type: "REQUEST_ROOM_STATE", player: myPlayerInfo });
+        // Send join and request room state once connected (only if student or table mode)
+        const hostIsMe = roomRef.current?.hostId === `p_${localUser.studentId}` || isCreateIntent;
+        if (!(isKahootInit && hostIsMe)) {
+          syncHandle.publish({ type: "PLAYER_JOIN", player: myPlayerInfo });
+          syncHandle.publish({ type: "REQUEST_ROOM_STATE", player: myPlayerInfo });
+        }
       }
     });
     syncRef.current = syncHandle;
 
-    // Immediately queue initial broadcast
-    syncHandle.publish({ type: "PLAYER_JOIN", player: myPlayerInfo });
-    syncHandle.publish({ type: "REQUEST_ROOM_STATE", player: myPlayerInfo });
+    // Immediately queue initial broadcast if not kahoot host
+    if (!(isKahootInit && (isCreateIntent || roomRef.current?.hostId === `p_${localUser.studentId}`))) {
+      syncHandle.publish({ type: "PLAYER_JOIN", player: myPlayerInfo });
+      syncHandle.publish({ type: "REQUEST_ROOM_STATE", player: myPlayerInfo });
+    }
 
     // Periodic Heartbeat: Host broadcasts state, Guest requests state
     const syncInterval = setInterval(() => {
@@ -301,20 +320,22 @@ export function LobbyClient() {
         spotlightMode: isKahoot ? "big-card" : undefined,
         thinkSeconds: isKahoot ? 30 : 45
       },
-      players: [
-        {
-          id: `p_${host.studentId}`,
-          name: host.displayName,
-          studentId: host.studentId,
-          ready: true,
-          locked: false,
-          score: 0,
-          handCount: 5,
-          avatar,
-          title,
-          frame
-        }
-      ]
+      players: isKahoot
+        ? [] // Host is Teacher / Presenter, NOT a player!
+        : [
+            {
+              id: `p_${host.studentId}`,
+              name: host.displayName,
+              studentId: host.studentId,
+              ready: true,
+              locked: false,
+              score: 0,
+              handCount: 5,
+              avatar,
+              title,
+              frame
+            }
+          ]
     };
   };
 
@@ -525,8 +546,19 @@ export function LobbyClient() {
                       </p>
                     </div>
                   </div>
-                  <div className="bg-amber-950/90 px-3.5 py-1.5 rounded-2xl border-2 border-amber-500 text-amber-200 font-bold text-xs sm:text-sm shadow">
-                    👥 ผู้เล่น: <span className="text-emerald-400 font-black text-base">{room?.players.length ?? 0}</span> / {room?.settings.maxPlayers || 55} คน
+                  <div className="flex items-center space-x-2">
+                    <div className="bg-amber-950/90 px-3.5 py-1.5 rounded-2xl border-2 border-amber-500 text-amber-200 font-bold text-xs sm:text-sm shadow">
+                      👥 ผู้เล่น: <span className="text-emerald-400 font-black text-base">{room?.players.length ?? 0}</span> / {room?.settings.maxPlayers || 55} คน
+                    </div>
+                    {isHost && (room?.players.length ?? 0) < (room?.settings.maxPlayers || 55) && (
+                      <button
+                        onClick={() => handleAddBot(room?.players.length || 0)}
+                        className="px-2.5 py-1.5 bg-amber-900/80 hover:bg-amber-800 text-amber-200 rounded-xl text-xs font-bold border border-amber-500/70 shadow transition-all active:scale-95 cursor-pointer flex items-center space-x-1"
+                      >
+                        <UserPlus className="w-3.5 h-3.5 text-amber-400" />
+                        <span>เพิ่มบอททดสอบ</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
