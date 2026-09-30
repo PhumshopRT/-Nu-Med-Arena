@@ -70,3 +70,15 @@ body {
     inset 0 -2px 0 rgba(0, 0, 0, 0.4),
     0 6px 16px rgba(0, 0, 0, 0.45);
 }
+
+/* High-performance GPU-accelerated slot machine reel spinning */
+@keyframes slotReelSpin {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+.animate-slot-reel {
+  animation: slotReelSpin 0.28s linear infinite;
+  will-change: transform;
+}
+

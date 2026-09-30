@@ -277,55 +277,68 @@ class SoundManager {
     });
   }
 
+  private lastReelTick = 0;
+
   // 11. Slot Machine Lever Pull (Mechanical crank & ratchet)
   public playSlotLever() {
     if (this.isMuted) return;
     this.initCtx();
     if (!this.ctx) return;
 
-    // Ratchet click 1
-    const osc1 = this.ctx.createOscillator();
-    const gain1 = this.ctx.createGain();
-    osc1.type = "square";
-    osc1.frequency.setValueAtTime(750, this.ctx.currentTime);
-    osc1.frequency.exponentialRampToValueAtTime(320, this.ctx.currentTime + 0.05);
-    gain1.gain.setValueAtTime(0.14, this.ctx.currentTime);
-    gain1.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
-    osc1.connect(gain1);
-    gain1.connect(this.ctx.destination);
-    osc1.start();
-    osc1.stop(this.ctx.currentTime + 0.05);
+    try {
+      // Ratchet click 1
+      const osc1 = this.ctx.createOscillator();
+      const gain1 = this.ctx.createGain();
+      osc1.type = "square";
+      osc1.frequency.setValueAtTime(750, this.ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(320, this.ctx.currentTime + 0.05);
+      gain1.gain.setValueAtTime(0.14, this.ctx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+      osc1.connect(gain1);
+      gain1.connect(this.ctx.destination);
+      osc1.onended = () => { try { osc1.disconnect(); gain1.disconnect(); } catch {} };
+      osc1.start();
+      osc1.stop(this.ctx.currentTime + 0.05);
 
-    // Heavy mechanical thunk
-    const osc2 = this.ctx.createOscillator();
-    const gain2 = this.ctx.createGain();
-    osc2.type = "sine";
-    osc2.frequency.setValueAtTime(160, this.ctx.currentTime + 0.04);
-    osc2.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.14);
-    gain2.gain.setValueAtTime(0.22, this.ctx.currentTime + 0.04);
-    gain2.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.14);
-    osc2.connect(gain2);
-    gain2.connect(this.ctx.destination);
-    osc2.start(this.ctx.currentTime + 0.04);
-    osc2.stop(this.ctx.currentTime + 0.14);
+      // Heavy mechanical thunk
+      const osc2 = this.ctx.createOscillator();
+      const gain2 = this.ctx.createGain();
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(160, this.ctx.currentTime + 0.04);
+      osc2.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.14);
+      gain2.gain.setValueAtTime(0.22, this.ctx.currentTime + 0.04);
+      gain2.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.14);
+      osc2.connect(gain2);
+      gain2.connect(this.ctx.destination);
+      osc2.onended = () => { try { osc2.disconnect(); gain2.disconnect(); } catch {} };
+      osc2.start(this.ctx.currentTime + 0.04);
+      osc2.stop(this.ctx.currentTime + 0.14);
+    } catch {}
   }
 
-  // 12. Slot Machine Reel Spinning Tick
+  // 12. Slot Machine Reel Spinning Tick (Throttled & auto-disconnected)
   public playSlotReelTick() {
     if (this.isMuted) return;
+    const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+    if (now - this.lastReelTick < 90) return;
+    this.lastReelTick = now;
+
     this.initCtx();
     if (!this.ctx) return;
 
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(840, this.ctx.currentTime);
-    gain.gain.setValueAtTime(0.035, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.018);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.018);
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(840, this.ctx.currentTime);
+      gain.gain.setValueAtTime(0.035, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.018);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.onended = () => { try { osc.disconnect(); gain.disconnect(); } catch {} };
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.018);
+    } catch {}
   }
 
   // 13. Slot Machine Reel Stop (Heavy mechanical latch)
@@ -334,17 +347,20 @@ class SoundManager {
     this.initCtx();
     if (!this.ctx) return;
 
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(260, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.08);
-    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.08);
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(260, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.onended = () => { try { osc.disconnect(); gain.disconnect(); } catch {} };
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.08);
+    } catch {}
   }
 
   // 14. Jackpot Fanfare (Celebratory slot bells)
@@ -355,20 +371,23 @@ class SoundManager {
 
     const bellNotes = [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98, 2093.0];
     bellNotes.forEach((freq, idx) => {
-      const osc = this.ctx!.createOscillator();
-      const gain = this.ctx!.createGain();
+      try {
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
 
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(freq, this.ctx!.currentTime + idx * 0.07);
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, this.ctx!.currentTime + idx * 0.07);
 
-      gain.gain.setValueAtTime(0.2, this.ctx!.currentTime + idx * 0.07);
-      gain.gain.exponentialRampToValueAtTime(0.005, this.ctx!.currentTime + idx * 0.07 + 0.4);
+        gain.gain.setValueAtTime(0.2, this.ctx!.currentTime + idx * 0.07);
+        gain.gain.exponentialRampToValueAtTime(0.005, this.ctx!.currentTime + idx * 0.07 + 0.4);
 
-      osc.connect(gain);
-      gain.connect(this.ctx!.destination);
+        osc.connect(gain);
+        gain.connect(this.ctx!.destination);
+        osc.onended = () => { try { osc.disconnect(); gain.disconnect(); } catch {} };
 
-      osc.start(this.ctx!.currentTime + idx * 0.07);
-      osc.stop(this.ctx!.currentTime + idx * 0.07 + 0.4);
+        osc.start(this.ctx!.currentTime + idx * 0.07);
+        osc.stop(this.ctx!.currentTime + idx * 0.07 + 0.4);
+      } catch {}
     });
   }
 }

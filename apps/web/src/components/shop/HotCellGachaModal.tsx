@@ -94,9 +94,6 @@ export function HotCellGachaModal({
   const [reel2Spinning, setReel2Spinning] = useState<boolean>(false);
   const [reel3Spinning, setReel3Spinning] = useState<boolean>(false);
 
-  // Jackpot marquee lights sequence (0-7)
-  const [lightPhase, setLightPhase] = useState<number>(0);
-
   // Ref to hold pending outcome while reels spin
   const pendingOutcomeRef = useRef<{
     results: GachaResult[];
@@ -105,42 +102,14 @@ export function HotCellGachaModal({
     newPity: number;
   } | null>(null);
 
-  // Chase lights animation
+  // Gentle audio tick during active spinning (throttled to avoid sound engine lag)
   useEffect(() => {
-    if (!isOpen) return;
-    const lightTimer = setInterval(() => {
-      setLightPhase((prev) => (prev + 1) % 8);
-    }, isPulling ? 80 : 350);
-    return () => clearInterval(lightTimer);
-  }, [isOpen, isPulling]);
-
-  // Reel 1 Spinning Loop
-  useEffect(() => {
-    if (!reel1Spinning) return;
-    const interval = setInterval(() => {
-      setReel1Index((prev) => (prev + 1) % SLOT_SYMBOLS.length);
+    if (!isPulling) return;
+    const tickInterval = setInterval(() => {
       sounds.playSlotReelTick();
-    }, 65);
-    return () => clearInterval(interval);
-  }, [reel1Spinning]);
-
-  // Reel 2 Spinning Loop
-  useEffect(() => {
-    if (!reel2Spinning) return;
-    const interval = setInterval(() => {
-      setReel2Index((prev) => (prev + 1) % SLOT_SYMBOLS.length);
-    }, 65);
-    return () => clearInterval(interval);
-  }, [reel2Spinning]);
-
-  // Reel 3 Spinning Loop
-  useEffect(() => {
-    if (!reel3Spinning) return;
-    const interval = setInterval(() => {
-      setReel3Index((prev) => (prev + 1) % SLOT_SYMBOLS.length);
-    }, 65);
-    return () => clearInterval(interval);
-  }, [reel3Spinning]);
+    }, isFastForward ? 100 : 150);
+    return () => clearInterval(tickInterval);
+  }, [isPulling, isFastForward]);
 
   if (!isOpen) return null;
 
@@ -329,21 +298,20 @@ export function HotCellGachaModal({
         exit={{ scale: 0.9, opacity: 0, y: 25 }}
         className="w-full max-w-3xl bg-gradient-to-b from-[#1c1206] via-[#0d1c18] to-[#040e0c] border-4 border-amber-500/80 rounded-[32px] p-4 sm:p-6 shadow-[0_0_80px_rgba(245,158,11,0.35)] text-amber-100 my-auto relative overflow-hidden flex flex-col max-h-[96vh]"
       >
-        {/* Animated Marquee Bulb Chase Border */}
-        <div className="absolute top-0 inset-x-0 h-4 bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 border-b border-amber-500/40 flex items-center justify-around px-4">
-          {Array.from({ length: 16 }).map((_, idx) => {
-            const isLit = (idx + lightPhase) % 4 === 0;
-            return (
-              <span
-                key={idx}
-                className={`w-2 h-2 rounded-full transition-all duration-150 ${
-                  isLit
-                    ? "bg-amber-300 shadow-[0_0_10px_#fde047] scale-125"
-                    : "bg-amber-950/70 border border-amber-700/50"
-                }`}
-              />
-            );
-          })}
+        {/* Animated Marquee Bulb Chase Border (CSS GPU Accelerated) */}
+        <div className="absolute top-0 inset-x-0 h-4 bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 border-b border-amber-500/40 flex items-center justify-around px-4 pointer-events-none">
+          {Array.from({ length: 16 }).map((_, idx) => (
+            <span
+              key={idx}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                idx % 4 === 0
+                  ? "bg-amber-300 shadow-[0_0_10px_#fde047] animate-pulse"
+                  : idx % 4 === 2
+                  ? "bg-amber-500/80 shadow-[0_0_6px_#f59e0b]"
+                  : "bg-amber-950/70 border border-amber-700/50"
+              }`}
+            />
+          ))}
         </div>
 
         {/* Modal Top Bar */}
@@ -478,23 +446,34 @@ export function HotCellGachaModal({
                   <div className="absolute inset-x-0 top-0 h-7 bg-gradient-to-b from-black/90 to-transparent pointer-events-none z-10" />
                   <div className="absolute inset-x-0 bottom-0 h-7 bg-gradient-to-t from-black/90 to-transparent pointer-events-none z-10" />
 
-                  <motion.div
-                    key={reel1Index}
-                    initial={reel1Spinning ? { y: -25, opacity: 0.6 } : { scale: 0.9 }}
-                    animate={{ y: 0, opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.08 }}
-                    className="flex flex-col items-center text-center select-none"
-                  >
-                    <span className="text-3xl sm:text-5xl filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] mb-1">
-                      {s1.icon}
-                    </span>
-                    <span className="font-game font-black text-xs sm:text-sm text-amber-200 truncate max-w-[85px] sm:max-w-[120px]">
-                      {s1.label}
-                    </span>
-                    <span className="text-[8px] sm:text-[9px] font-mono text-slate-400">
-                      {s1.sub}
-                    </span>
-                  </motion.div>
+                  {reel1Spinning ? (
+                    <div className="flex flex-col items-center animate-slot-reel filter blur-[0.4px] select-none pointer-events-none">
+                      {[...SLOT_SYMBOLS, ...SLOT_SYMBOLS].map((sym, idx) => (
+                        <div key={idx} className="h-28 sm:h-36 flex flex-col items-center justify-center text-center py-2 shrink-0">
+                          <span className="text-3xl sm:text-5xl mb-1">{sym.icon}</span>
+                          <span className="font-game font-black text-xs sm:text-sm text-amber-200">{sym.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <motion.div
+                      key={reel1Index}
+                      initial={{ scale: 1.25, y: -10 }}
+                      animate={{ scale: 1, y: 0 }}
+                      transition={{ type: "spring", stiffness: 450, damping: 18 }}
+                      className="flex flex-col items-center text-center select-none"
+                    >
+                      <span className="text-3xl sm:text-5xl filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] mb-1">
+                        {s1.icon}
+                      </span>
+                      <span className="font-game font-black text-xs sm:text-sm text-amber-200 truncate max-w-[85px] sm:max-w-[120px]">
+                        {s1.label}
+                      </span>
+                      <span className="text-[8px] sm:text-[9px] font-mono text-slate-400">
+                        {s1.sub}
+                      </span>
+                    </motion.div>
+                  )}
                 </div>
 
                 {/* Reel 2 */}
@@ -502,23 +481,34 @@ export function HotCellGachaModal({
                   <div className="absolute inset-x-0 top-0 h-7 bg-gradient-to-b from-black/90 to-transparent pointer-events-none z-10" />
                   <div className="absolute inset-x-0 bottom-0 h-7 bg-gradient-to-t from-black/90 to-transparent pointer-events-none z-10" />
 
-                  <motion.div
-                    key={reel2Index}
-                    initial={reel2Spinning ? { y: -25, opacity: 0.6 } : { scale: 0.9 }}
-                    animate={{ y: 0, opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.08 }}
-                    className="flex flex-col items-center text-center select-none"
-                  >
-                    <span className="text-3xl sm:text-5xl filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] mb-1">
-                      {s2.icon}
-                    </span>
-                    <span className="font-game font-black text-xs sm:text-sm text-amber-200 truncate max-w-[85px] sm:max-w-[120px]">
-                      {s2.label}
-                    </span>
-                    <span className="text-[8px] sm:text-[9px] font-mono text-slate-400">
-                      {s2.sub}
-                    </span>
-                  </motion.div>
+                  {reel2Spinning ? (
+                    <div className="flex flex-col items-center animate-slot-reel filter blur-[0.4px] select-none pointer-events-none">
+                      {[...SLOT_SYMBOLS, ...SLOT_SYMBOLS].reverse().map((sym, idx) => (
+                        <div key={idx} className="h-28 sm:h-36 flex flex-col items-center justify-center text-center py-2 shrink-0">
+                          <span className="text-3xl sm:text-5xl mb-1">{sym.icon}</span>
+                          <span className="font-game font-black text-xs sm:text-sm text-amber-200">{sym.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <motion.div
+                      key={reel2Index}
+                      initial={{ scale: 1.25, y: -10 }}
+                      animate={{ scale: 1, y: 0 }}
+                      transition={{ type: "spring", stiffness: 450, damping: 18 }}
+                      className="flex flex-col items-center text-center select-none"
+                    >
+                      <span className="text-3xl sm:text-5xl filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] mb-1">
+                        {s2.icon}
+                      </span>
+                      <span className="font-game font-black text-xs sm:text-sm text-amber-200 truncate max-w-[85px] sm:max-w-[120px]">
+                        {s2.label}
+                      </span>
+                      <span className="text-[8px] sm:text-[9px] font-mono text-slate-400">
+                        {s2.sub}
+                      </span>
+                    </motion.div>
+                  )}
                 </div>
 
                 {/* Reel 3 */}
@@ -526,23 +516,34 @@ export function HotCellGachaModal({
                   <div className="absolute inset-x-0 top-0 h-7 bg-gradient-to-b from-black/90 to-transparent pointer-events-none z-10" />
                   <div className="absolute inset-x-0 bottom-0 h-7 bg-gradient-to-t from-black/90 to-transparent pointer-events-none z-10" />
 
-                  <motion.div
-                    key={reel3Index}
-                    initial={reel3Spinning ? { y: -25, opacity: 0.6 } : { scale: 0.9 }}
-                    animate={{ y: 0, opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.08 }}
-                    className="flex flex-col items-center text-center select-none"
-                  >
-                    <span className="text-3xl sm:text-5xl filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] mb-1">
-                      {s3.icon}
-                    </span>
-                    <span className="font-game font-black text-xs sm:text-sm text-amber-200 truncate max-w-[85px] sm:max-w-[120px]">
-                      {s3.label}
-                    </span>
-                    <span className="text-[8px] sm:text-[9px] font-mono text-slate-400">
-                      {s3.sub}
-                    </span>
-                  </motion.div>
+                  {reel3Spinning ? (
+                    <div className="flex flex-col items-center animate-slot-reel filter blur-[0.4px] select-none pointer-events-none">
+                      {[...SLOT_SYMBOLS, ...SLOT_SYMBOLS].map((sym, idx) => (
+                        <div key={idx} className="h-28 sm:h-36 flex flex-col items-center justify-center text-center py-2 shrink-0">
+                          <span className="text-3xl sm:text-5xl mb-1">{sym.icon}</span>
+                          <span className="font-game font-black text-xs sm:text-sm text-amber-200">{sym.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <motion.div
+                      key={reel3Index}
+                      initial={{ scale: 1.25, y: -10 }}
+                      animate={{ scale: 1, y: 0 }}
+                      transition={{ type: "spring", stiffness: 450, damping: 18 }}
+                      className="flex flex-col items-center text-center select-none"
+                    >
+                      <span className="text-3xl sm:text-5xl filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] mb-1">
+                        {s3.icon}
+                      </span>
+                      <span className="font-game font-black text-xs sm:text-sm text-amber-200 truncate max-w-[85px] sm:max-w-[120px]">
+                        {s3.label}
+                      </span>
+                      <span className="text-[8px] sm:text-[9px] font-mono text-slate-400">
+                        {s3.sub}
+                      </span>
+                    </motion.div>
+                  )}
                 </div>
               </div>
 
