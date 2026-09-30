@@ -23,35 +23,40 @@ export const SHOP_CATALOG: ShopItem[] = [
     nameTh: "กรอบ Graphite ดั้งเดิม",
     price: 0,
     kind: "frame",
-    descriptionTh: "กรอบการ์ดมาตรฐานสีเทาแกรไฟต์คลาสสิก"
-  },
-  {
-    id: "frame-gold",
-    nameTh: "กรอบ Gold Foil ทองคำ",
-    price: 60,
-    kind: "frame",
-    descriptionTh: "ขอบการ์ดเคลือบทองประกาย สะท้อนแสงหรูหรา"
-  },
-  {
-    id: "frame-reactor",
-    nameTh: "กรอบ Reactor Glow เรืองแสง",
-    price: 90,
-    kind: "frame",
-    descriptionTh: "ขอบการ์ดแผ่รังสีสีฟ้าเรืองแสงนีออนสว่างวาบ"
+    descriptionTh: "กรอบการ์ดมาตรฐานสีเทาแกรไฟต์คลาสสิก",
+    rarity: "common"
   },
   {
     id: "frame-clinic",
     nameTh: "กรอบคลินิกแดง",
-    price: 70,
+    price: 65,
     kind: "frame",
-    descriptionTh: "ขอบการ์ดโทนสีแดงทับทิมคลินิกสะท้อนแสงทรงพลัง"
+    descriptionTh: "ขอบการ์ดโทนสีแดงทับทิมคลินิกสะท้อนแสงทรงพลัง",
+    rarity: "rare"
+  },
+  {
+    id: "frame-gold",
+    nameTh: "กรอบ Gold Foil ทองคำ",
+    price: 75,
+    kind: "frame",
+    descriptionTh: "ขอบการ์ดเคลือบทองประกาย สะท้อนแสงหรูหรา",
+    rarity: "rare"
   },
   {
     id: "frame-tracer",
-    nameTh: "กรอบสารเรือง",
-    price: 85,
+    nameTh: "กรอบสารเรืองรังสีเขียว",
+    price: 140,
     kind: "frame",
-    descriptionTh: "ขอบการ์ดรังสีเขียวมรกตเรืองแสงพัลส์ไอโซโทป"
+    descriptionTh: "ขอบการ์ดรังสีเขียวมรกตเรืองแสงพัลส์ไอโซโทป",
+    rarity: "epic"
+  },
+  {
+    id: "frame-reactor",
+    nameTh: "กรอบ Reactor Glow เรืองแสง",
+    price: 160,
+    kind: "frame",
+    descriptionTh: "ขอบการ์ดแผ่รังสีสีฟ้าเรืองแสงนีออนสว่างวาบ",
+    rarity: "epic"
   },
 
   // Cardbacks
@@ -60,35 +65,40 @@ export const SHOP_CATALOG: ShopItem[] = [
     nameTh: "หลังไพ่ Classic Navy",
     price: 0,
     kind: "cardback",
-    descriptionTh: "หลังการ์ดสีกรมท่าพิมพ์ลายสัญลักษณ์ Trefoil ประจำสถาบัน"
+    descriptionTh: "หลังการ์ดสีกรมท่าพิมพ์ลายสัญลักษณ์ Trefoil ประจำสถาบัน",
+    rarity: "common"
   },
   {
     id: "back-hotcell",
     nameTh: "หลังไพ่ Hot Cell แดงเข้ม",
-    price: 45,
+    price: 60,
     kind: "cardback",
-    descriptionTh: "หลังการ์ดสีแดงอิฐเตาหลอมไอโซโทปรังสี"
-  },
-  {
-    id: "back-pet",
-    nameTh: "หลังไพ่ PET Ring สีม่วงคอสมิก",
-    price: 75,
-    kind: "cardback",
-    descriptionTh: "หลังการ์ดวงแหวนเครื่องสแกน PET/CT ทรงพลัง"
+    descriptionTh: "หลังการ์ดสีแดงอิฐเตาหลอมไอโซโทปรังสี",
+    rarity: "rare"
   },
   {
     id: "back-cyclotron",
     nameTh: "หลังไซโคลตรอน",
-    price: 55,
+    price: 75,
     kind: "cardback",
-    descriptionTh: "หลังการ์ดวงแหวนเครื่องเร่งอนุภาคไซโคลตรอนสีฟ้าเข้ม"
+    descriptionTh: "หลังการ์ดวงแหวนเครื่องเร่งอนุภาคไซโคลตรอนสีฟ้าเข้ม",
+    rarity: "rare"
   },
   {
     id: "back-nightlab",
     nameTh: "หลังแล็บกลางคืน",
-    price: 65,
+    price: 135,
     kind: "cardback",
-    descriptionTh: "หลังการ์ดห้องแล็บปฏิบัติการรังสีเวรดึกสีเขียวเข้ม"
+    descriptionTh: "หลังการ์ดห้องแล็บปฏิบัติการรังสีเวรดึกสีเขียวเข้ม",
+    rarity: "epic"
+  },
+  {
+    id: "back-pet",
+    nameTh: "หลังไพ่ PET Ring สีม่วงคอสมิก",
+    price: 150,
+    kind: "cardback",
+    descriptionTh: "หลังการ์ดวงแหวนเครื่องสแกน PET/CT ทรงพลัง",
+    rarity: "epic"
   },
 
   // Avatars
@@ -97,91 +107,105 @@ export const SHOP_CATALOG: ShopItem[] = [
     nameTh: "อวาตาร์โมเลกุล ¹⁸F-FDG",
     price: 0,
     kind: "avatar",
-    descriptionTh: "โมเลกุลน้ำตาลติดฉลากรังสีฟลูออรีน-18"
-  },
-  {
-    id: "avatar-niw",
-    nameTh: "นิว",
-    price: 40,
-    kind: "avatar",
-    descriptionTh: "มาสคอตหนุ่มน้อยนักฟิสิกส์นิวเคลียร์แว่นตากลมรอบวงโคจร"
-  },
-  {
-    id: "avatar-med",
-    nameTh: "เมด",
-    price: 40,
-    kind: "avatar",
-    descriptionTh: "มาสคอตแพทย์หญิงรังสีรักษาพร้อมหูฟังตรวจการไหลเวียนเลือด"
-  },
-  {
-    id: "avatar-gamma",
-    nameTh: "แกมม่า",
-    price: 35,
-    kind: "avatar",
-    descriptionTh: "สัญลักษณ์ลำแสงรังสีแกมมาพลังงานสูงเปล่งประกายสีทอง"
+    descriptionTh: "โมเลกุลน้ำตาลติดฉลากรังสีฟลูออรีน-18",
+    rarity: "common"
   },
   {
     id: "avatar-thyroid",
     nameTh: "อวาตาร์ต่อมไทรอยด์ผีเสื้อ",
-    price: 30,
+    price: 25,
     kind: "avatar",
-    descriptionTh: "ต่อมไทรอยด์สีส้มสว่างกำลังจับไอโอไดด์"
+    descriptionTh: "ต่อมไทรอยด์สีส้มสว่างกำลังจับไอโอไดด์",
+    rarity: "common"
   },
   {
     id: "avatar-lung",
     nameTh: "อวาตาร์ปอดและหลอดเลือด",
-    price: 30,
+    price: 25,
     kind: "avatar",
-    descriptionTh: "ปอดสีฟ้าสดใสพร้อมระบบการไหลเวียนเลือด"
+    descriptionTh: "ปอดสีฟ้าสดใสพร้อมระบบการไหลเวียนเลือด",
+    rarity: "common"
+  },
+  {
+    id: "avatar-gamma",
+    nameTh: "แกมม่า",
+    price: 60,
+    kind: "avatar",
+    descriptionTh: "สัญลักษณ์ลำแสงรังสีแกมมาพลังงานสูงเปล่งประกายสีทอง",
+    rarity: "rare"
+  },
+  {
+    id: "avatar-niw",
+    nameTh: "นิว",
+    price: 70,
+    kind: "avatar",
+    descriptionTh: "มาสคอตหนุ่มน้อยนักฟิสิกส์นิวเคลียร์แว่นตากลมรอบวงโคจร",
+    rarity: "rare"
+  },
+  {
+    id: "avatar-med",
+    nameTh: "เมด",
+    price: 70,
+    kind: "avatar",
+    descriptionTh: "มาสคอตแพทย์หญิงรังสีรักษาพร้อมหูฟังตรวจการไหลเวียนเลือด",
+    rarity: "rare"
   },
 
-  // FX & Titles
+  // FX
   {
     id: "fx-none",
     nameTh: "เอฟเฟกต์ Confetti ฉลองชัย",
     price: 0,
     kind: "fx",
-    descriptionTh: "พลุกระดาษสีโปรยปรายเมื่อตอบถูก"
-  },
-  {
-    id: "fx-gamma",
-    nameTh: "เอฟเฟกต์รังสีแกมมาเรืองรอง",
-    price: 80,
-    kind: "fx",
-    descriptionTh: "คลื่นรังสีแกมมาสีทองระเบิดกระจายเมื่อชนะรอบ"
+    descriptionTh: "พลุกระดาษสีโปรยปรายเมื่อตอบถูก",
+    rarity: "common"
   },
   {
     id: "fx-lock",
     nameTh: "แสงตอนล็อกคำตอบ",
-    price: 50,
+    price: 75,
     kind: "fx",
-    descriptionTh: "ลำแสงพลังงานนีออนสว่างวาบขณะกดล็อกส่งคำตอบ"
+    descriptionTh: "ลำแสงพลังงานนีออนสว่างวาบขณะกดล็อกส่งคำตอบ",
+    rarity: "rare"
   },
   {
     id: "fx-win",
     nameTh: "ประกายตอนตอบถูก",
-    price: 70,
+    price: 150,
     kind: "fx",
-    descriptionTh: "ประกายละอองแสงระยิบระยับรอบโต๊ะเมื่อตรวจคำตอบถูกต้อง"
+    descriptionTh: "ประกายละอองแสงระยิบระยับรอบโต๊ะเมื่อตรวจคำตอบถูกต้อง",
+    rarity: "epic"
   },
+  {
+    id: "fx-gamma",
+    nameTh: "เอฟเฟกต์รังสีแกมมาเรืองรอง",
+    price: 280,
+    kind: "fx",
+    descriptionTh: "คลื่นรังสีแกมมาสีทองระเบิดกระจายเมื่อชนะรอบ",
+    rarity: "legendary"
+  },
+
+  // Titles
   {
     id: "title-none",
     nameTh: "ฉายาเริ่มต้น (ไม่มี)",
     price: 0,
     kind: "title",
-    descriptionTh: "ฉายาเริ่มต้นสำหรับนักศึกษาใหม่"
+    descriptionTh: "ฉายาเริ่มต้นสำหรับนักศึกษาใหม่",
+    rarity: "common"
   },
   {
     id: "title-capillary",
     nameTh: "ฉายา Capillary Blockader",
-    price: 40,
+    price: 30,
     kind: "title",
-    descriptionTh: "จอมอุดกั้นหลอดเลือดฝอยปอดระดับเซียน"
+    descriptionTh: "จอมอุดกั้นหลอดเลือดฝอยปอดระดับเซียน",
+    rarity: "common"
   },
   {
     id: "title-perfusion",
     nameTh: "Lung Perfusion",
-    price: 45,
+    price: 65,
     kind: "title",
     descriptionTh: "ผู้เชี่ยวชาญการประเมินการไหลเวียนเลือดในปอด",
     rarity: "rare"
@@ -189,23 +213,15 @@ export const SHOP_CATALOG: ShopItem[] = [
   {
     id: "title-fdg",
     nameTh: "FDG Reader",
-    price: 45,
+    price: 70,
     kind: "title",
     descriptionTh: "ยอดนักวิเคราะห์ภาพการเผาผลาญกลูโคสด้วยเพ็ทสแกน",
     rarity: "rare"
   },
   {
-    id: "title-master-halflife",
-    nameTh: "ปรมาจารย์ครึ่งชีวิต (Master of Half-Life)",
-    price: 60,
-    kind: "title",
-    descriptionTh: "ผู้หยั่งรู้การสลายตัวของทุกไอโซโทปตั้งแต่เสี้ยววินาทีถึงพันปี",
-    rarity: "epic"
-  },
-  {
     id: "title-photon",
     nameTh: "นักล่าโฟตอน (Photon Stalker)",
-    price: 50,
+    price: 75,
     kind: "title",
     descriptionTh: "จอมแม่นยำตรวจจับรังสีแกมมาพลังงาน 140 keV",
     rarity: "rare"
@@ -213,15 +229,23 @@ export const SHOP_CATALOG: ShopItem[] = [
   {
     id: "title-tumor",
     nameTh: "มือปราบก้อนมะเร็ง (Tumor Hunter)",
-    price: 55,
+    price: 80,
     kind: "title",
     descriptionTh: "ผู้เชี่ยวชาญการจับสัญญาณ FDG Hypermetabolism ในรอยโรค",
     rarity: "rare"
   },
   {
+    id: "title-master-halflife",
+    nameTh: "ปรมาจารย์ครึ่งชีวิต (Master of Half-Life)",
+    price: 170,
+    kind: "title",
+    descriptionTh: "ผู้หยั่งรู้การสลายตัวของทุกไอโซโทปตั้งแต่เสี้ยววินาทีถึงพันปี",
+    rarity: "epic"
+  },
+  {
     id: "title-theranostics",
     nameTh: "ราชันย์ธีรานอสติกส์ (King of Theranostics)",
-    price: 120,
+    price: 320,
     kind: "title",
     descriptionTh: "ผู้ผสานการวินิจฉัยและการรักษารังสีเข้าด้วยกันอย่างสมบูรณ์แบบ",
     rarity: "legendary"
@@ -237,9 +261,17 @@ export const SHOP_CATALOG: ShopItem[] = [
     rarity: "common"
   },
   {
+    id: "table-clinic",
+    nameTh: "Clean Clinical PET",
+    price: 85,
+    kind: "table",
+    descriptionTh: "โต๊ะสีขาวมินิมอลโมเดิร์นคลีนแบบห้องควบคุมเครื่อง PET/CT Scan",
+    rarity: "rare"
+  },
+  {
     id: "table-cyber",
     nameTh: "Cyber Nuclear Suite",
-    price: 70,
+    price: 95,
     kind: "table",
     descriptionTh: "พื้นโต๊ะสีดำตัดไฟนีออนฟ้าเรืองแสงสไตล์ห้องแล็บนิวเคลียร์ไฮเทค",
     rarity: "rare"
@@ -247,23 +279,15 @@ export const SHOP_CATALOG: ShopItem[] = [
   {
     id: "table-emerald",
     nameTh: "Royal Emerald Felt",
-    price: 85,
+    price: 180,
     kind: "table",
     descriptionTh: "ผ้าปูโต๊ะกำมะหยี่สีเขียวมรกตขอบทองคำหรูหราแบบคาสิโนพรีเมียม",
     rarity: "epic"
   },
   {
-    id: "table-clinic",
-    nameTh: "Clean Clinical PET",
-    price: 60,
-    kind: "table",
-    descriptionTh: "โต๊ะสีขาวมินิมอลโมเดิร์นคลีนแบบห้องควบคุมเครื่อง PET/CT Scan",
-    rarity: "rare"
-  },
-  {
     id: "table-cosmic",
     nameTh: "Cosmic Deep Space",
-    price: 95,
+    price: 360,
     kind: "table",
     descriptionTh: "พื้นโต๊ะลวดลายอวกาศเนบิวลาและละอองดาวคอสมิกแห่งจักรวาล",
     rarity: "legendary"
