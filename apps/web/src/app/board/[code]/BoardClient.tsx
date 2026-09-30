@@ -466,8 +466,10 @@ export function BoardClient() {
   const maxLimit = 55;
   const displayMode = room.settings.spotlightMode || "big-card";
 
-  const correctRp = ALL_RP_CARDS.find(r => currentCase.acceptedRpIds.includes(r.id));
-  const correctMech = ALL_MECH_CARDS.find(m => currentCase.acceptedMechIds.includes(m.id));
+  const correctRps = ALL_RP_CARDS.filter(r => currentCase.acceptedRpIds.includes(r.id));
+  const correctRp = correctRps[0];
+  const correctMechs = ALL_MECH_CARDS.filter(m => currentCase.acceptedMechIds.includes(m.id));
+  const correctMech = correctMechs[0];
 
   return (
     <div className="relative isolate min-h-screen bg-[#07131f] text-[#f6f0de] flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden font-game">
@@ -575,16 +577,24 @@ export function BoardClient() {
                <div className="bg-emerald-950/90 border-4 border-emerald-500 rounded-3xl p-6 shadow-2xl flex flex-col items-center max-w-2xl">
                   <div className="text-center mb-4">
                     <h3 className="text-emerald-300 text-2xl font-black uppercase tracking-widest">คำตอบที่ถูกต้อง</h3>
-                    <p className="text-xs text-emerald-200/80 font-bold mt-1">ถูกครบ 2 ใบได้คะแนนเต็ม • ตอบถูกอันใดอันหนึ่งได้ 1 คะแนน</p>
+                    <p className="text-xs text-emerald-200/90 font-bold mt-1">ถูกทั้ง 2 ส่วน (การ์ดฟ้า 1 ใบ + กลไกใดก็ได้ 1 ใบ) ได้คะแนนเต็ม • ตอบถูกส่วนใดส่วนหนึ่งได้คะแนนครึ่งหนึ่ง (ตอบเกิน/เดาสุ่มได้ 0)</p>
                   </div>
                   <div className="flex items-center justify-center space-x-6 w-full">
                     <div className="flex-1 bg-black/50 rounded-2xl p-6 text-center border-2 border-emerald-800">
-                      <div className="text-emerald-500 text-sm font-bold mb-2">สารเภสัชรังสี (Radiopharmaceutical)</div>
-                      <div className="text-white font-black text-2xl">{correctRp?.titleTh || currentCase.acceptedRpIds[0]}</div>
+                      <div className="text-emerald-500 text-sm font-bold mb-2">สารเภสัชรังสี (การ์ดสีฟ้า)</div>
+                      <div className="text-white font-black text-2xl">
+                        {correctRps.length > 1
+                          ? correctRps.map((r) => r.titleTh).join(" หรือ ")
+                          : (correctRp?.titleTh || currentCase.acceptedRpIds[0])}
+                      </div>
                     </div>
                     <div className="flex-1 bg-black/50 rounded-2xl p-6 text-center border-2 border-emerald-800">
-                      <div className="text-emerald-500 text-sm font-bold mb-2">กลไก (Mechanism)</div>
-                      <div className="text-white font-black text-2xl">{correctMech?.titleTh || currentCase.acceptedMechIds[0]}</div>
+                      <div className="text-emerald-500 text-sm font-bold mb-2">กลไก (การ์ดสีส้ม - ตอบถูกเพียง 1 ใบใดก็ได้)</div>
+                      <div className="text-white font-black text-2xl">
+                        {correctMechs.length > 1
+                          ? correctMechs.map((m) => m.titleTh).join(" หรือ ")
+                          : (correctMech?.titleTh || currentCase.acceptedMechIds[0])}
+                      </div>
                     </div>
                   </div>
                </div>

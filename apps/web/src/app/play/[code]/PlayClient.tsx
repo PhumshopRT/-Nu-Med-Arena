@@ -1580,26 +1580,28 @@ export function PlayClient() {
               <h2 className="font-game font-black text-2xl md:text-3xl text-amber-200">
                 {lastRoundResult.scoreAwarded > 0
                   ? (lastRoundResult.isFullMatch
-                      ? `ยอดเยี่ยม! ถูกต้องครบ 2 ใบ (+${lastRoundResult.scoreAwarded} คะแนนเต็ม)`
+                      ? `ยอดเยี่ยม! ถูกต้องทั้งสองส่วน (+${lastRoundResult.scoreAwarded} คะแนนเต็ม)`
                       : lastRoundResult.matchType === "rp_only"
-                      ? `ถูกต้องเฉพาะสารเภสัชรังสี! +${lastRoundResult.scoreAwarded} คะแนน (ได้ 1 คะแนน)`
-                      : `ถูกต้องเฉพาะกลไก! +${lastRoundResult.scoreAwarded} คะแนน (ได้ 1 คะแนน)`)
-                  : "ยังไม่ถูกต้องในรอบนี้ (0 คะแนน)"}
+                      ? `ถูกต้องเฉพาะสารเภสัชรังสี (การ์ดฟ้า)! +${lastRoundResult.scoreAwarded} คะแนน`
+                      : `ถูกต้องเฉพาะกลไก (การ์ดส้ม)! +${lastRoundResult.scoreAwarded} คะแนน`)
+                  : (lastRoundResult.isExcess || lastRoundResult.hasInvalidMech
+                      ? "ตอบเกินหรือมีกลไกที่ผิดปนมา (0 คะแนน)"
+                      : "ยังไม่ถูกต้องในรอบนี้ (0 คะแนน)")}
               </h2>
 
               {lastRoundResult.scoreAwarded > 0 && (
                 <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-2">
                   {lastRoundResult.isFullMatch ? (
                     <span className="px-2.5 py-1 rounded-full bg-emerald-950/90 border border-emerald-400 text-emerald-200 text-xs font-black shadow-sm flex items-center space-x-1">
-                      <span>🎉 ถูกต้องสมบูรณ์ทั้ง 2 ใบ (+{lastRoundResult.baseScore} PTS คะแนนเต็ม)</span>
+                      <span>🎉 ถูกต้องสมบูรณ์ (การ์ดฟ้า + กลไก) (+${lastRoundResult.baseScore} PTS คะแนนเต็ม)</span>
                     </span>
                   ) : lastRoundResult.matchType === "rp_only" ? (
                     <span className="px-2.5 py-1 rounded-full bg-blue-950/90 border border-blue-400 text-blue-200 text-xs font-black shadow-sm flex items-center space-x-1">
-                      <span>🔷 ถูกต้องเฉพาะการ์ดฟ้า (+{lastRoundResult.baseScore} PTS ได้ 1 คะแนน)</span>
+                      <span>🔷 ถูกต้องเฉพาะการ์ดฟ้า (+${lastRoundResult.baseScore} PTS ครึ่งคะแนน)</span>
                     </span>
                   ) : (
-                    <span className="px-2.5 py-1 rounded-full bg-yellow-950/90 border border-yellow-400 text-yellow-200 text-xs font-black shadow-sm flex items-center space-x-1">
-                      <span>⚡️ ถูกต้องเฉพาะการ์ดเหลือง (+{lastRoundResult.baseScore} PTS ได้ 1 คะแนน)</span>
+                    <span className="px-2.5 py-1 rounded-full bg-amber-950/90 border border-amber-400 text-amber-200 text-xs font-black shadow-sm flex items-center space-x-1">
+                      <span>⚡️ ถูกต้องเฉพาะกลไก (+${lastRoundResult.baseScore} PTS ครึ่งคะแนน)</span>
                     </span>
                   )}
                   {lastRoundResult.speedBonus > 0 && (

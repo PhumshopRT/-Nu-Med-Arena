@@ -5,6 +5,7 @@ import { CASE_DECK, validateCaseClues } from "./cards/cases";
 describe("Rule Engine: Card Grading", () => {
   const c05 = CASE_DECK.find((c) => c.id === "C-05")!;
   const cb06 = CASE_DECK.find((c) => c.id === "C-B06")!;
+  const cb01 = CASE_DECK.find((c) => c.id === "C-B01")!;
   const c02 = CASE_DECK.find((c) => c.id === "C-02")!;
 
   it("PE case (C-05) + MAA (R-07) + Capillary Blockade (M-03) = 4 points", () => {
@@ -128,6 +129,47 @@ describe("Rule Engine: Card Grading", () => {
   it("C-05 clue mapping: C-05 must map to lung capillary clue T-01, never thyroid", () => {
     expect(c05.clueId).toBe("T-01");
     expect(c05.clueId).not.toBe("T-03");
+  });
+
+  it("Multi-accepted mechanisms (C-B01 accepts M-06 and M-11): answering ANY 1 valid mechanism + correct RP = full points (2 points)", () => {
+    // 1. Answering M-06 + R-05 -> Full 2 points
+    const resM06 = grade("R-05", "M-06", cb01);
+    expect(resM06.correct).toBe(true);
+    expect(resM06.points).toBe(2);
+    expect(resM06.rpOk).toBe(true);
+    expect(resM06.mechOk).toBe(true);
+
+    // 2. Answering M-11 + R-05 -> Full 2 points
+    const resM11 = grade("R-05", "M-11", cb01);
+    expect(resM11.correct).toBe(true);
+    expect(resM11.points).toBe(2);
+    expect(resM11.rpOk).toBe(true);
+    expect(resM11.mechOk).toBe(true);
+
+    // 3. Blue wrong, mechanism M-06 correct -> half points (1 point)
+    const resBlueWrong = grade("R-01", "M-06", cb01);
+    expect(resBlueWrong.correct).toBe(false);
+    expect(resBlueWrong.partialMech).toBe(true);
+    expect(resBlueWrong.points).toBe(1);
+  });
+
+  it("Excess / guessing penalty: answering multiple mechanisms or mixing wrong mechanisms gives 0 points", () => {
+    // 1. Mixing wrong mechanism (M-02) with correct mechanism (M-06) -> 0 points!
+    const resMixed = grade("R-05", ["M-06", "M-02"], cb01);
+    expect(resMixed.correct).toBe(false);
+    expect(resMixed.points).toBe(0);
+    expect(resMixed.hasInvalidMech).toBe(true);
+
+    // 2. Excess mechanisms even if both valid (M-06 and M-11) -> 0 points!
+    const resExcess = grade("R-05", ["M-06", "M-11"], cb01);
+    expect(resExcess.correct).toBe(false);
+    expect(resExcess.points).toBe(0);
+    expect(resExcess.isExcess).toBe(true);
+
+    // 3. Comma-separated string with mixed mechanism -> 0 points!
+    const resComma = grade("R-05", "M-06, M-02", cb01);
+    expect(resComma.correct).toBe(false);
+    expect(resComma.points).toBe(0);
   });
 
   it("All cases in CASE_DECK must have valid clueId defined", () => {
