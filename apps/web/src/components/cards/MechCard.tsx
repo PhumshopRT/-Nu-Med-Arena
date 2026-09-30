@@ -16,6 +16,7 @@ interface MechCardProps {
   isHoverable?: boolean;
   isSelected?: boolean;
   onClick?: () => void;
+  headerAction?: React.ReactNode;
   size?: "sm" | "md" | "lg";
 }
 
@@ -25,6 +26,7 @@ export const MechCard = React.memo(function MechCard({
   isHoverable = true,
   isSelected = false,
   onClick,
+  headerAction,
   size = "md",
 }: MechCardProps) {
   const renderIllustration = () => {
@@ -75,12 +77,14 @@ export const MechCard = React.memo(function MechCard({
             </div>
 
             {/* Right Cog/Gear Icon */}
-            <div className={clsx(
-              "rounded-full bg-[#FFF6D9] text-[#B45309] flex items-center justify-center shadow-xs border border-amber-300",
-              size === "sm" ? "w-4 h-4 text-[10px]" : "w-5 h-5 text-xs"
-            )}>
-              ⚙️
-            </div>
+            {headerAction || (
+              <div className={clsx(
+                "rounded-full bg-[#FFF6D9] text-[#B45309] flex items-center justify-center shadow-xs border border-amber-300",
+                size === "sm" ? "w-4 h-4 text-[10px]" : "w-5 h-5 text-xs"
+              )}>
+                ⚙️
+              </div>
+            )}
           </div>
 
           {/* 2. Title (Centered matching prototype) */}

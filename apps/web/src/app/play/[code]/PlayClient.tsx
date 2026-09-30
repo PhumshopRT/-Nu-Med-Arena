@@ -1262,14 +1262,15 @@ export function PlayClient() {
               <span className="font-game tracking-wider uppercase truncate">แถบกลไกการสะสมกลางโต๊ะ</span>
               <span className="hidden sm:inline text-[10px] text-amber-300/80 font-normal">(เลือกกลไกที่เกี่ยวข้อง • สูงสุด 3 ใบ)</span>
             </div>
-            {expandedMechId && (
+            {expandedMechId && isMechPreviewCollapsed && (
               <button
                 type="button"
-                onClick={() => setIsMechPreviewCollapsed((collapsed) => !collapsed)}
-                aria-expanded={!isMechPreviewCollapsed}
+                onClick={() => setIsMechPreviewCollapsed(false)}
+                aria-expanded={false}
+                aria-label={`ดูการ์ดกลไก ${expandedMechId}`}
                 className="shrink-0 inline-flex min-h-8 items-center gap-1 rounded-lg border border-amber-300/50 bg-amber-950/90 px-2.5 py-1 text-[10px] sm:text-xs font-black text-amber-100 shadow-md hover:bg-amber-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200"
               >
-                {isMechPreviewCollapsed ? "ดูการ์ด" : "ย่อการ์ด"} <span className="font-mono text-amber-300">{expandedMechId}</span>
+                ดูการ์ด <span className="font-mono text-amber-300">{expandedMechId}</span>
               </button>
             )}
           </div>
