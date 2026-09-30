@@ -936,7 +936,9 @@ export function PlayClient() {
         }
         onError={() => setTableBgError(true)}
         alt="Play Table Arena"
-        className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none"
+        className={`fixed inset-0 w-full h-full object-cover z-0 pointer-events-none transition-all duration-500 ${
+          equippedCosmetics.table === "table-clinic" ? "brightness-[0.88] contrast-105" : ""
+        }`}
       />
 
       {/* Fallback Ambient Layer (Active if custom image file not yet present) */}
@@ -965,8 +967,13 @@ export function PlayClient() {
         </div>
       )}
 
-      {/* 1. Top HUD Ribbon - Translucent Sleek HUD (~72% transparent) */}
-      <header className="relative z-20 w-full flex justify-between items-center px-2 sm:px-4 md:px-8 py-2 bg-black/28 border-b border-amber-600/30 shadow-xl backdrop-blur-xs">
+      {/* Table Contrast Shield: Ensures text and icons remain crystal clear on bright, dark or high-contrast tables */}
+      <div className="fixed inset-0 pointer-events-none z-0 bg-radial-vignette opacity-70" />
+      <div className="fixed inset-x-0 top-0 h-32 pointer-events-none z-0 bg-gradient-to-b from-black/80 via-black/40 to-transparent" />
+      <div className="fixed inset-x-0 bottom-0 h-44 pointer-events-none z-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+
+      {/* 1. Top HUD Ribbon - Solid Dark Glass for 100% contrast on any table */}
+      <header className="relative z-20 w-full flex justify-between items-center px-2 sm:px-4 md:px-8 py-2 bg-slate-950/90 border-b border-amber-500/40 shadow-2xl backdrop-blur-md">
         {/* Left: Round & Exit */}
         <div className="flex items-center space-x-1.5 sm:space-x-3">
           <button
@@ -976,22 +983,22 @@ export function PlayClient() {
                 router.push("/");
               }
             }}
-            className="p-1 sm:p-1.5 bg-amber-900/70 hover:bg-amber-800 rounded-lg sm:rounded-xl text-amber-200 border border-amber-600/80 transition-all hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-xs"
+            className="p-1 sm:p-1.5 bg-amber-950/90 hover:bg-amber-900 rounded-lg sm:rounded-xl text-amber-200 border border-amber-500/80 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-md"
             title="ออกจากเกม"
           >
             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
 
-          <div className="bg-amber-950/60 border border-amber-500/60 px-2 sm:px-3 py-0.5 sm:py-1 rounded-xl shadow-inner flex items-center space-x-1 sm:space-x-2 backdrop-blur-xs">
-            <span className="text-[9px] sm:text-[10px] text-amber-300 font-game uppercase font-bold">รอบ</span>
-            <span className="font-mono font-black text-amber-100 text-xs sm:text-sm md:text-base">
+          <div className="bg-slate-900/90 border border-amber-500/60 px-2 sm:px-3 py-0.5 sm:py-1 rounded-xl shadow-inner flex items-center space-x-1 sm:space-x-2">
+            <span className="text-[9px] sm:text-[10px] text-amber-300 font-game uppercase font-bold drop-shadow-sm">รอบ</span>
+            <span className="font-mono font-black text-amber-100 text-xs sm:text-sm md:text-base drop-shadow-sm">
               {currentRound}/{totalRounds}
             </span>
           </div>
 
-          <div className="hidden lg:flex bg-amber-950/50 px-3 py-1 rounded-full text-xs font-bold text-amber-200 border border-amber-700/50 items-center space-x-1.5 backdrop-blur-xs">
+          <div className="hidden lg:flex bg-slate-900/90 px-3 py-1 rounded-full text-xs font-bold text-amber-200 border border-amber-700/60 items-center space-x-1.5 shadow-md">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span>โจทย์: {currentCase.difficulty} ({currentCase.points} คะแนน)</span>
+            <span className="drop-shadow-sm">โจทย์: {currentCase.difficulty} ({currentCase.points} คะแนน)</span>
           </div>
         </div>
 
@@ -999,12 +1006,12 @@ export function PlayClient() {
         <div className="flex flex-col items-center">
           <div className="flex items-center space-x-1 sm:space-x-1.5">
             <Clock className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${timeLeft <= 10 ? "text-rose-400 animate-bounce" : "text-amber-300"}`} />
-            <span className={`font-mono font-black text-base sm:text-lg md:text-xl ${timeLeft <= 10 ? "text-rose-400" : "text-amber-100"}`}>
+            <span className={`font-mono font-black text-base sm:text-lg md:text-xl drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] ${timeLeft <= 10 ? "text-rose-400" : "text-amber-100"}`}>
               {timeLeft}s
             </span>
           </div>
           {/* Progress bar */}
-          <div className="w-20 sm:w-28 md:w-44 h-1 sm:h-1.5 bg-black/40 rounded-full overflow-hidden border border-amber-500/30">
+          <div className="w-20 sm:w-28 md:w-44 h-1 sm:h-1.5 bg-black/60 rounded-full overflow-hidden border border-amber-500/40 shadow-inner">
             <motion.div
               className={`h-full ${timeLeft <= 10 ? "bg-rose-500" : timeLeft <= 20 ? "bg-amber-400" : "bg-emerald-400"}`}
               style={{ width: `${(timeLeft / maxTime) * 100}%` }}
@@ -1019,16 +1026,16 @@ export function PlayClient() {
           {streak >= 2 && (
             <div className="bg-gradient-to-r from-orange-600 via-rose-600 to-amber-600 border border-amber-300 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full flex items-center space-x-1 shadow-lg animate-pulse">
               <span className="text-xs sm:text-sm">🔥</span>
-              <span className="font-mono font-black text-[10px] sm:text-xs text-white">
+              <span className="font-mono font-black text-[10px] sm:text-xs text-white drop-shadow-sm">
                 x{streak}
               </span>
             </div>
           )}
 
           {/* My Score Badge */}
-          <div className="bg-amber-950/60 border border-amber-500/60 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center space-x-1 sm:space-x-1.5 shadow-inner backdrop-blur-xs">
+          <div className="bg-slate-900/90 border border-amber-500/60 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center space-x-1 sm:space-x-1.5 shadow-inner">
             <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
-            <span className="font-mono font-bold text-xs sm:text-sm text-white">
+            <span className="font-mono font-bold text-xs sm:text-sm text-white drop-shadow-sm">
               {players.find((p) => p.studentId === user?.studentId)?.score || 0} PTS
             </span>
           </div>
@@ -1038,7 +1045,7 @@ export function PlayClient() {
               const muted = sounds.toggleMute();
               setIsMuted(muted);
             }}
-            className="p-1 sm:p-1.5 bg-black/40 hover:bg-black/60 rounded-full text-white border border-amber-500/40 transition-all hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-xs"
+            className="p-1 sm:p-1.5 bg-slate-900/90 hover:bg-slate-800 rounded-full text-white border border-amber-500/50 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-md"
             title={isMuted ? "เปิดเสียง" : "ปิดเสียง"}
           >
             {isMuted ? <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-300" /> : <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-300" />}
@@ -1046,28 +1053,28 @@ export function PlayClient() {
         </div>
       </header>
 
-      {/* Players Quick Ribbon - Translucent (72% transparent backdrop) */}
-      <div className="relative z-10 w-full flex justify-start sm:justify-center items-center py-0.5 sm:py-1.5 bg-black/28 border-b border-amber-900/30 gap-1 sm:gap-2.5 overflow-x-auto px-3.5 sm:px-4 backdrop-blur-xs scrollbar-none">
+      {/* Players Quick Ribbon - High-Contrast Dark Glass */}
+      <div className="relative z-10 w-full flex justify-start sm:justify-center items-center py-1 sm:py-1.5 bg-slate-950/85 border-b border-amber-900/50 gap-1 sm:gap-2.5 overflow-x-auto px-3.5 sm:px-4 backdrop-blur-md scrollbar-none shadow-md">
         {players.map((p) => {
           const isMe = p.studentId === user?.studentId;
           const frameClass = isMe && p.frame ? getFrameStyle(p.frame) : isMe ? "border-amber-400" : "border-amber-800/40";
           return (
             <div
               key={p.id}
-              className={`flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full border text-[9.5px] sm:text-[11px] font-bold backdrop-blur-xs shrink-0 transition-all ${
+              className={`flex items-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border text-[9.5px] sm:text-[11px] font-bold shrink-0 transition-all shadow-md ${
                 isMe
-                  ? `bg-amber-900/85 text-amber-100 shadow-md ${frameClass}`
-                  : "bg-black/35 border-amber-800/40 text-amber-200/80"
+                  ? `bg-amber-900/95 text-amber-100 border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.5)] ${frameClass}`
+                  : "bg-slate-900/90 border-slate-700/80 text-amber-100"
               }`}
             >
               <AvatarBadge avatarId={p.avatar} size={18} />
-              <span className="truncate max-w-[65px] sm:max-w-[95px]">{p.name}</span>
+              <span className="truncate max-w-[65px] sm:max-w-[95px] drop-shadow-sm">{p.name}</span>
               {p.title && (
                 <span className="hidden xs:inline text-[8px] sm:text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/25 text-amber-300 border border-amber-400/40 truncate max-w-[70px] sm:max-w-[100px]">
                   {p.title}
                 </span>
               )}
-              <span className="font-mono text-amber-300">({p.score})</span>
+              <span className="font-mono text-amber-300 font-bold drop-shadow-sm">({p.score})</span>
               {p.locked ? (
                 <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" title="ตอบแล้ว" />
               ) : (
@@ -1084,7 +1091,7 @@ export function PlayClient() {
         <div className="flex flex-col md:flex-row items-center justify-center gap-1.5 sm:gap-4 md:gap-6 lg:gap-8 my-0.5 sm:my-auto w-full px-1">
           {/* Desktop Clue Slot (hidden on phone, shown on md+) */}
           <div className="hidden md:flex flex-col items-center">
-            <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider mb-1 drop-shadow-md">
+            <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider mb-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
               คำใบ้ส่วนตัว (PRIVATE CLUE)
             </span>
             {isClueRevealed && currentClue ? (
@@ -1098,18 +1105,18 @@ export function PlayClient() {
                   sounds.playSelect();
                   setShowClueConfirm(true);
                 }}
-                className="w-38 md:w-44 h-54 md:h-62 rounded-2xl border-2 border-dashed border-emerald-500/60 bg-black/28 hover:bg-emerald-950/40 backdrop-blur-xs p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:scale-102 shadow-lg group"
+                className="w-38 md:w-44 h-54 md:h-62 rounded-2xl border-2 border-dashed border-emerald-400/80 bg-slate-950/85 hover:bg-emerald-950/60 backdrop-blur-md p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:scale-102 shadow-2xl group"
               >
-                <HelpCircle className="w-8 h-8 text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-emerald-200">«เปิดคำใบ้ -1 ถ้าตอบถูก»</span>
-                <span className="text-[9px] text-emerald-300/80 mt-1">(เปิดแล้วไม่สามารถปิดได้ในตานี้)</span>
+                <HelpCircle className="w-8 h-8 text-emerald-400 mb-2 group-hover:scale-110 transition-transform drop-shadow" />
+                <span className="text-xs font-bold text-emerald-200 drop-shadow-sm">«เปิดคำใบ้ -1 ถ้าตอบถูก»</span>
+                <span className="text-[9px] text-emerald-300/90 mt-1 drop-shadow-sm">(เปิดแล้วไม่สามารถปิดได้ในตานี้)</span>
               </button>
             )}
           </div>
 
           {/* Clinical Case Card (Hero in Center on both Phone, iPad & Desktop) */}
           <div className="flex flex-col items-center shrink-0">
-            <span className="text-[10px] sm:text-xs text-rose-300 font-bold uppercase tracking-wider mb-0.5 sm:mb-1 drop-shadow-md">
+            <span className="text-[10px] sm:text-xs text-rose-300 font-bold uppercase tracking-wider mb-0.5 sm:mb-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
               โจทย์ทางคลินิก (CLINICAL CASE)
             </span>
             <motion.div
@@ -1131,8 +1138,8 @@ export function PlayClient() {
           {/* Mobile Combined Row: Clue Slot (Left) + YOUR MATCH Slot (Right) */}
           <div className="flex md:hidden flex-row items-stretch justify-center gap-2 w-full max-w-xs sm:max-w-sm px-1 mt-0.5 mb-1">
             {/* Mobile Clue Slot */}
-            <div className="flex-1 flex flex-col items-center justify-between p-1.5 rounded-xl border border-emerald-500/50 bg-black/35 backdrop-blur-xs text-center shadow-lg">
-              <span className="text-[8px] text-emerald-300 font-bold uppercase">
+            <div className="flex-1 flex flex-col items-center justify-between p-1.5 rounded-xl border border-emerald-400/80 bg-slate-950/85 backdrop-blur-md text-center shadow-xl">
+              <span className="text-[8px] text-emerald-300 font-bold uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
                 คำใบ้ส่วนตัว (CLUE)
               </span>
               {isClueRevealed && currentClue ? (
@@ -1146,7 +1153,7 @@ export function PlayClient() {
                     sounds.playSelect();
                     setShowClueConfirm(true);
                   }}
-                  className="w-full flex-1 min-h-[46px] rounded-lg border border-dashed border-emerald-500/40 bg-emerald-950/25 hover:bg-emerald-950/45 flex flex-col items-center justify-center p-1 cursor-pointer mt-0.5"
+                  className="w-full flex-1 min-h-[46px] rounded-lg border border-dashed border-emerald-500/60 bg-emerald-950/40 hover:bg-emerald-950/60 flex flex-col items-center justify-center p-1 cursor-pointer mt-0.5"
                 >
                   <HelpCircle className="w-3.5 h-3.5 text-emerald-400 mb-0.5" />
                   <span className="text-[8.5px] font-bold text-emerald-200 leading-tight">«เปิดคำใบ้ -1 ถ้าตอบถูก»</span>
@@ -1155,14 +1162,14 @@ export function PlayClient() {
             </div>
 
             {/* Mobile YOUR MATCH Slot */}
-            <div className="flex-1 flex flex-col items-center justify-between p-1.5 rounded-xl border border-amber-500/50 bg-black/35 backdrop-blur-xs shadow-lg">
-              <span className="text-[8px] text-amber-300 font-bold uppercase">
+            <div className="flex-1 flex flex-col items-center justify-between p-1.5 rounded-xl border border-amber-400/80 bg-slate-950/85 backdrop-blur-md shadow-xl">
+              <span className="text-[8px] text-amber-300 font-bold uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
                 คำตอบของคุณ
               </span>
               {/* Mini cards preview */}
               <div className="flex space-x-1.5 my-0.5">
                 {/* Mini RP */}
-                <div className="w-10 h-13 rounded-lg border border-blue-400/60 bg-blue-950/40 flex flex-col items-center justify-center p-0.5 text-center">
+                <div className="w-10 h-13 rounded-lg border border-blue-400/70 bg-slate-900/90 flex flex-col items-center justify-center p-0.5 text-center shadow-inner">
                   <span className="text-[6.5px] text-blue-200 font-bold">RP</span>
                   {selectedRp ? (
                     <span className="text-[7px] font-black text-white truncate max-w-[38px]">{selectedRp.nuclide}</span>
@@ -1171,7 +1178,7 @@ export function PlayClient() {
                   )}
                 </div>
                 {/* Mini Mech */}
-                <div className="w-10 h-13 rounded-lg border border-amber-400/60 bg-amber-950/40 flex flex-col items-center justify-center p-0.5 text-center">
+                <div className="w-10 h-13 rounded-lg border border-amber-400/70 bg-slate-900/90 flex flex-col items-center justify-center p-0.5 text-center shadow-inner">
                   <span className="text-[6.5px] text-amber-200 font-bold">MECH</span>
                   {selectedMechs.length > 0 ? (
                     <span className="text-[6.5px] font-black text-amber-300 truncate max-w-[38px]">{selectedMechs.map((mech) => mech.id).join(" · ")}</span>
@@ -1191,7 +1198,7 @@ export function PlayClient() {
                     ? "bg-gradient-to-b from-amber-400 to-amber-600 text-amber-950 font-bold border border-amber-200 animate-pulse shadow-md"
                     : (selectedRp || selectedMechs.length > 0)
                     ? "bg-gradient-to-b from-amber-500 to-amber-700 text-amber-100 font-bold border border-amber-300 shadow-xs"
-                    : "bg-black/40 text-amber-300/40 cursor-not-allowed border border-amber-800/40"
+                    : "bg-black/60 text-amber-300/40 cursor-not-allowed border border-amber-800/40"
                 }`}
               >
                 <Lock className="w-2.5 h-2.5" />
@@ -1207,8 +1214,8 @@ export function PlayClient() {
           </div>
 
           {/* Desktop YOUR MATCH Slot (hidden on phone, shown on md+) */}
-          <div className="hidden md:flex flex-col items-center bg-black/28 backdrop-blur-xs p-3.5 lg:p-4 rounded-3xl border border-amber-500/40 shadow-2xl min-w-[200px] lg:min-w-[220px]">
-            <span className="text-[10px] text-amber-300 font-bold uppercase tracking-wider mb-2 drop-shadow-md">
+          <div className="hidden md:flex flex-col items-center bg-slate-950/85 backdrop-blur-md p-3.5 lg:p-4 rounded-3xl border border-amber-500/50 shadow-2xl min-w-[200px] lg:min-w-[220px]">
+            <span className="text-[10px] text-amber-300 font-bold uppercase tracking-wider mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
               คำตอบของคุณ (YOUR MATCH)
             </span>
 
@@ -1239,20 +1246,20 @@ export function PlayClient() {
                     </div>
                   </motion.div>
                 ) : (
-                  <div className="w-22 lg:w-24 h-30 lg:h-34 rounded-2xl border-2 border-dashed border-blue-400/50 bg-black/25 backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center">
-                    <span className="text-xl mb-1 opacity-60">🃏</span>
-                    <span className="text-[8.5px] text-blue-200/80 font-bold">เลือก 1 ใบจากมือ</span>
+                  <div className="w-22 lg:w-24 h-30 lg:h-34 rounded-2xl border-2 border-dashed border-blue-400/60 bg-slate-950/75 backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center shadow-inner">
+                    <span className="text-xl mb-1 opacity-70">🃏</span>
+                    <span className="text-[8.5px] text-blue-200 font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">เลือก 1 ใบจากมือ</span>
                   </div>
                 )}
               </div>
 
               {/* Selected Mechanism Card */}
               <div className="flex flex-col items-center">
-                <span className="text-[9px] text-amber-300 font-bold mb-1">กลไก (MECH)</span>
+                <span className="text-[9px] text-amber-300 font-bold mb-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">กลไก (MECH)</span>
                 {selectedMechs.length > 0 ? (
                   <div className="flex w-full max-w-[150px] flex-col gap-1.5">
                     {selectedMechs.map((mech) => (
-                      <div key={mech.id} className="flex min-w-0 items-center gap-1.5 rounded-lg border border-amber-300/70 bg-amber-100 px-2 py-1.5 text-left text-slate-900 shadow-md">
+                      <div key={mech.id} className="flex min-w-0 items-center gap-1.5 rounded-lg border border-amber-300/80 bg-amber-100 px-2 py-1.5 text-left text-slate-900 shadow-md">
                         <Settings className="h-3 w-3 shrink-0 text-amber-700" />
                         <span className="shrink-0 rounded bg-amber-200 px-1 py-0.5 text-[7.5px] font-black text-amber-900">{mech.id}</span>
                         <span className="min-w-0 flex-1 truncate text-[8px] font-bold">{mech.titleEn}</span>
@@ -1261,9 +1268,9 @@ export function PlayClient() {
                     ))}
                   </div>
                 ) : (
-                  <div className="w-22 lg:w-24 h-30 lg:h-34 rounded-2xl border-2 border-dashed border-amber-400/50 bg-black/25 backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center">
-                    <Settings className="w-5 h-5 mb-1 opacity-60 text-amber-300" />
-                    <span className="text-[8.5px] text-amber-200/80 font-bold">เลือกจากแถบกลไก</span>
+                  <div className="w-22 lg:w-24 h-30 lg:h-34 rounded-2xl border-2 border-dashed border-amber-400/60 bg-slate-950/75 backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center shadow-inner">
+                    <Settings className="w-5 h-5 mb-1 opacity-70 text-amber-300" />
+                    <span className="text-[8.5px] text-amber-200 font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">เลือกจากแถบกลไก</span>
                   </div>
                 )}
               </div>
@@ -1282,7 +1289,7 @@ export function PlayClient() {
                   ? "bg-gradient-to-b from-amber-400 via-amber-500 to-amber-700 hover:from-amber-300 hover:to-amber-600 text-amber-950 border-3 border-amber-200 shadow-[0_6px_0_#78350f,0_10px_20px_rgba(0,0,0,0.5)] animate-pulse"
                   : (selectedRp || selectedMechs.length > 0)
                   ? "bg-gradient-to-b from-amber-500 via-amber-600 to-amber-800 hover:from-amber-400 hover:to-amber-700 text-amber-950 border-2 border-amber-300 shadow-[0_4px_0_#451a03,0_8px_16px_rgba(0,0,0,0.4)]"
-                  : "bg-black/40 border border-amber-800/40 text-amber-300/40 cursor-not-allowed"
+                  : "bg-slate-950/75 border border-amber-800/60 text-amber-300/40 cursor-not-allowed shadow-inner"
               }`}
             >
               <Lock className="w-4 h-4" />
@@ -1298,8 +1305,8 @@ export function PlayClient() {
         {/* Middle Rack: 12 Shared Mechanism Cards Bar with Arcade Controls */}
         <div className="w-full flex flex-col items-center my-0.5 sm:my-1.5">
           {/* Rack Header */}
-          <div className="w-full max-w-5xl flex items-center justify-between gap-2 text-[10px] sm:text-xs text-amber-200 font-bold mb-0.5 sm:mb-1 drop-shadow-md">
-            <div className="flex min-w-0 items-center space-x-1 sm:space-x-2">
+          <div className="w-full max-w-5xl flex items-center justify-between gap-2 text-[10px] sm:text-xs text-amber-200 font-bold mb-0.5 sm:mb-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+            <div className="flex min-w-0 items-center space-x-1 sm:space-x-2 bg-slate-950/75 backdrop-blur-xs px-2.5 py-0.5 rounded-lg border border-amber-500/30">
               <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
               <span className="font-game tracking-wider uppercase truncate">แถบกลไกการสะสมกลางโต๊ะ</span>
               <span className="hidden sm:inline text-[10px] text-amber-300/80 font-normal">(เลือกกลไกที่เกี่ยวข้อง • สูงสุด 3 ใบ)</span>
@@ -1334,7 +1341,7 @@ export function PlayClient() {
             {/* Scrollable Track - Styled as Brass & Felt Casino Track */}
             <div
               ref={mechScrollRef}
-              className="flex-1 overflow-x-auto py-1 sm:py-2 px-1.5 sm:px-3 flex space-x-1.5 sm:space-x-3 scrollbar-none scroll-smooth bg-black/35 backdrop-blur-md rounded-xl sm:rounded-2xl border-2 border-amber-500/35 shadow-[inset_0_2px_8px_rgba(0,0,0,0.6),0_4px_16px_rgba(0,0,0,0.35)] touch-pan-x"
+              className="flex-1 overflow-x-auto py-1 sm:py-2 px-1.5 sm:px-3 flex space-x-1.5 sm:space-x-3 scrollbar-none scroll-smooth bg-slate-950/85 backdrop-blur-md rounded-xl sm:rounded-2xl border-2 border-amber-500/50 shadow-[inset_0_2px_8px_rgba(0,0,0,0.8),0_4px_16px_rgba(0,0,0,0.5)] touch-pan-x"
               style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
             >
               {getPlayableMechCards().map((mech) => {
@@ -1363,12 +1370,12 @@ export function PlayClient() {
                     className={`flex-shrink-0 px-2 sm:px-3.5 py-1 sm:py-2 rounded-lg sm:rounded-xl text-left border-2 transition-all cursor-pointer select-none disabled:cursor-not-allowed disabled:opacity-45 ${
                       isSelected
                         ? "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 border-amber-100 text-amber-950 font-black shadow-[0_0_16px_rgba(245,158,11,0.7),0_4px_8px_rgba(0,0,0,0.4)] scale-104 -translate-y-0.5"
-                        : "bg-black/45 hover:bg-amber-950/70 border-amber-600/40 hover:border-amber-400/70 text-amber-100 font-bold backdrop-blur-xs shadow-md"
+                        : "bg-slate-900/90 hover:bg-amber-950/80 border-amber-600/50 hover:border-amber-400/80 text-amber-100 font-bold backdrop-blur-xs shadow-md"
                     }`}
                   >
                     <div className="flex items-center space-x-1 mb-0.5">
                       <span className={`text-[7.5px] sm:text-[9.5px] font-mono font-black px-1 py-0.2 rounded shadow-xs ${
-                        isSelected ? "bg-amber-950 text-amber-300" : "bg-amber-900/80 text-amber-200 border border-amber-600/40"
+                        isSelected ? "bg-amber-950 text-amber-300" : "bg-amber-950/90 text-amber-200 border border-amber-600/60"
                       }`}>
                         {mech.id}
                       </span>
@@ -1378,7 +1385,7 @@ export function PlayClient() {
                       {mech.titleEn}
                     </div>
                     <div className={`text-[7.5px] sm:text-[9.5px] truncate max-w-[95px] sm:max-w-[130px] mt-0.5 ${
-                      isSelected ? "text-amber-950 font-bold" : "text-amber-300/80 font-medium"
+                      isSelected ? "text-amber-950 font-bold" : "text-amber-300/90 font-medium"
                     }`}>
                       {mech.titleTh}
                     </div>
@@ -1404,7 +1411,7 @@ export function PlayClient() {
         {/* 3. Bottom: Player's 5-Card Hand (Authentic Playing Card Arc Fan with Touch Slide) */}
         <div className="w-full flex flex-col items-center mt-0.5 sm:mt-1 pb-1 sm:pb-3 select-none">
           {/* Header */}
-          <div className="text-[10px] sm:text-[11.5px] text-blue-200 font-bold uppercase tracking-wider mb-0.5 drop-shadow-md flex items-center space-x-1.5">
+          <div className="text-[10px] sm:text-[11.5px] text-blue-200 font-bold uppercase tracking-wider mb-0.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] flex items-center space-x-1.5 bg-slate-950/75 backdrop-blur-xs px-2.5 py-0.5 rounded-lg border border-blue-500/30">
             <Layers className="w-3.5 h-3.5 text-blue-300" />
             <span>ไพ่สารเภสัชรังสีในมือคุณ (5 CARDS IN HAND)</span>
             {selectedRp && (
@@ -1484,12 +1491,12 @@ export function PlayClient() {
           </div>
 
           {/* Interactive Playing-Card Slot Strip & Quick Nudge Controls */}
-          <div className="flex items-center justify-center space-x-1 mt-0.5 px-2 max-w-md w-full">
+          <div className="flex items-center justify-center space-x-1 mt-0.5 px-2 max-w-md w-full bg-slate-950/75 backdrop-blur-xs py-1 rounded-xl border border-blue-500/30">
             {/* Left Nudge Button */}
             <button
               type="button"
               onClick={() => handleCycleHand("left")}
-              className="p-1 rounded-full bg-amber-950/85 hover:bg-amber-900 border border-amber-500/50 text-amber-200 shadow-md active:scale-95 cursor-pointer shrink-0"
+              className="p-1 rounded-full bg-amber-950/90 hover:bg-amber-900 border border-amber-500/60 text-amber-200 shadow-md active:scale-95 cursor-pointer shrink-0"
               title="ไพ่ใบก่อนหน้า"
               aria-label="Previous card"
             >
@@ -1508,7 +1515,7 @@ export function PlayClient() {
                     className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[9px] sm:text-[10px] font-game font-bold flex items-center space-x-1 transition-all cursor-pointer ${
                       isSelected
                         ? "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-amber-950 font-black border border-white shadow-[0_0_10px_rgba(245,158,11,0.8)] scale-105"
-                        : "bg-black/60 hover:bg-black/80 text-blue-200 border border-blue-400/40"
+                        : "bg-slate-900/90 hover:bg-slate-800 text-blue-200 border border-blue-400/50"
                     }`}
                   >
                     <span>{isSelected ? "★" : `#${index + 1}`}</span>
@@ -1522,7 +1529,7 @@ export function PlayClient() {
             <button
               type="button"
               onClick={() => handleCycleHand("right")}
-              className="p-1 rounded-full bg-amber-950/85 hover:bg-amber-900 border border-amber-500/50 text-amber-200 shadow-md active:scale-95 cursor-pointer shrink-0"
+              className="p-1 rounded-full bg-amber-950/90 hover:bg-amber-900 border border-amber-500/60 text-amber-200 shadow-md active:scale-95 cursor-pointer shrink-0"
               title="ไพ่ใบถัดไป"
               aria-label="Next card"
             >
@@ -1531,7 +1538,7 @@ export function PlayClient() {
           </div>
 
           {/* Swipe Hint */}
-          <div className="text-[9.5px] text-blue-200/70 mt-1 flex items-center space-x-1 sm:hidden">
+          <div className="text-[9.5px] text-blue-100 font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] mt-1 flex items-center space-x-1 sm:hidden">
             <span>แตะหรือปัดนิ้วซ้าย-ขวาบนไพ่เพื่อเลือกใบที่จะลง</span>
           </div>
         </div>

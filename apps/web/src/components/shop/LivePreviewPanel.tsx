@@ -9,6 +9,7 @@ import { normalizeShopId } from "@/lib/user";
 import { AvatarBadge } from "@/components/ui/AvatarBadge";
 import { TrefoilIcon } from "@/components/ui/TrefoilIcon";
 import { Sparkles, RefreshCw, Award, Smile, Shield, Layers, Zap, Lock, CheckCircle2 } from "lucide-react";
+import { getAssetPath } from "@/lib/assets";
 
 export interface LivePreviewPanelProps {
   frameId: string;
@@ -217,10 +218,18 @@ export function LivePreviewPanel({
               )}
             </div>
 
-            {/* Table Mat Felt Surface Container */}
-            <div className={`w-full max-w-sm p-4 rounded-3xl transition-all duration-500 relative flex flex-col items-center ${getTableThemeInfo().feltClass}`}>
+            {/* Table Mat Felt Surface Container with Real Image Texture */}
+            <div className={`w-full max-w-sm p-4 rounded-3xl transition-all duration-500 relative flex flex-col items-center overflow-hidden border-2 shadow-2xl ${getTableThemeInfo().feltClass}`}>
+              {/* Actual Table Background Image Layer */}
+              <img
+                src={getAssetPath(normTable === "table-wood" ? "/scene/play-table.webp" : `/scene/${normTable}.webp`)}
+                alt="Table Felt Preview"
+                className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none mix-blend-overlay"
+              />
+              <div className="absolute inset-0 bg-black/25 pointer-events-none" />
+
               {/* Table Atmosphere Tag */}
-              <div className={`mb-3 px-3 py-1 rounded-full border text-[11px] font-game font-bold flex items-center space-x-1.5 shadow-md ${getTableThemeInfo().badgeBg}`}>
+              <div className={`mb-3 px-3 py-1 rounded-full border text-[11px] font-game font-bold flex items-center space-x-1.5 shadow-md relative z-10 ${getTableThemeInfo().badgeBg}`}>
                 <Layers className="w-3.5 h-3.5" />
                 <span>{getTableThemeInfo().name}</span>
               </div>
