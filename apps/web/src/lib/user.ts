@@ -183,14 +183,90 @@ export const SHOP_CATALOG: ShopItem[] = [
     nameTh: "Lung Perfusion",
     price: 45,
     kind: "title",
-    descriptionTh: "ผู้เชี่ยวชาญการประเมินการไหลเวียนเลือดในปอด"
+    descriptionTh: "ผู้เชี่ยวชาญการประเมินการไหลเวียนเลือดในปอด",
+    rarity: "rare"
   },
   {
     id: "title-fdg",
     nameTh: "FDG Reader",
     price: 45,
     kind: "title",
-    descriptionTh: "ยอดนักวิเคราะห์ภาพการเผาผลาญกลูโคสด้วยเพ็ทสแกน"
+    descriptionTh: "ยอดนักวิเคราะห์ภาพการเผาผลาญกลูโคสด้วยเพ็ทสแกน",
+    rarity: "rare"
+  },
+  {
+    id: "title-master-halflife",
+    nameTh: "ปรมาจารย์ครึ่งชีวิต (Master of Half-Life)",
+    price: 60,
+    kind: "title",
+    descriptionTh: "ผู้หยั่งรู้การสลายตัวของทุกไอโซโทปตั้งแต่เสี้ยววินาทีถึงพันปี",
+    rarity: "epic"
+  },
+  {
+    id: "title-photon",
+    nameTh: "นักล่าโฟตอน (Photon Stalker)",
+    price: 50,
+    kind: "title",
+    descriptionTh: "จอมแม่นยำตรวจจับรังสีแกมมาพลังงาน 140 keV",
+    rarity: "rare"
+  },
+  {
+    id: "title-tumor",
+    nameTh: "มือปราบก้อนมะเร็ง (Tumor Hunter)",
+    price: 55,
+    kind: "title",
+    descriptionTh: "ผู้เชี่ยวชาญการจับสัญญาณ FDG Hypermetabolism ในรอยโรค",
+    rarity: "rare"
+  },
+  {
+    id: "title-theranostics",
+    nameTh: "ราชันย์ธีรานอสติกส์ (King of Theranostics)",
+    price: 120,
+    kind: "title",
+    descriptionTh: "ผู้ผสานการวินิจฉัยและการรักษารังสีเข้าด้วยกันอย่างสมบูรณ์แบบ",
+    rarity: "legendary"
+  },
+
+  // Table Felts / Arena Themes
+  {
+    id: "table-wood",
+    nameTh: "โต๊ะไม้ Classic Oak",
+    price: 0,
+    kind: "table",
+    descriptionTh: "โต๊ะแข่งขันไม้โอ๊กคลาสสิกขอบทองเหลืองดั้งเดิม",
+    rarity: "common"
+  },
+  {
+    id: "table-cyber",
+    nameTh: "Cyber Nuclear Suite",
+    price: 70,
+    kind: "table",
+    descriptionTh: "พื้นโต๊ะสีดำตัดไฟนีออนฟ้าเรืองแสงสไตล์ห้องแล็บนิวเคลียร์ไฮเทค",
+    rarity: "rare"
+  },
+  {
+    id: "table-emerald",
+    nameTh: "Royal Emerald Felt",
+    price: 85,
+    kind: "table",
+    descriptionTh: "ผ้าปูโต๊ะกำมะหยี่สีเขียวมรกตขอบทองคำหรูหราแบบคาสิโนพรีเมียม",
+    rarity: "epic"
+  },
+  {
+    id: "table-clinic",
+    nameTh: "Clean Clinical PET",
+    price: 60,
+    kind: "table",
+    descriptionTh: "โต๊ะสีขาวมินิมอลโมเดิร์นคลีนแบบห้องควบคุมเครื่อง PET/CT Scan",
+    rarity: "rare"
+  },
+  {
+    id: "table-cosmic",
+    nameTh: "Cosmic Deep Space",
+    price: 95,
+    kind: "table",
+    descriptionTh: "พื้นโต๊ะลวดลายอวกาศเนบิวลาและละอองดาวคอสมิกแห่งจักรวาล",
+    rarity: "legendary"
   }
 ];
 
@@ -217,7 +293,12 @@ export function normalizeShopId(id: string): string {
     "title_none": "title-none",
     "title_blockader": "title-capillary",
     "title_perfusion": "title-perfusion",
-    "title_fdg": "title-fdg"
+    "title_fdg": "title-fdg",
+    "table_wood": "table-wood",
+    "table_cyber": "table-cyber",
+    "table_emerald": "table-emerald",
+    "table_clinic": "table-clinic",
+    "table_cosmic": "table-cosmic"
   };
   return map[id] || id;
 }
@@ -242,6 +323,7 @@ export interface NaEquipped {
   avatar: string;
   fx: string;
   title: string;
+  table?: string;
 }
 
 export interface NaPreview {
@@ -250,14 +332,16 @@ export interface NaPreview {
   avatar?: string;
   fx?: string;
   title?: string;
+  table?: string;
   faceUp?: boolean;
   previewItemName?: string;
 }
 
-export type ShopCategory = "frame" | "cardback" | "avatar" | "fx" | "title";
+export type ShopCategory = "frame" | "cardback" | "avatar" | "fx" | "title" | "table";
 
 export function getEquippedSlot(equipped: NaEquipped, kind: ShopCategory): string {
   if (kind === "cardback") return equipped.back;
+  if (kind === "table") return equipped.table || "table-wood";
   return (equipped as unknown as Record<string, string>)[kind] || "";
 }
 
@@ -265,11 +349,15 @@ export function setEquippedSlot(equipped: NaEquipped, kind: ShopCategory, id: st
   if (kind === "cardback") {
     return { ...equipped, back: id };
   }
+  if (kind === "table") {
+    return { ...equipped, table: id };
+  }
   return { ...equipped, [kind]: id };
 }
 
 export function getPreviewSlot(preview: NaPreview, kind: ShopCategory): string {
   if (kind === "cardback") return preview.back || "";
+  if (kind === "table") return preview.table || "table-wood";
   return (preview as unknown as Record<string, string | undefined>)[kind] || "";
 }
 
@@ -277,7 +365,144 @@ export function setPreviewSlot(preview: NaPreview, kind: ShopCategory, id: strin
   if (kind === "cardback") {
     return { ...preview, back: id };
   }
+  if (kind === "table") {
+    return { ...preview, table: id };
+  }
   return { ...preview, [kind]: id };
+}
+
+export interface GachaResult {
+  item: ShopItem;
+  isDuplicate: boolean;
+  shardsEarned: number;
+  rarity: "common" | "rare" | "epic" | "legendary";
+}
+
+export function getNaGachaPity(): number {
+  if (typeof window === "undefined") return 0;
+  const raw = localStorage.getItem("na_gacha_pity");
+  return raw ? parseInt(raw, 10) || 0 : 0;
+}
+
+export function setNaGachaPity(pity: number): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("na_gacha_pity", String(pity));
+}
+
+export function getNaShards(): number {
+  if (typeof window === "undefined") return 0;
+  const raw = localStorage.getItem("na_shards");
+  return raw ? parseInt(raw, 10) || 0 : 0;
+}
+
+export function setNaShards(shards: number): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("na_shards", String(shards));
+}
+
+export function exchangeShardsForCoins(shardsToExchange: number = 100): { success: boolean; coinsAdded: number; newShards: number; error?: string } {
+  const currentShards = getNaShards();
+  if (currentShards < shardsToExchange) {
+    return { success: false, coinsAdded: 0, newShards: currentShards, error: "เศษไอโซโทปไม่เพียงพอ (ต้องใช้ 100 เศษ)" };
+  }
+  const coinsToAdd = Math.floor(shardsToExchange / 2); // 100 shards = 50 coins
+  const nextShards = currentShards - shardsToExchange;
+  setNaShards(nextShards);
+
+  const wallet = getNaWallet();
+  wallet.coins += coinsToAdd;
+  setNaWallet(wallet);
+
+  return { success: true, coinsAdded: coinsToAdd, newShards: nextShards };
+}
+
+export function executeGachaPull(count: 1 | 10): { success: boolean; results: GachaResult[]; error?: string; newBalance: number; newShards: number } {
+  const cost = count === 1 ? 35 : 315;
+  const wallet = getNaWallet();
+  if (wallet.coins < cost) {
+    return {
+      success: false,
+      results: [],
+      error: `เหรียญ NucCoins ไม่เพียงพอ (ต้องการ ${cost} NucCoins แต่มี ${wallet.coins} NucCoins)`,
+      newBalance: wallet.coins,
+      newShards: getNaShards()
+    };
+  }
+
+  wallet.coins -= cost;
+  setNaWallet(wallet);
+
+  let pity = getNaGachaPity();
+  let shards = getNaShards();
+  const inventory = getNaInventory();
+  const currentOwned = new Set(inventory.ownedIds.map((id: string) => normalizeShopId(id)));
+
+  const pool = SHOP_CATALOG.filter(item => item.price > 0);
+  const results: GachaResult[] = [];
+
+  for (let i = 0; i < count; i++) {
+    pity += 1;
+    let selectedRarity: "common" | "rare" | "epic" | "legendary" = "common";
+
+    if (pity >= 10) {
+      selectedRarity = Math.random() < 0.25 ? "legendary" : "epic";
+      pity = 0;
+    } else {
+      const rand = Math.random();
+      if (rand < 0.04) {
+        selectedRarity = "legendary";
+        pity = 0;
+      } else if (rand < 0.18) {
+        selectedRarity = "epic";
+        pity = 0;
+      } else if (rand < 0.55) {
+        selectedRarity = "rare";
+      } else {
+        selectedRarity = "common";
+      }
+    }
+
+    let candidateItems = pool.filter(item => (item.rarity || "common") === selectedRarity);
+    if (candidateItems.length === 0) {
+      candidateItems = pool;
+    }
+
+    const pickedItem = candidateItems[Math.floor(Math.random() * candidateItems.length)];
+    const normId = normalizeShopId(pickedItem.id);
+    const isDuplicate = currentOwned.has(normId);
+
+    let shardsEarned = 0;
+    if (isDuplicate) {
+      switch (pickedItem.rarity || "common") {
+        case "legendary": shardsEarned = 80; break;
+        case "epic": shardsEarned = 40; break;
+        case "rare": shardsEarned = 20; break;
+        default: shardsEarned = 10; break;
+      }
+      shards += shardsEarned;
+    } else {
+      currentOwned.add(normId);
+      inventory.ownedIds.push(pickedItem.id);
+    }
+
+    results.push({
+      item: pickedItem,
+      isDuplicate,
+      shardsEarned,
+      rarity: pickedItem.rarity || selectedRarity
+    });
+  }
+
+  setNaGachaPity(pity);
+  setNaShards(shards);
+  setNaInventory(inventory);
+
+  return {
+    success: true,
+    results,
+    newBalance: wallet.coins,
+    newShards: shards
+  };
 }
 
 const DEFAULT_OWNED_IDS = [
@@ -290,7 +515,9 @@ const DEFAULT_OWNED_IDS = [
   "fx-none",
   "fx_confetti",
   "title-none",
-  "title_none"
+  "title_none",
+  "table-wood",
+  "table_wood"
 ];
 
 const DEFAULT_EQUIPPED: NaEquipped = {
@@ -298,7 +525,8 @@ const DEFAULT_EQUIPPED: NaEquipped = {
   back: "back-default",
   avatar: "avatar-default",
   fx: "fx-none",
-  title: "title-none"
+  title: "title-none",
+  table: "table-wood"
 };
 
 // na_wallet.coins: starts at 120 if not existing
@@ -447,7 +675,8 @@ export function getNaEquipped(): NaEquipped {
           back: acc.equipped.back || DEFAULT_EQUIPPED.back,
           avatar: acc.equipped.avatar || acc.avatarId || DEFAULT_EQUIPPED.avatar,
           fx: acc.equipped.fx || DEFAULT_EQUIPPED.fx,
-          title: acc.equipped.title || DEFAULT_EQUIPPED.title
+          title: acc.equipped.title || DEFAULT_EQUIPPED.title,
+          table: acc.equipped.table || DEFAULT_EQUIPPED.table
         };
       }
     } catch {}
@@ -462,7 +691,8 @@ export function getNaEquipped(): NaEquipped {
         back: parsed.back || DEFAULT_EQUIPPED.back,
         avatar: parsed.avatar || DEFAULT_EQUIPPED.avatar,
         fx: parsed.fx || DEFAULT_EQUIPPED.fx,
-        title: parsed.title || DEFAULT_EQUIPPED.title
+        title: parsed.title || DEFAULT_EQUIPPED.title,
+        table: parsed.table || DEFAULT_EQUIPPED.table
       };
     } catch {
       // fallback
@@ -488,7 +718,8 @@ export function setNaEquipped(equipped: NaEquipped): void {
         cardback: equipped.back,
         avatar: equipped.avatar,
         fx: equipped.fx,
-        title: equipped.title
+        title: equipped.title,
+        table: equipped.table
       };
       localStorage.setItem("nucmed_current_user", JSON.stringify(u));
       localStorage.setItem(`nucmed_user_${u.studentId}`, JSON.stringify(u));
@@ -528,6 +759,10 @@ export function getTitleBadge(titleId?: string): string | null {
   if (norm === "title-capillary") return "Capillary Blockader";
   if (norm === "title-perfusion") return "Lung Perfusion";
   if (norm === "title-fdg") return "FDG Reader";
+  if (norm === "title-master-halflife") return "ผู้พิทักษ์ครึ่งชีวิต";
+  if (norm === "title-photon") return "ผู้ควบคุมโฟตอน";
+  if (norm === "title-tumor") return "นักล่าเนื้องอก";
+  if (norm === "title-theranostics") return "ปรมาจารย์เทอรานอสติกส์";
   return null;
 }
 

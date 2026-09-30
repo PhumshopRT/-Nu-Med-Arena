@@ -14,7 +14,9 @@ import {
   Eye,
   Sparkles,
   ShoppingBag,
-  AlertCircle
+  AlertCircle,
+  Flame,
+  Dice5
 } from "lucide-react";
 import { ShopItem } from "@nucmed/shared";
 import { 
@@ -34,6 +36,7 @@ import {
   setEquippedSlot,
   getPreviewSlot,
   setPreviewSlot,
+  getNaShards,
   NaWallet,
   NaInventory,
   NaEquipped,
@@ -42,8 +45,9 @@ import {
 import { sounds } from "@/lib/sound";
 import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
 import { LivePreviewPanel } from "@/components/shop/LivePreviewPanel";
+import { HotCellGachaModal } from "@/components/shop/HotCellGachaModal";
 
-type ShopTab = "frame" | "cardback" | "avatar" | "fx" | "title";
+type ShopTab = "frame" | "cardback" | "avatar" | "fx" | "title" | "table";
 
 export default function ShopPage() {
   const router = useRouter();
@@ -51,19 +55,23 @@ export default function ShopPage() {
   // Storage states
   const [wallet, setWallet] = useState<NaWallet>({ coins: 120 });
   const [inventory, setInventory] = useState<NaInventory>({ ownedIds: [] });
+  const [shards, setShards] = useState<number>(0);
+  const [isGachaOpen, setIsGachaOpen] = useState<boolean>(false);
   const [equipped, setEquipped] = useState<NaEquipped>({
     frame: "frame-graphite",
     back: "back-default",
     avatar: "avatar-default",
     fx: "fx-none",
-    title: "title-none"
+    title: "title-none",
+    table: "table-wood"
   });
   const [preview, setPreview] = useState<NaPreview>({
     frame: "frame-graphite",
     back: "back-default",
     avatar: "avatar-default",
     fx: "fx-none",
-    title: "title-none"
+    title: "title-none",
+    table: "table-wood"
   });
 
   const [activeTab, setActiveTab] = useState<ShopTab>("frame");
@@ -71,6 +79,13 @@ export default function ShopPage() {
   const [previewItemName, setPreviewItemName] = useState<string>("กรอบ Graphite ดั้งเดิม");
   const [isFxPlaying, setIsFxPlaying] = useState<boolean>(false);
   const [toastContent, setToastContent] = useState<React.ReactNode | null>(null);
+
+  const refreshShopState = () => {
+    setWallet(getNaWallet());
+    setInventory(getNaInventory());
+    setEquipped(getNaEquipped());
+    setShards(getNaShards());
+  };
 
   // Initialize storage states on mount
   useEffect(() => {
@@ -82,6 +97,7 @@ export default function ShopPage() {
     setWallet(initialWallet);
     setInventory(initialInventory);
     setEquipped(initialEquipped);
+    setShards(getNaShards());
 
     const activePreview = initialPreview || {
       frame: initialEquipped.frame,
@@ -89,6 +105,7 @@ export default function ShopPage() {
       avatar: initialEquipped.avatar,
       fx: initialEquipped.fx,
       title: initialEquipped.title,
+      table: initialEquipped.table || "table-wood",
       faceUp: true
     };
     setPreview(activePreview);
@@ -233,7 +250,38 @@ export default function ShopPage() {
     { key: "avatar", label: "อวตาร", icon: <Smile className="w-4 h-4" /> },
     { key: "fx", label: "เอฟเฟกต์", icon: <Zap className="w-4 h-4" /> },
     { key: "title", label: "ฉายาเกียรติยศ", icon: <Award className="w-4 h-4" /> },
+    { key: "table", label: "พื้นโต๊ะสังเวียน", icon: <Flame className="w-4 h-4 text-amber-400" /> },
   ];
+
+  const getRarityBadge = (rarity?: string) => {
+    switch (rarity) {
+      case "legendary":
+        return (
+          <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-300 text-slate-950 border border-amber-200 shadow-[0_0_8px_rgba(245,158,11,0.6)]">
+            ⭐ ตำนาน
+          </span>
+        );
+      case "epic":
+        return (
+          <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-purple-600 to-fuchsia-500 text-white border border-purple-300 shadow-[0_0_8px_rgba(168,85,247,0.5)]">
+            ⚡ มหากาพย์
+          </span>
+        );
+      case "rare":
+        return (
+          <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-cyan-600 to-blue-500 text-white border border-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.5)]">
+            🔷 หายาก
+          </span>
+        );
+      case "common":
+      default:
+        return (
+          <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700">
+            ทั่วไป
+          </span>
+        );
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-felt-table text-amber-50 flex flex-col justify-between overflow-x-hidden select-none">
@@ -241,7 +289,7 @@ export default function ShopPage() {
       <div className="fixed inset-0 pointer-events-none bg-radial-vignette opacity-80" />
 
       {/* Top Header Bar */}
-      <header className="relative z-20 w-full flex justify-between items-center px-4 md:px-8 py-3 bg-amber-950/90 border-b-4 border-amber-900 shadow-2xl backdrop-blur-md">
+      <header className="relative z-20 w-full flex flex-wrap justify-between items-center px-4 md:px-8 py-3 bg-amber-950/90 border-b-4 border-amber-900 shadow-2xl backdrop-blur-md gap-3">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => {
@@ -261,14 +309,34 @@ export default function ShopPage() {
               <h1 className="font-game font-black text-lg md:text-xl text-amber-200 tracking-wide">
                 ร้านค้า NucCoin (COSMETIC SHOP)
               </h1>
-              <p className="text-[10px] text-amber-300/80">ตกแต่งกรอบการ์ด ลายหลังไพ่ และฉายาประจำสังเวียน</p>
+              <p className="text-[10px] text-amber-300/80">ตกแต่งกรอบการ์ด ลายหลังไพ่ โต๊ะสังเวียน และฉายาประจำสังเวียน</p>
             </div>
           </div>
         </div>
 
-        {/* User Balance with 22px official game coin icon */}
-        <div className="flex items-center space-x-3">
-          <div className="bg-amber-900/90 border-2 border-amber-500/80 px-4 py-1.5 rounded-full flex items-center space-x-2 shadow-inner">
+        {/* User Balance & Hot Cell Mystery Gacha Launcher */}
+        <div className="flex items-center space-x-2.5 md:space-x-3">
+          {/* Hot Cell Gacha Launcher Button */}
+          <button
+            onClick={() => {
+              sounds.playClick();
+              setIsGachaOpen(true);
+            }}
+            className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-yellow-400 hover:to-amber-300 text-slate-950 font-game font-black text-xs md:text-sm border-2 border-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.6)] flex items-center space-x-1.5 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-pulse"
+          >
+            <Dice5 className="w-4 h-4 text-slate-950" />
+            <span>เตาปฏิกรณ์ Hot Cell (กาชา)</span>
+          </button>
+
+          {/* Shards Indicator */}
+          <div className="hidden sm:flex bg-slate-900/90 border border-cyan-400/60 px-3 py-1.5 rounded-full items-center space-x-1.5 shadow-inner" title="เศษไอโซโทป (Isotope Shards) ได้รับเมื่อสุ่มได้ของซ้ำ">
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="font-mono font-bold text-xs text-cyan-200">{shards}</span>
+            <span className="text-[10px] text-cyan-300 font-bold uppercase">Shards</span>
+          </div>
+
+          {/* NucCoin Balance with 22px official game coin icon */}
+          <div className="bg-amber-900/90 border-2 border-amber-500/80 px-3.5 py-1.5 rounded-full flex items-center space-x-2 shadow-inner">
             <NucCoinIcon size={22} className="animate-bounce" />
             <span className="font-mono font-bold text-sm md:text-base text-amber-200">
               {wallet.coins}
@@ -337,24 +405,27 @@ export default function ShopPage() {
                   }`}
                 >
                   <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="font-game font-bold text-base text-amber-200">
-                        {item.nameTh}
+                    <div className="flex justify-between items-start mb-2 gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="font-game font-bold text-base text-amber-200">
+                          {item.nameTh}
+                        </span>
+                        {getRarityBadge(item.rarity)}
                       </div>
 
                       {/* Status Badges */}
                       {isEquipped ? (
-                        <span className="bg-emerald-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 border border-emerald-300 shadow">
+                        <span className="bg-emerald-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 border border-emerald-300 shadow shrink-0">
                           <Check className="w-3 h-3" />
                           <span>สวมใส่อยู่</span>
                         </span>
                       ) : isOwned ? (
-                        <span className="bg-blue-600/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-400 shadow">
+                        <span className="bg-blue-600/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-400 shadow shrink-0">
                           มีแล้ว
                         </span>
                       ) : (
                         /* Price tag with 18px official coin icon */
-                        <div className="flex items-center space-x-1 bg-amber-950/90 px-2 py-1 rounded-lg border border-amber-600/60 font-mono text-xs font-bold text-amber-300 shadow-inner">
+                        <div className="flex items-center space-x-1 bg-amber-950/90 px-2 py-1 rounded-lg border border-amber-600/60 font-mono text-xs font-bold text-amber-300 shadow-inner shrink-0">
                           <NucCoinIcon size={18} />
                           <span>{item.price === 0 ? "ฟรี" : `${item.price}`}</span>
                         </div>
@@ -426,6 +497,7 @@ export default function ShopPage() {
             avatarId={preview.avatar || equipped.avatar}
             fxId={preview.fx || equipped.fx}
             titleId={preview.title || equipped.title}
+            tableId={preview.table || equipped.table || "table-wood"}
             faceUp={faceUp}
             previewItemName={previewItemName}
             activeTab={activeTab}
@@ -440,6 +512,18 @@ export default function ShopPage() {
       <footer className="relative z-10 w-full py-3 bg-amber-950/90 border-t-2 border-amber-900 text-center text-xs text-amber-300/80">
         NucMed Arena • สะสม NucCoin จากการตอบคำถามถูกเพื่อแลกไอเทมตกแต่งโต๊ะแข่ง
       </footer>
+
+      {/* Hot Cell Mystery Gacha Modal */}
+      <HotCellGachaModal
+        isOpen={isGachaOpen}
+        onClose={() => {
+          setIsGachaOpen(false);
+          refreshShopState();
+        }}
+        onRewardReceived={() => {
+          refreshShopState();
+        }}
+      />
     </div>
   );
 }

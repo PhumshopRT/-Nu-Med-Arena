@@ -154,12 +154,14 @@ export function PlayClient() {
     avatar: string;
     fx: string;
     title: string;
+    table?: string;
   }>({
     frame: "frame-graphite",
     back: "back-default",
     avatar: "avatar-default",
     fx: "fx-none",
-    title: "title-none"
+    title: "title-none",
+    table: "table-wood"
   });
   const [activeFx, setActiveFx] = useState<"lock" | "win" | null>(null);
 
@@ -273,13 +275,15 @@ export function PlayClient() {
     const myFrame = localUser.equipped?.frame || equipped.frame || "frame-graphite";
     const myBack = localUser.equipped?.cardback || equipped.back || "back-default";
     const myFx = localUser.equipped?.fx || equipped.fx || "fx-none";
+    const myTable = localUser.equipped?.table || equipped.table || "table-wood";
 
     setEquippedCosmetics({
       frame: myFrame,
       back: myBack,
       avatar: myAvatar,
       fx: myFx,
-      title: localUser.equipped?.title || equipped.title || "title-none"
+      title: localUser.equipped?.title || equipped.title || "title-none",
+      table: myTable
     });
 
     // Shuffle RP deck and deal 5 cards to player
@@ -922,6 +926,32 @@ export function PlayClient() {
         alt="Play Table Arena"
         className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none"
       />
+
+      {/* Dynamic Arena Table Theme Overlay */}
+      {equippedCosmetics.table === "table-cyber" && (
+        <div className="fixed inset-0 pointer-events-none z-0 bg-[#020e18]/85 backdrop-blur-[1px] mix-blend-multiply">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(6,182,212,0.18)_0%,_transparent_75%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.06)_1px,_transparent_1px),_linear-gradient(90deg,_rgba(6,182,212,0.06)_1px,_transparent_1px)] bg-[size:48px_48px]" />
+        </div>
+      )}
+      {equippedCosmetics.table === "table-emerald" && (
+        <div className="fixed inset-0 pointer-events-none z-0 bg-[#042817]/85 backdrop-blur-[1px] mix-blend-multiply">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.18)_0%,_transparent_75%)]" />
+          <div className="absolute inset-0 border-[16px] border-emerald-950/40 opacity-70" />
+        </div>
+      )}
+      {equippedCosmetics.table === "table-clinic" && (
+        <div className="fixed inset-0 pointer-events-none z-0 bg-[#0d1d29]/88 backdrop-blur-[1px] mix-blend-multiply">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(56,189,248,0.16)_0%,_transparent_80%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,0.05)_1px,_transparent_1px),_linear-gradient(90deg,_rgba(56,189,248,0.05)_1px,_transparent_1px)] bg-[size:32px_32px]" />
+        </div>
+      )}
+      {equippedCosmetics.table === "table-cosmic" && (
+        <div className="fixed inset-0 pointer-events-none z-0 bg-[#0a061c]/90 backdrop-blur-[1px] mix-blend-multiply">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(168,85,247,0.22)_0%,_transparent_75%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle,_rgba(244,114,182,0.15)_1px,_transparent_1px)] bg-[size:36px_36px]" />
+        </div>
+      )}
 
       {/* 1. Top HUD Ribbon - Translucent Sleek HUD (~72% transparent) */}
       <header className="relative z-20 w-full flex justify-between items-center px-2 sm:px-4 md:px-8 py-2 bg-black/28 border-b border-amber-600/30 shadow-xl backdrop-blur-xs">

@@ -17,8 +17,9 @@ export interface LivePreviewPanelProps {
   fxId: string;
   titleId: string;
   avatarId?: string;
+  tableId?: string;
   previewItemName?: string;
-  activeTab?: "frame" | "cardback" | "avatar" | "fx" | "title";
+  activeTab?: "frame" | "cardback" | "avatar" | "fx" | "title" | "table";
   onToggleFlip?: () => void;
   isFxPlaying?: boolean;
   onPlayFx?: () => void;
@@ -31,6 +32,7 @@ export function LivePreviewPanel({
   fxId,
   titleId,
   avatarId = "avatar-default",
+  tableId = "table-wood",
   previewItemName,
   activeTab = "frame",
   onToggleFlip,
@@ -44,6 +46,7 @@ export function LivePreviewPanel({
   const normAvatar = normalizeShopId(avatarId);
   const normTitle = normalizeShopId(titleId);
   const normFx = normalizeShopId(fxId);
+  const normTable = normalizeShopId(tableId);
 
   // Card back theme
   const getCardBackTheme = (): "navy" | "hotcell" | "pet" | "cyclotron" | "nightlab" => {
@@ -72,11 +75,59 @@ export function LivePreviewPanel({
 
   // Title name
   const getTitleDisplayName = () => {
-    if (normTitle === "title-perfusion") return "Lung Perfusion";
-    if (normTitle === "title-fdg") return "FDG Reader";
-    if (normTitle === "title-capillary") return "Capillary Blockader";
-    if (normTitle === "title-none") return "ไม่มีฉายา (นักศึกษาใหม่)";
-    return "ไม่มีฉายา";
+    switch (normTitle) {
+      case "title-master-halflife": return "ผู้พิทักษ์ครึ่งชีวิต (Half-life Master)";
+      case "title-photon": return "ผู้ควบคุมโฟตอน (Photon Controller)";
+      case "title-tumor": return "นักล่าเนื้องอกระดับโมเลกุล (Tumor Hunter)";
+      case "title-theranostics": return "ปรมาจารย์เทอรานอสติกส์ (Theranostics Master)";
+      case "title-perfusion": return "Lung Perfusion";
+      case "title-fdg": return "FDG Reader";
+      case "title-capillary": return "Capillary Blockader";
+      case "title-none": return "ไม่มีฉายา (นักศึกษาใหม่)";
+      default: return "ไม่มีฉายา";
+    }
+  };
+
+  // Table theme styling helper
+  const getTableThemeInfo = () => {
+    switch (normTable) {
+      case "table-cyber":
+        return {
+          name: "สังเวียนฮอตเซลล์นีออน (Cyber Hot Cell)",
+          feltClass: "bg-radial from-[#053248] via-[#03151e] to-[#01080d] border-2 border-cyan-400/60 shadow-[0_0_25px_rgba(6,182,212,0.4)]",
+          glowColor: "text-cyan-300",
+          badgeBg: "bg-cyan-950/90 border-cyan-500/70 text-cyan-200"
+        };
+      case "table-emerald":
+        return {
+          name: "โต๊ะกำมะหยี่สีมรกต (Emerald Casino Cloth)",
+          feltClass: "bg-radial from-[#094e2e] via-[#042817] to-[#01140b] border-2 border-emerald-400/60 shadow-[0_0_25px_rgba(16,185,129,0.4)]",
+          glowColor: "text-emerald-300",
+          badgeBg: "bg-emerald-950/90 border-emerald-500/70 text-emerald-200"
+        };
+      case "table-clinic":
+        return {
+          name: "โต๊ะห้องปลอดเชื้อคลินิก (Clinical Cleanroom)",
+          feltClass: "bg-radial from-[#183850] via-[#0c1c28] to-[#050c12] border-2 border-sky-400/60 shadow-[0_0_25px_rgba(56,189,248,0.4)]",
+          glowColor: "text-sky-300",
+          badgeBg: "bg-slate-900/90 border-sky-500/70 text-sky-200"
+        };
+      case "table-cosmic":
+        return {
+          name: "สังเวียนเนบิวลาห้วงอวกาศ (Cosmic Nebula Void)",
+          feltClass: "bg-radial from-[#220d4f] via-[#0e0724] to-[#04020a] border-2 border-purple-400/60 shadow-[0_0_25px_rgba(168,85,247,0.4)]",
+          glowColor: "text-purple-300",
+          badgeBg: "bg-purple-950/90 border-purple-500/70 text-purple-200"
+        };
+      case "table-wood":
+      default:
+        return {
+          name: "โต๊ะไม้มะฮอกกานีคลาสสิก (Mahogany Felt)",
+          feltClass: "bg-radial from-[#451f0f] via-[#2a1309] to-[#140803] border-2 border-amber-600/60 shadow-[0_0_20px_rgba(180,83,9,0.4)]",
+          glowColor: "text-amber-300",
+          badgeBg: "bg-amber-950/90 border-amber-500/70 text-amber-200"
+        };
+    }
   };
 
   // Frame outer presentation classes
@@ -147,13 +198,13 @@ export function LivePreviewPanel({
           </motion.div>
         ) : (
           /* ----------------------------------------------------
-             2. CARD SHOWCASE (หน้าการ์ด หรือ หลังไพ่ พร้อมกรอบและเอฟเฟกต์)
+             2. CARD & TABLE SHOWCASE (หน้าการ์ด หรือ หลังไพ่ พร้อมกรอบ เอฟเฟกต์ และพื้นโต๊ะสังเวียน)
              ---------------------------------------------------- */
-          <div className="relative flex flex-col items-center">
+          <div className="relative flex flex-col items-center w-full">
             {/* View Mode Label */}
             <div className="flex items-center justify-between w-full px-2 mb-2">
               <span className="text-[10px] font-bold text-amber-300 uppercase">
-                {faceUp ? "หน้าการ์ด (FACE)" : "หลังไพ่ (BACK)"}
+                {activeTab === "table" ? "พื้นโต๊ะสังเวียน (ARENA FELT)" : faceUp ? "หน้าการ์ด (FACE)" : "หลังไพ่ (BACK)"}
               </span>
               {onToggleFlip && (
                 <button
@@ -166,24 +217,32 @@ export function LivePreviewPanel({
               )}
             </div>
 
-            {/* Card Frame Wrapper with Strict Visual Stylings */}
-            <div className="relative">
-              {faceUp ? (
-                /* Card Face with Frame */
-                <div className={`transition-all duration-300 ${getFrameContainerClasses()}`}>
-                  <RpCard card={sampleCard} size="md" isHoverable={false} frameId={normFrame} />
-                </div>
-              ) : (
-                /* Card Back */
-                <div className="p-1 rounded-2xl shadow-xl">
-                  <CardBack
-                    size="md"
-                    theme={getCardBackTheme()}
-                    backId={normBack}
-                    onClick={onToggleFlip}
-                  />
-                </div>
-              )}
+            {/* Table Mat Felt Surface Container */}
+            <div className={`w-full max-w-sm p-4 rounded-3xl transition-all duration-500 relative flex flex-col items-center ${getTableThemeInfo().feltClass}`}>
+              {/* Table Atmosphere Tag */}
+              <div className={`mb-3 px-3 py-1 rounded-full border text-[11px] font-game font-bold flex items-center space-x-1.5 shadow-md ${getTableThemeInfo().badgeBg}`}>
+                <Layers className="w-3.5 h-3.5" />
+                <span>{getTableThemeInfo().name}</span>
+              </div>
+
+              {/* Card Frame Wrapper with Strict Visual Stylings */}
+              <div className="relative">
+                {faceUp ? (
+                  /* Card Face with Frame */
+                  <div className={`transition-all duration-300 ${getFrameContainerClasses()}`}>
+                    <RpCard card={sampleCard} size="md" isHoverable={false} frameId={normFrame} />
+                  </div>
+                ) : (
+                  /* Card Back */
+                  <div className="p-1 rounded-2xl shadow-xl">
+                    <CardBack
+                      size="md"
+                      theme={getCardBackTheme()}
+                      backId={normBack}
+                      onClick={onToggleFlip}
+                    />
+                  </div>
+                )}
 
               {/* 2-Second FX Sparkle Overlay */}
               <AnimatePresence>
@@ -236,6 +295,7 @@ export function LivePreviewPanel({
                 )}
               </AnimatePresence>
             </div>
+          </div>
           </div>
         )}
       </div>

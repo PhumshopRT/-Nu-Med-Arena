@@ -126,6 +126,7 @@ export interface StudentUser {
     avatar: string;
     fx: string;
     title: string;
+    table?: string;
   };
 }
 
@@ -133,7 +134,8 @@ export interface ShopItem {
   id: string;
   nameTh: string;
   price: number;
-  kind: "frame" | "cardback" | "avatar" | "fx" | "title";
+  kind: "frame" | "cardback" | "avatar" | "fx" | "title" | "table";
   previewUrl?: string;
   descriptionTh?: string;
+  rarity?: "common" | "rare" | "epic" | "legendary";
 }
