@@ -26,9 +26,10 @@
 ผู้เล่นจะได้รับไพ่สารเภสัชรังสี (Radiopharmaceuticals) ประจำตัว และต้องแข่งขันกันวิเคราะห์อาการผู้ป่วยในแต่ละรอบ เพื่อจับคู่ **"สารรังสีที่ถูกต้อง"** และ **"กลไกการสะสมทางสรีรวิทยา (Localization Mechanism)"** ลงบนโต๊ะประลองแข่งขันกับเวลา พร้อมระบบ AI Bot จำลองผู้ร่วมแข่ง และสะสมเหรียญ **NucCoin** เพื่อแลกของรางวัลตกแต่ง!
 
 <div align="center">
-
-![NucMed Casino Table](docs/screenshots/play_table.png)
-
+  <a href="https://github.com/masterphum07-web/RTGAME/blob/main/docs/screenshots/play_table.png">
+    <img src="https://raw.githubusercontent.com/masterphum07-web/RTGAME/main/docs/screenshots/play_table.png" alt="ภาพโต๊ะประลอง NucMed Arena ขณะกำลังเล่น: โจทย์ผู้ป่วย การ์ดกลไก และไพ่สารเภสัชรังสี" width="100%" />
+  </a>
+  <p><sub>ภาพตัวอย่างการเล่นจริง · เปิดภาพต้นฉบับได้โดยคลิกที่ภาพ</sub></p>
 </div>
 
 ---
