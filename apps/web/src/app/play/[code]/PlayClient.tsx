@@ -105,6 +105,7 @@ export function PlayClient() {
   const [selectedRp, setSelectedRp] = useState<RadiopharmaceuticalCard | null>(null);
   const [selectedMech, setSelectedMech] = useState<MechanismCard | null>(null);
   const [expandedMechId, setExpandedMechId] = useState<string | null>(null);
+  const [isMechPreviewCollapsed, setIsMechPreviewCollapsed] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
 
   const deckRef = useRef<RadiopharmaceuticalCard[]>([]);
@@ -477,6 +478,7 @@ export function PlayClient() {
           setSelectedRp(null);
           setSelectedMech(null);
           setExpandedMechId(null);
+          setIsMechPreviewCollapsed(false);
           setIsLocked(false);
           setLockTimeLeft(null);
           setShowExplanation(false);
@@ -543,6 +545,7 @@ export function PlayClient() {
     setSelectedRp(null);
     setSelectedMech(null);
     setExpandedMechId(null);
+    setIsMechPreviewCollapsed(false);
     setIsLocked(false);
     setLockTimeLeft(null);
     setShowExplanation(false);
@@ -1262,12 +1265,22 @@ export function PlayClient() {
         {/* Middle Rack: 12 Shared Mechanism Cards Bar with Arcade Controls */}
         <div className="w-full flex flex-col items-center my-0.5 sm:my-1.5">
           {/* Rack Header */}
-          <div className="flex items-center space-x-1 sm:space-x-2 text-[10px] sm:text-xs text-amber-200 font-bold mb-0.5 sm:mb-1 drop-shadow-md">
-            <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300" />
-            <span className="font-game tracking-wider uppercase">แถบกลไกการสะสมกลางโต๊ะ (MECHANISMS)</span>
-            <span className="hidden sm:inline text-[10px] text-amber-300/80 font-normal">
-              (แตะ 1 กลไกเพื่อจับคู่)
-            </span>
+          <div className="w-full max-w-5xl flex items-center justify-between gap-2 text-[10px] sm:text-xs text-amber-200 font-bold mb-0.5 sm:mb-1 drop-shadow-md">
+            <div className="flex min-w-0 items-center space-x-1 sm:space-x-2">
+              <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
+              <span className="font-game tracking-wider uppercase truncate">แถบกลไกการสะสมกลางโต๊ะ</span>
+              <span className="hidden sm:inline text-[10px] text-amber-300/80 font-normal">(แตะ 1 กลไกเพื่อจับคู่)</span>
+            </div>
+            {expandedMechId && (
+              <button
+                type="button"
+                onClick={() => setIsMechPreviewCollapsed((collapsed) => !collapsed)}
+                aria-expanded={!isMechPreviewCollapsed}
+                className="shrink-0 inline-flex min-h-8 items-center gap-1 rounded-lg border border-amber-300/50 bg-amber-950/90 px-2.5 py-1 text-[10px] sm:text-xs font-black text-amber-100 shadow-md hover:bg-amber-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200"
+              >
+                {isMechPreviewCollapsed ? "ดูการ์ด" : "ย่อการ์ด"} <span className="font-mono text-amber-300">{expandedMechId}</span>
+              </button>
+            )}
           </div>
 
           {/* Arcade Console Bar */}
@@ -1302,9 +1315,11 @@ export function PlayClient() {
                       if (selectedMech?.id === mech.id) {
                         setSelectedMech(null);
                         setExpandedMechId(null);
+                        setIsMechPreviewCollapsed(false);
                       } else {
                         setSelectedMech(mech);
                         setExpandedMechId(mech.id);
+                        setIsMechPreviewCollapsed(false);
                       }
                     }}
                     className={`flex-shrink-0 px-2 sm:px-3.5 py-1 sm:py-2 rounded-lg sm:rounded-xl text-left border-2 transition-all cursor-pointer select-none ${
@@ -1489,6 +1504,8 @@ export function PlayClient() {
         <ExpandedMechPopup 
           expandedMechId={expandedMechId}
           setExpandedMechId={setExpandedMechId}
+          isCollapsed={isMechPreviewCollapsed}
+          onCollapse={() => setIsMechPreviewCollapsed(true)}
           allCards={ALL_MECH_CARDS}
         />
       </AnimatePresence>
