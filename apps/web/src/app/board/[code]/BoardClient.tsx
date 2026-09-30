@@ -573,7 +573,10 @@ export function BoardClient() {
           <div className="flex flex-col w-full h-full items-center">
             <div className="w-full flex justify-between items-start mb-8">
                <div className="bg-emerald-950/90 border-4 border-emerald-500 rounded-3xl p-6 shadow-2xl flex flex-col items-center max-w-2xl">
-                  <h3 className="text-emerald-300 text-2xl font-black mb-4 uppercase tracking-widest">คำตอบที่ถูกต้อง</h3>
+                  <div className="text-center mb-4">
+                    <h3 className="text-emerald-300 text-2xl font-black uppercase tracking-widest">คำตอบที่ถูกต้อง</h3>
+                    <p className="text-xs text-emerald-200/80 font-bold mt-1">ถูกครบ 2 ใบได้คะแนนเต็ม • ตอบถูกอันใดอันหนึ่งได้ 1 คะแนน</p>
+                  </div>
                   <div className="flex items-center justify-center space-x-6 w-full">
                     <div className="flex-1 bg-black/50 rounded-2xl p-6 text-center border-2 border-emerald-800">
                       <div className="text-emerald-500 text-sm font-bold mb-2">สารเภสัชรังสี (Radiopharmaceutical)</div>

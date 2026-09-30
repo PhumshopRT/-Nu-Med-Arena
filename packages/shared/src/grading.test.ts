@@ -24,13 +24,44 @@ describe("Rule Engine: Card Grading", () => {
     expect(res.mechOk).toBe(true);
   });
 
-  it("PE case (C-05) + MAA (R-07) + Facilitated Diffusion (M-02) = 0 points", () => {
+  it("PE case (C-05) + MAA (R-07) + Facilitated Diffusion (M-02) = 2 points (half score for correct RP)", () => {
     const res = grade("R-07", "M-02", c05);
     expect(res.correct).toBe(false);
-    expect(res.partialMech).toBe(false);
-    expect(res.points).toBe(0);
+    expect(res.isPartial).toBe(true);
+    expect(res.partialRp).toBe(true);
+    expect(res.points).toBe(2);
     expect(res.rpOk).toBe(true);
     expect(res.mechOk).toBe(false);
+  });
+
+  it("Single-card submission: RP only correct (R-07, null) on C-05 = 2 points", () => {
+    const res = grade("R-07", null, c05);
+    expect(res.correct).toBe(false);
+    expect(res.isPartial).toBe(true);
+    expect(res.partialRp).toBe(true);
+    expect(res.points).toBe(2);
+  });
+
+  it("Single-card submission: MECH only correct (null, M-03) on C-05 = 2 points", () => {
+    const res = grade(null, "M-03", c05);
+    expect(res.correct).toBe(false);
+    expect(res.isPartial).toBe(true);
+    expect(res.partialMech).toBe(true);
+    expect(res.points).toBe(2);
+  });
+
+  it("Single-card submission on BASIC case (C-B06): RP only (R-07, '') = 1 point", () => {
+    const res = grade("R-07", "", cb06);
+    expect(res.correct).toBe(false);
+    expect(res.isPartial).toBe(true);
+    expect(res.points).toBe(1);
+  });
+
+  it("Single-card submission on BASIC case (C-B06): MECH only ('', M-03) = 1 point", () => {
+    const res = grade("", "M-03", cb06);
+    expect(res.correct).toBe(false);
+    expect(res.isPartial).toBe(true);
+    expect(res.points).toBe(1);
   });
 
   it("BASIC Lung Perfusion (C-B06) + MAA (R-07) + Capillary Blockade (M-03) = 2 points", () => {

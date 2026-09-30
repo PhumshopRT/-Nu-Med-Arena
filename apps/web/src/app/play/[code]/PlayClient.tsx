@@ -203,6 +203,10 @@ export function PlayClient() {
 
   const handleSelectCard = (card: RadiopharmaceuticalCard, index: number) => {
     sounds.playSelect();
+    if (selectedRp?.id === card.id) {
+      setSelectedRp(null);
+      return;
+    }
     setSelectedRp(card);
     if (handScrollRef.current) {
       const cardElements = handScrollRef.current.querySelectorAll('.hand-card-slot');
@@ -690,10 +694,11 @@ export function PlayClient() {
     const isExplicitKahoot = searchParams?.get("mode") === "kahoot" || /^\d{5,8}$/.test(roomCode);
     const isKahootMode = isExplicitKahoot && searchParams?.get("mode") !== "table";
     const timeRemaining = lockTimeLeft !== null ? lockTimeLeft : timeLeft;
-    const isPartialMech = Boolean(result.partialMech || (!result.rpMatch && result.mechMatch));
+    const isFullMatch = result.matchType === "full" || (result.rpMatch && result.mechMatch);
+    const isPartialMatch = Boolean(result.isPartial || result.matchType === "rp_only" || result.matchType === "mech_only" || (!isFullMatch && (result.rpMatch || result.mechMatch)));
     const fullKahootAward = calculateKahootScore(result.scoreAwarded > 0, timeRemaining, maxTime);
-    // If partial mech match, award half Kahoot score (50%)
-    const kahootAward = isPartialMech ? Math.max(1, Math.round(fullKahootAward / 2)) : fullKahootAward;
+    // If partial match (either RP or MECH only), award half Kahoot score (50%)
+    const kahootAward = isPartialMatch ? Math.max(1, Math.round(fullKahootAward / 2)) : fullKahootAward;
 
     if (result.scoreAwarded > 0) {
       userCorrectCountRef.current += 1;
@@ -743,7 +748,9 @@ export function PlayClient() {
       ...result,
       scoreAwarded: totalAwarded,
       baseScore: result.scoreAwarded,
-      isPartialMech,
+      isFullMatch,
+      isPartialMatch,
+      matchType: result.matchType,
       speedBonus,
       streakBonus,
       streakCount: nextStreak
@@ -1125,17 +1132,27 @@ export function PlayClient() {
               {/* Mobile LOCK Button */}
               <button
                 onClick={lockAnswer}
-                disabled={isLocked || !selectedRp || !selectedMech}
-                className={`w-full py-1 px-1.5 rounded-lg font-game font-black text-[9px] flex items-center justify-center space-x-1 transition-all shadow-md cursor-pointer ${
+                disabled={isLocked || (!selectedRp && !selectedMech)}
+                className={`w-full py-1.5 px-2 rounded-lg font-game font-black text-[9px] flex items-center justify-center space-x-1 transition-all shadow-md cursor-pointer ${
                   isLocked
                     ? "bg-slate-700/80 text-slate-300 cursor-default"
                     : selectedRp && selectedMech
-                    ? "bg-gradient-to-b from-amber-400 to-amber-600 text-amber-950 font-bold border border-amber-200 animate-pulse"
+                    ? "bg-gradient-to-b from-amber-400 to-amber-600 text-amber-950 font-bold border border-amber-200 animate-pulse shadow-md"
+                    : (selectedRp || selectedMech)
+                    ? "bg-gradient-to-b from-amber-500 to-amber-700 text-amber-100 font-bold border border-amber-300 shadow-xs"
                     : "bg-black/40 text-amber-300/40 cursor-not-allowed border border-amber-800/40"
                 }`}
               >
                 <Lock className="w-2.5 h-2.5" />
-                <span>{isLocked ? "LOCKED" : "LOCK!"}</span>
+                <span>
+                  {isLocked
+                    ? "LOCKED"
+                    : selectedRp && selectedMech
+                    ? "LOCK (2 ใบ เต็ม!)"
+                    : (selectedRp || selectedMech)
+                    ? "LOCK (1 ใบ)"
+                    : "เลือกการ์ด"}
+                </span>
               </button>
             </div>
           </div>
@@ -1212,20 +1229,32 @@ export function PlayClient() {
 
             {/* Giant 3D LOCK Button */}
             <motion.button
-              whileHover={!isLocked && selectedRp && selectedMech ? { scale: 1.05 } : {}}
-              whileTap={!isLocked && selectedRp && selectedMech ? { scale: 0.95 } : {}}
+              whileHover={!isLocked && (selectedRp || selectedMech) ? { scale: 1.05 } : {}}
+              whileTap={!isLocked && (selectedRp || selectedMech) ? { scale: 0.95 } : {}}
               onClick={lockAnswer}
-              disabled={isLocked || !selectedRp || !selectedMech}
+              disabled={isLocked || (!selectedRp && !selectedMech)}
               className={`w-full mt-3 py-2.5 lg:py-3 px-4 rounded-2xl font-game font-black text-sm md:text-base tracking-wider flex items-center justify-center space-x-2 transition-all shadow-xl cursor-pointer ${
                 isLocked
                   ? "bg-slate-700/80 border-2 border-slate-500 text-slate-300 cursor-default opacity-80"
                   : selectedRp && selectedMech
                   ? "bg-gradient-to-b from-amber-400 via-amber-500 to-amber-700 hover:from-amber-300 hover:to-amber-600 text-amber-950 border-3 border-amber-200 shadow-[0_6px_0_#78350f,0_10px_20px_rgba(0,0,0,0.5)] animate-pulse"
+                  : (selectedRp || selectedMech)
+                  ? "bg-gradient-to-b from-amber-500 via-amber-600 to-amber-800 hover:from-amber-400 hover:to-amber-700 text-amber-950 border-2 border-amber-300 shadow-[0_4px_0_#451a03,0_8px_16px_rgba(0,0,0,0.4)]"
                   : "bg-black/40 border border-amber-800/40 text-amber-300/40 cursor-not-allowed"
               }`}
             >
               <Lock className="w-4 h-4" />
-              <span>{isLocked ? "ล็อคแล้ว (LOCKED)" : "LOCK คำตอบ!"}</span>
+              <span>
+                {isLocked
+                  ? "ล็อคแล้ว (LOCKED)"
+                  : selectedRp && selectedMech
+                  ? "LOCK คำตอบ! (2 ใบ - ลุ้นคะแนนเต็ม)"
+                  : selectedRp
+                  ? "LOCK คำตอบ! (1 ใบ - การ์ดฟ้า +1 PTS)"
+                  : selectedMech
+                  ? "LOCK คำตอบ! (1 ใบ - การ์ดเหลือง +1 PTS)"
+                  : "เลือกการ์ดอย่างน้อย 1 ใบ"}
+              </span>
             </motion.button>
           </div>
         </div>
@@ -1270,7 +1299,8 @@ export function PlayClient() {
                     whileTap={{ scale: 0.96 }}
                     onClick={() => {
                       sounds.playSelect();
-                      if (expandedMechId === mech.id) {
+                      if (selectedMech?.id === mech.id) {
+                        setSelectedMech(null);
                         setExpandedMechId(null);
                       } else {
                         setSelectedMech(mech);
@@ -1549,21 +1579,27 @@ export function PlayClient() {
 
               <h2 className="font-game font-black text-2xl md:text-3xl text-amber-200">
                 {lastRoundResult.scoreAwarded > 0
-                  ? (lastRoundResult.isPartialMech
-                      ? `ถูกต้องเฉพาะกลไก! +${lastRoundResult.scoreAwarded} คะแนน (ได้ครึ่งคะแนน)`
-                      : `ยอดเยี่ยม! +${lastRoundResult.scoreAwarded} คะแนน`)
-                  : "ยังไม่ถูกต้อง (0 คะแนน)"}
+                  ? (lastRoundResult.isFullMatch
+                      ? `ยอดเยี่ยม! ถูกต้องครบ 2 ใบ (+${lastRoundResult.scoreAwarded} คะแนนเต็ม)`
+                      : lastRoundResult.matchType === "rp_only"
+                      ? `ถูกต้องเฉพาะสารเภสัชรังสี! +${lastRoundResult.scoreAwarded} คะแนน (ได้ 1 คะแนน)`
+                      : `ถูกต้องเฉพาะกลไก! +${lastRoundResult.scoreAwarded} คะแนน (ได้ 1 คะแนน)`)
+                  : "ยังไม่ถูกต้องในรอบนี้ (0 คะแนน)"}
               </h2>
 
               {lastRoundResult.scoreAwarded > 0 && (
                 <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-2">
-                  {lastRoundResult.isPartialMech ? (
-                    <span className="px-2.5 py-1 rounded-full bg-yellow-950/90 border border-yellow-400 text-yellow-200 text-xs font-black shadow-sm flex items-center space-x-1">
-                      <span>⚡️ ถูกต้องกลไกการ์ดเหลือง (+{lastRoundResult.baseScore} PTS ครึ่งคะแนน)</span>
+                  {lastRoundResult.isFullMatch ? (
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-950/90 border border-emerald-400 text-emerald-200 text-xs font-black shadow-sm flex items-center space-x-1">
+                      <span>🎉 ถูกต้องสมบูรณ์ทั้ง 2 ใบ (+{lastRoundResult.baseScore} PTS คะแนนเต็ม)</span>
+                    </span>
+                  ) : lastRoundResult.matchType === "rp_only" ? (
+                    <span className="px-2.5 py-1 rounded-full bg-blue-950/90 border border-blue-400 text-blue-200 text-xs font-black shadow-sm flex items-center space-x-1">
+                      <span>🔷 ถูกต้องเฉพาะการ์ดฟ้า (+{lastRoundResult.baseScore} PTS ได้ 1 คะแนน)</span>
                     </span>
                   ) : (
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/70 text-emerald-300 text-xs font-bold shadow-sm">
-                      คะแนนเต็มโจทย์ +{lastRoundResult.baseScore || (currentCase.points - (lastRoundResult.cluePenalty || 0))} PTS
+                    <span className="px-2.5 py-1 rounded-full bg-yellow-950/90 border border-yellow-400 text-yellow-200 text-xs font-black shadow-sm flex items-center space-x-1">
+                      <span>⚡️ ถูกต้องเฉพาะการ์ดเหลือง (+{lastRoundResult.baseScore} PTS ได้ 1 คะแนน)</span>
                     </span>
                   )}
                   {lastRoundResult.speedBonus > 0 && (
