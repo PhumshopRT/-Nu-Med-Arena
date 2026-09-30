@@ -29,6 +29,16 @@ export const ClueCard = React.memo(function ClueCard({
   size = "md",
 }: ClueCardProps) {
   const renderIllustration = () => {
+    const customImage = card.artUrl || (card.illustration?.startsWith("data:") || card.illustration?.startsWith("http") || card.illustration?.startsWith("/") ? card.illustration : null);
+    if (customImage) {
+      return (
+        <img
+          src={customImage}
+          alt={card.titleEn || card.titleTh}
+          className="w-full h-full object-contain rounded-lg"
+        />
+      );
+    }
     switch (card.illustration) {
       case "thyroid":
         return <ThyroidIllustration />;

@@ -37,7 +37,11 @@ import {
   AlertCircle,
   Share2,
   Radio,
-  Copy
+  Copy,
+  Pencil,
+  Upload,
+  ImageIcon,
+  Trash2
 } from "lucide-react";
 import { 
   RadiopharmaceuticalCard,
@@ -77,6 +81,11 @@ import {
   addMechCard,
   addCaseCard,
   addClueCard,
+  updateRpCard,
+  updateMechCard,
+  updateCaseCard,
+  updateClueCard,
+  deleteCard,
   toggleCardDisabled,
   updateCasePairing,
   detectClueLeak
@@ -141,6 +150,11 @@ export default function AdminPage() {
   const [showAddMechModal, setShowAddMechModal] = useState(false);
   const [showAddCaseModal, setShowAddCaseModal] = useState(false);
   const [showAddClueModal, setShowAddClueModal] = useState(false);
+
+  // Edit Card Modal States
+  const [editingCard, setEditingCard] = useState<{ type: CardType; card: any } | null>(null);
+  const [editCardForm, setEditCardForm] = useState<any>({});
+  const [editCardError, setEditCardError] = useState<string | null>(null);
 
   // New Card Form States
   const [newRp, setNewRp] = useState<{
@@ -390,6 +404,186 @@ export default function AdminPage() {
     sounds.playSelect();
     toggleCardDisabled(type, id);
     loadAllData();
+  };
+
+  // Helper to open Edit Card Modal
+  const handleOpenEditCard = (type: CardType, card: any) => {
+    sounds.playSelect();
+    setEditingCard({ type, card });
+    setEditCardError(null);
+    setEditCardForm({
+      id: card.id,
+      titleTh: card.titleTh || "",
+      titleEn: card.titleEn || "",
+      subtitle: card.subtitle || "",
+      artUrl: card.artUrl || (card.illustration?.startsWith("data:") || card.illustration?.startsWith("http") || card.illustration?.startsWith("/") ? card.illustration : ""),
+      illustration: card.illustration || "cell",
+      bodyStr: Array.isArray(card.body) ? card.body.join("\n") : "",
+      // RP specific
+      nuclide: card.nuclide || "",
+      modality: card.modality || "SPECT",
+      target: card.target || "",
+      transporter: card.transporter || "—",
+      mechanismId: card.mechanismId || "M-01",
+      application: card.application || "",
+      // MECH specific
+      physicsNote: card.physicsNote || "",
+      // CASE specific
+      difficulty: card.difficulty || "BASIC",
+      points: card.points || 2,
+      promptTh: card.promptTh || "",
+      organHint: card.organHint || "lung",
+      explanationTh: card.explanationTh || "",
+      clueId: card.clueId || "",
+      // CLUE specific
+      clueKind: card.clueKind || "TARGET",
+      reveals: card.reveals || ""
+    });
+  };
+
+  // Helper to handle local image file upload (PNG, JPG, WebP)
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setEditCardError("กรุณาเลือกไฟล์รูปภาพที่ถูกต้อง (PNG, JPG, WebP)");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const result = uploadEvent.target?.result as string;
+      if (result) {
+        setEditCardForm((prev: any) => ({
+          ...prev,
+          artUrl: result
+        }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Helper to save edited card
+  const handleSaveEditCard = () => {
+    if (!editingCard) return;
+    setEditCardError(null);
+
+    const { type, card } = editingCard;
+    const bodyArray = editCardForm.bodyStr
+      ? editCardForm.bodyStr.split("\n").map((s: string) => s.trim()).filter(Boolean)
+      : (card.body || []);
+
+    if (type === "RP") {
+      if (!editCardForm.titleEn?.trim() || !editCardForm.titleTh?.trim()) {
+        setEditCardError("กรุณากรอกชื่อภาษาไทยและภาษาอังกฤษ");
+        return;
+      }
+      const updated: RadiopharmaceuticalCard = {
+        ...card,
+        titleEn: editCardForm.titleEn.trim(),
+        titleTh: editCardForm.titleTh.trim(),
+        subtitle: editCardForm.subtitle?.trim() || editCardForm.titleTh.trim(),
+        nuclide: editCardForm.nuclide?.trim() || card.nuclide,
+        modality: editCardForm.modality || card.modality,
+        target: editCardForm.target?.trim() || card.target,
+        transporter: editCardForm.transporter?.trim() || card.transporter,
+        mechanismId: editCardForm.mechanismId?.trim() || card.mechanismId,
+        application: editCardForm.application?.trim() || card.application,
+        artUrl: editCardForm.artUrl?.trim() || undefined,
+        body: bodyArray.length > 0 ? bodyArray : [
+          `Target: ${editCardForm.target?.trim() || card.target}`,
+          `Transporter: ${editCardForm.transporter?.trim() || card.transporter}`,
+          `Mechanism: ${editCardForm.mechanismId?.trim() || card.mechanismId}`,
+          `Application: ${editCardForm.application?.trim() || card.application}`
+        ]
+      };
+      const res = updateRpCard(updated);
+      if (!res.success) {
+        setEditCardError(res.error || "เกิดข้อผิดพลาดในการบันทึก");
+        return;
+      }
+    } else if (type === "MECH") {
+      if (!editCardForm.titleEn?.trim() || !editCardForm.titleTh?.trim()) {
+        setEditCardError("กรุณากรอกชื่อภาษาไทยและภาษาอังกฤษ");
+        return;
+      }
+      const updated: MechanismCard = {
+        ...card,
+        titleEn: editCardForm.titleEn.trim(),
+        titleTh: editCardForm.titleTh.trim(),
+        subtitle: editCardForm.subtitle?.trim() || card.subtitle,
+        physicsNote: editCardForm.physicsNote?.trim() || undefined,
+        artUrl: editCardForm.artUrl?.trim() || undefined,
+        body: bodyArray
+      };
+      const res = updateMechCard(updated);
+      if (!res.success) {
+        setEditCardError(res.error || "เกิดข้อผิดพลาดในการบันทึก");
+        return;
+      }
+    } else if (type === "CASE") {
+      if (!editCardForm.titleTh?.trim() || !editCardForm.promptTh?.trim()) {
+        setEditCardError("กรุณากรอกชื่อโจทย์และคำบรรยายโจทย์");
+        return;
+      }
+      const updated: CaseCard = {
+        ...card,
+        titleTh: editCardForm.titleTh.trim(),
+        titleEn: editCardForm.titleEn?.trim() || editCardForm.titleTh.trim(),
+        subtitle: editCardForm.subtitle?.trim() || card.subtitle,
+        difficulty: editCardForm.difficulty || card.difficulty,
+        points: Number(editCardForm.points) || card.points,
+        promptTh: editCardForm.promptTh.trim(),
+        organHint: editCardForm.organHint?.trim() || card.organHint,
+        explanationTh: editCardForm.explanationTh?.trim() || card.explanationTh,
+        clueId: editCardForm.clueId || undefined,
+        artUrl: editCardForm.artUrl?.trim() || undefined,
+        body: bodyArray.length > 0 ? bodyArray : [editCardForm.promptTh.trim()]
+      };
+      const res = updateCaseCard(updated);
+      if (!res.success) {
+        setEditCardError(res.error || "เกิดข้อผิดพลาดในการบันทึก");
+        return;
+      }
+    } else if (type === "CLUE") {
+      if (!editCardForm.titleTh?.trim() || !editCardForm.reveals?.trim()) {
+        setEditCardError("กรุณากรอกหัวข้อคำใบ้และเนื้อหาที่เฉลย");
+        return;
+      }
+      const updated: ClueCard = {
+        ...card,
+        titleTh: editCardForm.titleTh.trim(),
+        titleEn: editCardForm.titleEn?.trim() || editCardForm.titleTh.trim(),
+        subtitle: editCardForm.subtitle?.trim() || card.subtitle,
+        clueKind: editCardForm.clueKind || card.clueKind,
+        reveals: editCardForm.reveals.trim(),
+        artUrl: editCardForm.artUrl?.trim() || undefined,
+        body: bodyArray
+      };
+      const res = updateClueCard(updated);
+      if (!res.success) {
+        setEditCardError(res.error || "เกิดข้อผิดพลาดในการบันทึก");
+        return;
+      }
+    }
+
+    sounds.playWin();
+    setEditingCard(null);
+    loadAllData();
+  };
+
+  const handleDeleteCard = (type: CardType, id: string) => {
+    if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบการ์ด ${id} ออกจากระบบ? การลบนี้จะมีผลทันที`)) {
+      return;
+    }
+    const res = deleteCard(type, id);
+    if (res.success) {
+      sounds.playClick();
+      setEditingCard(null);
+      loadAllData();
+    } else {
+      sounds.playWrong();
+      alert(res.error || "ไม่สามารถลบการ์ดได้");
+    }
   };
 
   // Superscript injection helper for RP title / chemical formula
@@ -1237,14 +1431,24 @@ export default function AdminPage() {
                           return (
                             <tr key={card.id} className={`hover:bg-white/5 transition-colors ${isDisabled ? "opacity-50" : ""}`}>
                               <td className="p-3">
-                                <span className={`font-mono font-black px-2 py-0.5 rounded text-[11px] ${
-                                  librarySubTab === "RP" ? "bg-blue-950 text-blue-300 border border-blue-600/40" :
-                                  librarySubTab === "MECH" ? "bg-amber-950 text-amber-300 border border-amber-600/40" :
-                                  librarySubTab === "CASE" ? "bg-red-950 text-rose-300 border border-red-600/40" :
-                                  "bg-emerald-950 text-emerald-300 border border-emerald-600/40"
-                                }`}>
-                                  {card.id}
-                                </span>
+                                <div className="flex items-center space-x-2">
+                                  <span className={`font-mono font-black px-2 py-0.5 rounded text-[11px] ${
+                                    librarySubTab === "RP" ? "bg-blue-950 text-blue-300 border border-blue-600/40" :
+                                    librarySubTab === "MECH" ? "bg-amber-950 text-amber-300 border border-amber-600/40" :
+                                    librarySubTab === "CASE" ? "bg-red-950 text-rose-300 border border-red-600/40" :
+                                    "bg-emerald-950 text-emerald-300 border border-emerald-600/40"
+                                  }`}>
+                                    {card.id}
+                                  </span>
+                                  {card.artUrl && (
+                                    <img 
+                                      src={card.artUrl} 
+                                      alt="preview" 
+                                      className="w-6 h-6 object-cover rounded border border-amber-400/40 shadow-xs" 
+                                      title="การ์ดนี้มีรูปภาพกำหนดเอง"
+                                    />
+                                  )}
+                                </div>
                               </td>
                               <td className="p-3">
                                 <div className="font-bold text-white text-xs">{card.titleEn || card.titleTh}</div>
@@ -1284,27 +1488,37 @@ export default function AdminPage() {
                                 )}
                               </td>
                               <td className="p-3 text-center">
-                                <button
-                                  onClick={() => handleToggleCard(librarySubTab, card.id)}
-                                  className={`px-3 py-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center space-x-1.5 mx-auto ${
-                                    isDisabled
-                                      ? "bg-slate-800 text-slate-400 border border-slate-600/40"
-                                      : "bg-emerald-950/80 text-emerald-300 border border-emerald-500/50 shadow-xs"
-                                  }`}
-                                  title={isDisabled ? "คลิกเพื่อเปิดใช้งาน" : "คลิกเพื่อปิดใช้งาน (ห้ามแจก)"}
-                                >
-                                  {isDisabled ? (
-                                    <>
-                                      <ToggleLeft className="w-3.5 h-3.5" />
-                                      <span>ปิดใช้งาน</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <ToggleRight className="w-3.5 h-3.5 text-emerald-400" />
-                                      <span>เปิดใช้งาน</span>
-                                    </>
-                                  )}
-                                </button>
+                                <div className="flex items-center justify-center space-x-1.5">
+                                  <button
+                                    onClick={() => handleOpenEditCard(librarySubTab, card)}
+                                    className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-blue-900/60 hover:bg-blue-800 text-blue-200 border border-blue-500/40 transition-all cursor-pointer flex items-center space-x-1 shadow-xs"
+                                    title="แก้ไขข้อมูลและการ์ดภาพ"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                    <span>แก้ไข</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleToggleCard(librarySubTab, card.id)}
+                                    className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center space-x-1 ${
+                                      isDisabled
+                                        ? "bg-slate-800 text-slate-400 border border-slate-600/40"
+                                        : "bg-emerald-950/80 text-emerald-300 border border-emerald-500/50 shadow-xs"
+                                    }`}
+                                    title={isDisabled ? "คลิกเพื่อเปิดใช้งาน" : "คลิกเพื่อปิดใช้งาน (ห้ามแจก)"}
+                                  >
+                                    {isDisabled ? (
+                                      <>
+                                        <ToggleLeft className="w-3.5 h-3.5" />
+                                        <span>ปิด</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <ToggleRight className="w-3.5 h-3.5 text-emerald-400" />
+                                        <span>เปิด</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           );
@@ -2759,6 +2973,409 @@ export default function AdminPage() {
                 </button>
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ----------------------------------------------------
+          MODAL: แก้ไขการ์ด (EDIT CARD MODAL - ALL DECKS)
+         ---------------------------------------------------- */}
+      <AnimatePresence>
+        {editingCard && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xs overflow-y-auto"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              className="w-full max-w-2xl bg-[#0B3B36] border-2 border-amber-500/70 rounded-3xl p-5 sm:p-6 shadow-2xl text-amber-100 my-6 max-h-[90vh] flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 mb-4 border-b border-amber-600/30">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 rounded-xl bg-blue-900/60 border border-blue-400/50 flex items-center justify-center text-blue-300">
+                    <Pencil className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black font-game text-white flex items-center space-x-2">
+                      <span>แก้ไขการ์ด {editingCard.card.id}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                        editingCard.type === "RP" ? "bg-blue-950 text-blue-300 border border-blue-600/40" :
+                        editingCard.type === "MECH" ? "bg-amber-950 text-amber-300 border border-amber-600/40" :
+                        editingCard.type === "CASE" ? "bg-red-950 text-rose-300 border border-red-600/40" :
+                        "bg-emerald-950 text-emerald-300 border border-emerald-600/40"
+                      }`}>
+                        {editingCard.type}
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-amber-300/70">
+                      ปรับปรุงข้อความ รายละเอียด และรูปภาพประกอบของการ์ด
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setEditingCard(null)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Scrollable Form Content */}
+              <div className="flex-1 overflow-y-auto pr-1 space-y-4 text-xs">
+                {editCardError && (
+                  <div className="p-2.5 rounded-xl bg-rose-950/70 border border-rose-500/50 text-rose-200 text-xs font-bold flex items-center space-x-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                    <span>{editCardError}</span>
+                  </div>
+                )}
+
+                {/* 1. Image Editor Box */}
+                <div className="p-3.5 bg-black/40 rounded-2xl border border-amber-600/40 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-amber-200 flex items-center space-x-1.5">
+                      <ImageIcon className="w-4 h-4 text-amber-400" />
+                      <span>รูปภาพประกอบการ์ด (Card Image / Art)</span>
+                    </label>
+                    {editCardForm.artUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setEditCardForm((prev: any) => ({ ...prev, artUrl: "" }))}
+                        className="text-[10px] text-rose-300 hover:text-rose-200 underline cursor-pointer"
+                      >
+                        ล้างรูปภาพ (กลับไปใช้ภาพมาตรฐาน)
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    {/* Thumbnail Preview */}
+                    <div className="w-20 h-24 sm:w-24 sm:h-28 rounded-xl bg-slate-900 border-2 border-dashed border-amber-500/40 flex items-center justify-center overflow-hidden shrink-0">
+                      {editCardForm.artUrl ? (
+                        <img
+                          src={editCardForm.artUrl}
+                          alt="Card Preview"
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <div className="text-center p-2 text-slate-500">
+                          <ImageIcon className="w-6 h-6 mx-auto mb-1 opacity-50" />
+                          <span className="text-[9px]">ภาพไอคอนเริ่มต้น</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Inputs for Image URL and Upload */}
+                    <div className="flex-1 w-full space-y-2">
+                      <div>
+                        <label className="text-[10px] text-amber-300/80 mb-0.5 block">
+                          ใส่ลิงก์รูปภาพ (Image URL - HTTP/HTTPS หรือ Path):
+                        </label>
+                        <input
+                          type="text"
+                          value={editCardForm.artUrl || ""}
+                          onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, artUrl: e.target.value }))}
+                          placeholder="https://example.com/image.png หรือ /illustrations/..."
+                          className="w-full px-3 py-1.5 rounded-xl bg-black/50 border border-amber-500/30 text-white focus:outline-none focus:border-amber-400"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <label className="flex-1 flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-xl bg-amber-900/40 hover:bg-amber-800/60 border border-amber-500/40 text-amber-200 cursor-pointer transition-colors text-[11px] font-bold">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>อัปโหลดรูปจากเครื่อง (PNG, JPG, WebP)</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageFileUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                      <p className="text-[9.5px] text-slate-400">
+                        * รองรับทั้งการอัปโหลดไฟล์จากเครื่อง (Desktop / iPad) และการใส่ลิงก์ URL
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Common Fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-amber-200 font-bold mb-1">
+                      ชื่อภาษาไทย (Title TH)*
+                    </label>
+                    <input
+                      type="text"
+                      value={editCardForm.titleTh || ""}
+                      onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, titleTh: e.target.value }))}
+                      className="w-full px-3 py-1.5 rounded-xl bg-black/50 border border-amber-500/30 text-white focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-amber-200 font-bold mb-1">
+                      ชื่อภาษาอังกฤษ (Title EN)*
+                    </label>
+                    <input
+                      type="text"
+                      value={editCardForm.titleEn || ""}
+                      onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, titleEn: e.target.value }))}
+                      className="w-full px-3 py-1.5 rounded-xl bg-black/50 border border-amber-500/30 text-white focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-amber-200 font-bold mb-1">
+                    คำบรรยายย่อย / ชื่อเล่น (Subtitle)
+                  </label>
+                  <input
+                    type="text"
+                    value={editCardForm.subtitle || ""}
+                    onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, subtitle: e.target.value }))}
+                    placeholder="เช่น (F-18 FDG) หรือ ฟังก์ชันไต..."
+                    className="w-full px-3 py-1.5 rounded-xl bg-black/50 border border-amber-500/30 text-white focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                {/* 3. Type-Specific Form Fields */}
+                {editingCard.type === "RP" && (
+                  <div className="p-3 bg-black/25 rounded-2xl border border-blue-500/30 space-y-3">
+                    <div className="font-bold text-blue-300 text-xs">ข้อมูลเฉพาะสารเภสัชรังสี (RP)</div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <div>
+                        <label className="block text-slate-300 mb-0.5">ไอโซโทป (Nuclide)</label>
+                        <input
+                          type="text"
+                          value={editCardForm.nuclide || ""}
+                          onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, nuclide: e.target.value }))}
+                          className="w-full px-2.5 py-1 rounded-lg bg-black/50 border border-white/20 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-300 mb-0.5">เครื่องตรวจ (Modality)</label>
+                        <select
+                          value={editCardForm.modality || "SPECT"}
+                          onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, modality: e.target.value }))}
+                          className="w-full px-2.5 py-1 rounded-lg bg-black/50 border border-white/20 text-white"
+                        >
+                          <option value="SPECT">SPECT</option>
+                          <option value="PET">PET</option>
+                          <option value="BOTH">BOTH</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-slate-300 mb-0.5">กลไกหลัก (Mechanism)</label>
+                        <select
+                          value={editCardForm.mechanismId || "M-01"}
+                          onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, mechanismId: e.target.value }))}
+                          className="w-full px-2.5 py-1 rounded-lg bg-black/50 border border-white/20 text-white"
+                        >
+                          {mechCards.map((m) => (
+                            <option key={m.id} value={m.id}>
+                              {m.id}: {m.titleEn}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-slate-300 mb-0.5">เป้าหมาย (Target)</label>
+                        <input
+                          type="text"
+                          value={editCardForm.target || ""}
+                          onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, target: e.target.value }))}
+                          className="w-full px-2.5 py-1 rounded-lg bg-black/50 border border-white/20 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-300 mb-0.5">การขนส่ง (Transporter)</label>
+                        <input
+                          type="text"
+                          value={editCardForm.transporter || ""}
+                          onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, transporter: e.target.value }))}
+                          className="w-full px-2.5 py-1 rounded-lg bg-black/50 border border-white/20 text-white"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-slate-300 mb-0.5">การประยุกต์ใช้ (Clinical Application)</label>
+                      <input
+                        type="text"
+                        value={editCardForm.application || ""}
+                        onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, application: e.target.value }))}
+                        className="w-full px-2.5 py-1 rounded-lg bg-black/50 border border-white/20 text-white"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {editingCard.type === "MECH" && (
+                  <div className="p-3 bg-black/25 rounded-2xl border border-amber-500/30 space-y-2">
+                    <div className="font-bold text-amber-300 text-xs">ข้อมูลกลไก (Mechanism Details)</div>
+                    <div>
+                      <label className="block text-slate-300 mb-0.5">หมายเหตุทางฟิสิกส์ (Physics Note)</label>
+                      <input
+                        type="text"
+                        value={editCardForm.physicsNote || ""}
+                        onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, physicsNote: e.target.value }))}
+                        className="w-full px-2.5 py-1 rounded-lg bg-black/50 border border-white/20 text-white"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {editingCard.type === "CASE" && (
+                  <div className="p-3 bg-black/25 rounded-2xl border border-red-500/30 space-y-3">
+                    <div className="font-bold text-rose-300 text-xs">ข้อมูลโจทย์เคส (Case Details)</div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="block text-slate-300 mb-0.5">ระดับความยาก</label>
+                        <select
+                          value={editCardForm.difficulty || "BASIC"}
+                          onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, difficulty: e.target.value }))}
+                          className="w-full px-2.5 py-1 rounded-lg bg-black/50 border border-white/20 text-white"
+                        >
+                          <option value="BASIC">BASIC</option>
+                          <option value="CLINICAL">CLINICAL</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-slate-300 mb-0.5">คะแนนโจทย์</label>
+                        <select
+                          value={editCardForm.points || 2}
+                          onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, points: Number(e.target.value) }))}
+                          className="w-full px-2.5 py-1 rounded-lg bg-black/50 border border-white/20 text-white"
+                        >
+                          <option value={2}>2 คะแนน</option>
+                          <option value={4}>4 คะแนน</option>
+                          <option value={8}>8 คะแนน</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-slate-300 mb-0.5">อวัยวะ (Organ Hint)</label>
+                        <input
+                          type="text"
+                          value={editCardForm.organHint || ""}
+                          onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, organHint: e.target.value }))}
+                          placeholder="lung, thyroid, bone..."
+                          className="w-full px-2.5 py-1 rounded-lg bg-black/50 border border-white/20 text-white"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-slate-300 mb-0.5">คำถามโจทย์ภาษาไทย (Prompt TH)*</label>
+                      <textarea
+                        rows={2}
+                        value={editCardForm.promptTh || ""}
+                        onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, promptTh: e.target.value }))}
+                        className="w-full px-3 py-1.5 rounded-xl bg-black/50 border border-white/20 text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-300 mb-0.5">คำอธิบายเฉลยทางคลินิก (Explanation TH)</label>
+                      <textarea
+                        rows={2}
+                        value={editCardForm.explanationTh || ""}
+                        onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, explanationTh: e.target.value }))}
+                        className="w-full px-3 py-1.5 rounded-xl bg-black/50 border border-white/20 text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-300 mb-0.5">คำใบ้ที่จับคู่ (Clue ID)</label>
+                      <select
+                        value={editCardForm.clueId || ""}
+                        onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, clueId: e.target.value }))}
+                        className="w-full px-2.5 py-1 rounded-lg bg-black/50 border border-white/20 text-white"
+                      >
+                        <option value="">-- ไม่ระบุคำใบ้ --</option>
+                        {clueCards.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.id}: {c.titleTh} ({c.reveals})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {editingCard.type === "CLUE" && (
+                  <div className="p-3 bg-black/25 rounded-2xl border border-emerald-500/30 space-y-2">
+                    <div className="font-bold text-emerald-300 text-xs">ข้อมูลคำใบ้ (Clue Details)</div>
+                    <div>
+                      <label className="block text-slate-300 mb-0.5">ประเภทคำใบ้ (Kind)</label>
+                      <select
+                        value={editCardForm.clueKind || "TARGET"}
+                        onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, clueKind: e.target.value }))}
+                        className="w-full px-2.5 py-1 rounded-lg bg-black/50 border border-white/20 text-white"
+                      >
+                        <option value="TARGET">TARGET</option>
+                        <option value="WHY">WHY</option>
+                        <option value="TRAIT">TRAIT</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-slate-300 mb-0.5">เนื้อหาคำใบ้ที่เฉลย (Reveals)*</label>
+                      <textarea
+                        rows={2}
+                        value={editCardForm.reveals || ""}
+                        onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, reveals: e.target.value }))}
+                        className="w-full px-3 py-1.5 rounded-xl bg-black/50 border border-white/20 text-white"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. Body bullet points */}
+                <div>
+                  <label className="block text-amber-200 font-bold mb-1">
+                    หัวข้อย่อย / รายละเอียด (1 บรรทัดต่อ 1 ข้อความ)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={editCardForm.bodyStr || ""}
+                    onChange={(e) => setEditCardForm((prev: any) => ({ ...prev, bodyStr: e.target.value }))}
+                    placeholder="ใส่ข้อมูลย่อยบรรทัดละ 1 ข้อ..."
+                    className="w-full px-3 py-1.5 rounded-xl bg-black/50 border border-amber-500/30 text-white font-mono text-[11px] focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-between pt-4 mt-2 border-t border-amber-600/30">
+                <button
+                  type="button"
+                  onClick={() => handleDeleteCard(editingCard.type, editingCard.card.id)}
+                  className="px-3 py-2 rounded-xl bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-200 font-bold text-xs flex items-center space-x-1 cursor-pointer transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>ลบการ์ด</span>
+                </button>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingCard(null)}
+                    className="px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer transition-colors"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveEditCard}
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs shadow-lg cursor-pointer transition-all active:scale-95 flex items-center space-x-1.5"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>บันทึกการแก้ไข</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

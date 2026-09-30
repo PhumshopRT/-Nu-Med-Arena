@@ -15,10 +15,11 @@ describe("Rule Engine: Card Grading", () => {
     expect(res.mechOk).toBe(true);
   });
 
-  it("PE case (C-05) + FDG (R-01) + Capillary Blockade (M-03) = 0 points", () => {
+  it("PE case (C-05) + FDG (R-01) + Capillary Blockade (M-03) = 2 points (half score for correct mechanism)", () => {
     const res = grade("R-01", "M-03", c05);
     expect(res.correct).toBe(false);
-    expect(res.points).toBe(0);
+    expect(res.partialMech).toBe(true);
+    expect(res.points).toBe(2);
     expect(res.rpOk).toBe(false);
     expect(res.mechOk).toBe(true);
   });
@@ -26,6 +27,7 @@ describe("Rule Engine: Card Grading", () => {
   it("PE case (C-05) + MAA (R-07) + Facilitated Diffusion (M-02) = 0 points", () => {
     const res = grade("R-07", "M-02", c05);
     expect(res.correct).toBe(false);
+    expect(res.partialMech).toBe(false);
     expect(res.points).toBe(0);
     expect(res.rpOk).toBe(true);
     expect(res.mechOk).toBe(false);
@@ -56,8 +58,14 @@ describe("Rule Engine: Card Grading", () => {
     expect(resWithClue.points).toBe(3);
     expect(resWithClue.cluePenalty).toBe(1);
 
-    // 3. With clue but wrong -> 0 points (penalty is 0)
-    const resWrongWithClue = grade("R-01", "M-03", c05, true);
+    // 3. With clue and correct mech only -> half points with partial clue penalty
+    const resMechOnlyWithClue = grade("R-01", "M-03", c05, true);
+    expect(resMechOnlyWithClue.correct).toBe(false);
+    expect(resMechOnlyWithClue.partialMech).toBe(true);
+    expect(resMechOnlyWithClue.points).toBe(2);
+
+    // 4. Totally wrong with clue -> 0 points
+    const resWrongWithClue = grade("R-01", "M-02", c05, true);
     expect(resWrongWithClue.correct).toBe(false);
     expect(resWrongWithClue.points).toBe(0);
     expect(resWrongWithClue.cluePenalty).toBe(0);
@@ -74,7 +82,14 @@ describe("Rule Engine: Card Grading", () => {
     expect(resWithClue.points).toBe(1);
     expect(resWithClue.cluePenalty).toBe(1);
 
-    const resWrongWithClue = grade("R-01", "M-03", cb06, true);
+    // Partial match on cb06 (points: 2) -> gives 1 point (half)
+    const resPartialWithClue = grade("R-01", "M-03", cb06, true);
+    expect(resPartialWithClue.correct).toBe(false);
+    expect(resPartialWithClue.partialMech).toBe(true);
+    expect(resPartialWithClue.points).toBe(1);
+
+    // Totally wrong on cb06 -> gives 0 points
+    const resWrongWithClue = grade("R-01", "M-02", cb06, true);
     expect(resWrongWithClue.correct).toBe(false);
     expect(resWrongWithClue.points).toBe(0);
   });

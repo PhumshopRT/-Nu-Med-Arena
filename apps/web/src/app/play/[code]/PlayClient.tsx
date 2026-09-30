@@ -690,7 +690,10 @@ export function PlayClient() {
     const isExplicitKahoot = searchParams?.get("mode") === "kahoot" || /^\d{5,8}$/.test(roomCode);
     const isKahootMode = isExplicitKahoot && searchParams?.get("mode") !== "table";
     const timeRemaining = lockTimeLeft !== null ? lockTimeLeft : timeLeft;
-    const kahootAward = calculateKahootScore(result.scoreAwarded > 0, timeRemaining, maxTime);
+    const isPartialMech = Boolean(result.partialMech || (!result.rpMatch && result.mechMatch));
+    const fullKahootAward = calculateKahootScore(result.scoreAwarded > 0, timeRemaining, maxTime);
+    // If partial mech match, award half Kahoot score (50%)
+    const kahootAward = isPartialMech ? Math.max(1, Math.round(fullKahootAward / 2)) : fullKahootAward;
 
     if (result.scoreAwarded > 0) {
       userCorrectCountRef.current += 1;
@@ -740,6 +743,7 @@ export function PlayClient() {
       ...result,
       scoreAwarded: totalAwarded,
       baseScore: result.scoreAwarded,
+      isPartialMech,
       speedBonus,
       streakBonus,
       streakCount: nextStreak
@@ -1529,25 +1533,39 @@ export function PlayClient() {
               className="relative w-full max-w-xl wood-panel p-6 rounded-3xl border-4 border-amber-950 shadow-2xl flex flex-col items-center text-center"
             >
               {/* Result Icon */}
-              <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-xl -mt-12 mb-3 bg-gradient-to-br from-amber-400 to-amber-600 border-3 border-amber-200">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-xl -mt-12 mb-3 border-3 ${
+                lastRoundResult.scoreAwarded > 0
+                  ? (lastRoundResult.isPartialMech
+                      ? "bg-gradient-to-br from-yellow-400 to-amber-600 border-yellow-200"
+                      : "bg-gradient-to-br from-emerald-400 to-emerald-600 border-emerald-200")
+                  : "bg-gradient-to-br from-rose-500 to-rose-700 border-rose-300"
+              }`}>
                 {lastRoundResult.scoreAwarded > 0 ? (
-                  <CheckCircle className="w-8 h-8 text-emerald-950 stroke-[2.5]" />
+                  <CheckCircle className="w-8 h-8 text-white stroke-[2.5]" />
                 ) : (
-                  <XCircle className="w-8 h-8 text-rose-950 stroke-[2.5]" />
+                  <XCircle className="w-8 h-8 text-white stroke-[2.5]" />
                 )}
               </div>
 
               <h2 className="font-game font-black text-2xl md:text-3xl text-amber-200">
                 {lastRoundResult.scoreAwarded > 0
-                  ? `ยอดเยี่ยม! +${lastRoundResult.scoreAwarded} คะแนน`
+                  ? (lastRoundResult.isPartialMech
+                      ? `ถูกต้องเฉพาะกลไก! +${lastRoundResult.scoreAwarded} คะแนน (ได้ครึ่งคะแนน)`
+                      : `ยอดเยี่ยม! +${lastRoundResult.scoreAwarded} คะแนน`)
                   : "ยังไม่ถูกต้อง (0 คะแนน)"}
               </h2>
 
               {lastRoundResult.scoreAwarded > 0 && (
                 <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-2">
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/70 text-emerald-300 text-xs font-bold shadow-sm">
-                    คะแนนโจทย์ +{lastRoundResult.baseScore || (currentCase.points - (lastRoundResult.cluePenalty || 0))} PTS
-                  </span>
+                  {lastRoundResult.isPartialMech ? (
+                    <span className="px-2.5 py-1 rounded-full bg-yellow-950/90 border border-yellow-400 text-yellow-200 text-xs font-black shadow-sm flex items-center space-x-1">
+                      <span>⚡️ ถูกต้องกลไกการ์ดเหลือง (+{lastRoundResult.baseScore} PTS ครึ่งคะแนน)</span>
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/70 text-emerald-300 text-xs font-bold shadow-sm">
+                      คะแนนเต็มโจทย์ +{lastRoundResult.baseScore || (currentCase.points - (lastRoundResult.cluePenalty || 0))} PTS
+                    </span>
+                  )}
                   {lastRoundResult.speedBonus > 0 && (
                     <span className="px-2.5 py-1 rounded-full bg-amber-900/90 border border-amber-400 text-amber-200 text-xs font-black animate-pulse flex items-center space-x-1 shadow-sm">
                       <span>⚡️ ความเร็ว +{lastRoundResult.speedBonus} PTS</span>

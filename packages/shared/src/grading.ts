@@ -5,6 +5,8 @@ export interface GradeResult {
   points: number;
   rpOk: boolean;
   mechOk: boolean;
+  partialMech?: boolean;
+  matchType?: "full" | "mech_only" | "rp_only" | "none";
   usedClue?: boolean;
   cluePenalty?: number;
 }
@@ -21,6 +23,8 @@ export function grade(
       points: 0, 
       rpOk: false, 
       mechOk: false,
+      partialMech: false,
+      matchType: "none",
       usedClue: !!usedClue,
       cluePenalty: 0
     };
@@ -28,6 +32,17 @@ export function grade(
   const rpOk = caseCard.acceptedRpIds.includes(rpId);
   const mechOk = caseCard.acceptedMechIds.includes(mechId);
   const correct = rpOk && mechOk;
+  const partialMech = !rpOk && mechOk;
+  const partialRp = rpOk && !mechOk;
+
+  let matchType: "full" | "mech_only" | "rp_only" | "none" = "none";
+  if (correct) {
+    matchType = "full";
+  } else if (partialMech) {
+    matchType = "mech_only";
+  } else if (partialRp) {
+    matchType = "rp_only";
+  }
 
   let points = 0;
   let cluePenalty = 0;
@@ -39,6 +54,15 @@ export function grade(
     } else {
       points = caseCard.points;
     }
+  } else if (partialMech) {
+    // Mechanism matched! Award half points (50% from question) as requested
+    const halfBase = Math.round(caseCard.points / 2);
+    if (usedClue) {
+      cluePenalty = 0.5;
+      points = Math.max(1, Math.round(halfBase - 0.5));
+    } else {
+      points = Math.max(1, halfBase);
+    }
   }
 
   return {
@@ -46,6 +70,8 @@ export function grade(
     points,
     rpOk,
     mechOk,
+    partialMech,
+    matchType,
     usedClue: !!usedClue,
     cluePenalty,
   };
@@ -63,5 +89,7 @@ export function gradeAnswer(
     scoreAwarded: res.points,
     rpMatch: res.rpOk,
     mechMatch: res.mechOk,
+    partialMech: res.partialMech,
+    matchType: res.matchType
   };
 }

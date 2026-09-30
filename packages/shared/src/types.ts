@@ -10,6 +10,7 @@ export interface CardBase {
   illustration: string;  // svg key (e.g. 'thyroid', 'lung', 'bone', 'liver_spleen', 'cell', 'capillary')
   tags: string[];
   disabled?: boolean; // switch to enable/disable card from being dealt
+  artUrl?: string; // custom image url or base64 data url
 }
 
 export interface RadiopharmaceuticalCard extends CardBase {

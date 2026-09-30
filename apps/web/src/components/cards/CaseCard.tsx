@@ -28,6 +28,16 @@ export const CaseCard = React.memo(function CaseCard({
   size = "md",
 }: CaseCardProps) {
   const renderIllustration = () => {
+    const customImage = card.artUrl || (card.illustration?.startsWith("data:") || card.illustration?.startsWith("http") || card.illustration?.startsWith("/") ? card.illustration : null);
+    if (customImage) {
+      return (
+        <img
+          src={customImage}
+          alt={card.titleEn || card.titleTh}
+          className="w-full h-full object-contain rounded-lg"
+        />
+      );
+    }
     if (card.id.includes("05") || card.organHint?.includes("lung")) {
       return <LungIllustration />;
     }

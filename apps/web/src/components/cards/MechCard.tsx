@@ -28,6 +28,16 @@ export const MechCard = React.memo(function MechCard({
   size = "md",
 }: MechCardProps) {
   const renderIllustration = () => {
+    const customImage = card.artUrl || (card.illustration?.startsWith("data:") || card.illustration?.startsWith("http") || card.illustration?.startsWith("/") ? card.illustration : null);
+    if (customImage) {
+      return (
+        <img
+          src={customImage}
+          alt={card.titleEn || card.titleTh}
+          className="w-full h-full object-contain rounded-lg"
+        />
+      );
+    }
     switch (card.id) {
       case "M-03":
         return <CapillaryBlockadeIllustration />;

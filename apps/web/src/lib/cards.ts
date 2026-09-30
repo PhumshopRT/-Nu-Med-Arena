@@ -223,6 +223,80 @@ export function addClueCard(card: ClueCard): { success: boolean; error?: string 
   return { success: true };
 }
 
+export function updateRpCard(card: RadiopharmaceuticalCard): { success: boolean; error?: string } {
+  const current = getStoredRpCards();
+  const idx = current.findIndex(c => c.id.toUpperCase() === card.id.toUpperCase());
+  if (idx < 0) {
+    return { success: false, error: `ไม่พบการ์ดรหัส ${card.id}` };
+  }
+  current[idx] = { ...current[idx], ...card };
+  saveStoredRpCards(current);
+  return { success: true };
+}
+
+export function updateMechCard(card: MechanismCard): { success: boolean; error?: string } {
+  const current = getStoredMechCards();
+  const idx = current.findIndex(c => c.id.toUpperCase() === card.id.toUpperCase());
+  if (idx < 0) {
+    return { success: false, error: `ไม่พบการ์ดรหัส ${card.id}` };
+  }
+  current[idx] = { ...current[idx], ...card };
+  saveStoredMechCards(current);
+  return { success: true };
+}
+
+export function updateCaseCard(card: CaseCard): { success: boolean; error?: string } {
+  const current = getStoredCaseCards();
+  const idx = current.findIndex(c => c.id.toUpperCase() === card.id.toUpperCase());
+  if (idx < 0) {
+    return { success: false, error: `ไม่พบการ์ดรหัส ${card.id}` };
+  }
+  current[idx] = { ...current[idx], ...card };
+  saveStoredCaseCards(current);
+  return { success: true };
+}
+
+export function updateClueCard(card: ClueCard): { success: boolean; error?: string } {
+  const current = getStoredClueCards();
+  const idx = current.findIndex(c => c.id.toUpperCase() === card.id.toUpperCase());
+  if (idx < 0) {
+    return { success: false, error: `ไม่พบการ์ดรหัส ${card.id}` };
+  }
+  // Leak check
+  const leak = detectClueLeak(`${card.titleTh} ${card.titleEn} ${card.reveals} ${card.body.join(" ")}`);
+  if (leak) {
+    return { 
+      success: false, 
+      error: `ตรวจพบชื่อสารหรือกลไก "${leak}" ในคำใบ้ กรุณาปรับแก้ข้อความก่อนบันทึก` 
+    };
+  }
+  current[idx] = { ...current[idx], ...card };
+  saveStoredClueCards(current);
+  return { success: true };
+}
+
+export function deleteCard(type: CardType, id: string): { success: boolean; error?: string } {
+  const cleanId = id.toUpperCase();
+  if (type === "RP") {
+    const list = getStoredRpCards().filter(c => c.id.toUpperCase() !== cleanId);
+    saveStoredRpCards(list);
+    return { success: true };
+  } else if (type === "MECH") {
+    const list = getStoredMechCards().filter(c => c.id.toUpperCase() !== cleanId);
+    saveStoredMechCards(list);
+    return { success: true };
+  } else if (type === "CASE") {
+    const list = getStoredCaseCards().filter(c => c.id.toUpperCase() !== cleanId);
+    saveStoredCaseCards(list);
+    return { success: true };
+  } else if (type === "CLUE") {
+    const list = getStoredClueCards().filter(c => c.id.toUpperCase() !== cleanId);
+    saveStoredClueCards(list);
+    return { success: true };
+  }
+  return { success: false, error: "ประเภทการ์ดไม่ถูกต้อง" };
+}
+
 export function toggleCardDisabled(type: CardType, id: string): boolean {
   if (type === "RP") {
     const list = getStoredRpCards();

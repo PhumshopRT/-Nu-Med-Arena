@@ -35,6 +35,16 @@ export const RpCard = React.memo(function RpCard({
 }: RpCardProps) {
   // Render matching SVG illustration based on card id or illustration key
   const renderIllustration = () => {
+    const customImage = card.artUrl || (card.illustration?.startsWith("data:") || card.illustration?.startsWith("http") || card.illustration?.startsWith("/") ? card.illustration : null);
+    if (customImage) {
+      return (
+        <img
+          src={customImage}
+          alt={card.titleEn || card.titleTh}
+          className="w-full h-full object-contain rounded-lg"
+        />
+      );
+    }
     switch (card.illustration) {
       case "cell":
         return <CellMetabolismIllustration />;
