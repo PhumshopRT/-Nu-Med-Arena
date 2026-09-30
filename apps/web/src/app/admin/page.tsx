@@ -92,6 +92,10 @@ import {
 } from "@/lib/cards";
 import { sounds } from "@/lib/sound";
 import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
+import { RpCard } from "@/components/cards/RpCard";
+import { MechCard } from "@/components/cards/MechCard";
+import { CaseCard as CaseCardComponent } from "@/components/cards/CaseCard";
+import { ClueCard as ClueCardComponent } from "@/components/cards/ClueCard";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -585,6 +589,67 @@ export default function AdminPage() {
       alert(res.error || "ไม่สามารถลบการ์ดได้");
     }
   };
+
+  // Live Card Preview Memo for Edit Modal
+  const previewCard = useMemo(() => {
+    if (!editingCard) return null;
+    const { type, card } = editingCard;
+    const bodyArray = editCardForm.bodyStr
+      ? editCardForm.bodyStr.split("\n").map((s: string) => s.trim()).filter(Boolean)
+      : (card.body || []);
+
+    if (type === "RP") {
+      return {
+        ...card,
+        titleEn: editCardForm.titleEn || card.titleEn,
+        titleTh: editCardForm.titleTh || card.titleTh,
+        subtitle: editCardForm.subtitle || card.subtitle,
+        nuclide: editCardForm.nuclide || card.nuclide,
+        modality: editCardForm.modality || card.modality,
+        target: editCardForm.target || card.target,
+        transporter: editCardForm.transporter || card.transporter,
+        mechanismId: editCardForm.mechanismId || card.mechanismId,
+        application: editCardForm.application || card.application,
+        artUrl: editCardForm.artUrl || undefined,
+        body: bodyArray.length > 0 ? bodyArray : card.body
+      } as RadiopharmaceuticalCard;
+    } else if (type === "MECH") {
+      return {
+        ...card,
+        titleEn: editCardForm.titleEn || card.titleEn,
+        titleTh: editCardForm.titleTh || card.titleTh,
+        subtitle: editCardForm.subtitle || card.subtitle,
+        physicsNote: editCardForm.physicsNote || card.physicsNote,
+        artUrl: editCardForm.artUrl || undefined,
+        body: bodyArray
+      } as MechanismCard;
+    } else if (type === "CASE") {
+      return {
+        ...card,
+        titleTh: editCardForm.titleTh || card.titleTh,
+        titleEn: editCardForm.titleEn || card.titleEn,
+        subtitle: editCardForm.subtitle || card.subtitle,
+        difficulty: editCardForm.difficulty || card.difficulty,
+        points: Number(editCardForm.points) || card.points,
+        promptTh: editCardForm.promptTh || card.promptTh,
+        organHint: editCardForm.organHint || card.organHint,
+        explanationTh: editCardForm.explanationTh || card.explanationTh,
+        artUrl: editCardForm.artUrl || undefined,
+        body: bodyArray.length > 0 ? bodyArray : [editCardForm.promptTh || card.promptTh]
+      } as CaseCard;
+    } else {
+      return {
+        ...card,
+        titleTh: editCardForm.titleTh || card.titleTh,
+        titleEn: editCardForm.titleEn || card.titleEn,
+        subtitle: editCardForm.subtitle || card.subtitle,
+        clueKind: editCardForm.clueKind || card.clueKind,
+        reveals: editCardForm.reveals || card.reveals,
+        artUrl: editCardForm.artUrl || undefined,
+        body: bodyArray
+      } as ClueCard;
+    }
+  }, [editingCard, editCardForm]);
 
   // Superscript injection helper for RP title / chemical formula
   const insertSuperscript = (str: string) => {
@@ -2992,7 +3057,7 @@ export default function AdminPage() {
               initial={{ scale: 0.95, opacity: 0, y: 15 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 15 }}
-              className="w-full max-w-2xl bg-[#0B3B36] border-2 border-amber-500/70 rounded-3xl p-5 sm:p-6 shadow-2xl text-amber-100 my-6 max-h-[90vh] flex flex-col"
+              className="w-full max-w-5xl bg-[#0B3B36] border-2 border-amber-500/70 rounded-3xl p-5 sm:p-6 shadow-2xl text-amber-100 my-6 max-h-[92vh] flex flex-col"
             >
               {/* Header */}
               <div className="flex items-center justify-between pb-3 mb-4 border-b border-amber-600/30">
@@ -3013,7 +3078,7 @@ export default function AdminPage() {
                       </span>
                     </h3>
                     <p className="text-[11px] text-amber-300/70">
-                      ปรับปรุงข้อความ รายละเอียด และรูปภาพประกอบของการ์ด
+                      ปรับปรุงข้อความ รายละเอียด และรูปภาพประกอบของการ์ดจริง (อัปเดตแบบเรียลไทม์)
                     </p>
                   </div>
                 </div>
@@ -3026,15 +3091,50 @@ export default function AdminPage() {
               </div>
 
               {/* Scrollable Form Content */}
-              <div className="flex-1 overflow-y-auto pr-1 space-y-4 text-xs">
+              <div className="flex-1 overflow-y-auto pr-1">
                 {editCardError && (
-                  <div className="p-2.5 rounded-xl bg-rose-950/70 border border-rose-500/50 text-rose-200 text-xs font-bold flex items-center space-x-2">
+                  <div className="p-2.5 mb-4 rounded-xl bg-rose-950/70 border border-rose-500/50 text-rose-200 text-xs font-bold flex items-center space-x-2">
                     <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                     <span>{editCardError}</span>
                   </div>
                 )}
 
-                {/* 1. Image Editor Box */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                  {/* Left Column: Live Rendered Card Preview */}
+                  <div className="lg:col-span-5 flex flex-col items-center justify-start space-y-3 bg-black/40 p-4 rounded-2xl border border-amber-500/30 lg:sticky lg:top-0">
+                    <div className="flex items-center justify-between w-full border-b border-amber-500/20 pb-2">
+                      <div className="flex items-center space-x-1.5">
+                        <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                        <span className="text-xs font-bold text-amber-300">ตัวอย่างการ์ดจริง (Live Preview)</span>
+                      </div>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">
+                        {editingCard.type}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-center items-center py-2 w-full">
+                      {previewCard && editingCard.type === "RP" && (
+                        <RpCard card={previewCard as RadiopharmaceuticalCard} size="sm" isHoverable={false} />
+                      )}
+                      {previewCard && editingCard.type === "MECH" && (
+                        <MechCard card={previewCard as MechanismCard} size="sm" isHoverable={false} />
+                      )}
+                      {previewCard && editingCard.type === "CASE" && (
+                        <CaseCardComponent card={previewCard as CaseCard} size="sm" isHoverable={false} />
+                      )}
+                      {previewCard && editingCard.type === "CLUE" && (
+                        <ClueCardComponent card={previewCard as ClueCard} size="sm" isHoverable={false} />
+                      )}
+                    </div>
+
+                    <div className="text-[11px] text-amber-200/90 leading-relaxed bg-black/50 p-2.5 rounded-xl border border-amber-500/20 w-full text-center">
+                      🌟 <strong>การ์ดจริงที่แสดงในเกม:</strong> เมื่อแก้ไขข้อความ รูปภาพ หรือข้อมูล ค่าทั้งหมดจะอัปเดตลงในการ์ดจริงทันที ทั้งในคลังและตอนนักเรียนเล่น
+                    </div>
+                  </div>
+
+                  {/* Right Column: Form Inputs */}
+                  <div className="lg:col-span-7 space-y-4 text-xs">
+                    {/* 1. Image Editor Box */}
                 <div className="p-3.5 bg-black/40 rounded-2xl border border-amber-600/40 space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="font-bold text-amber-200 flex items-center space-x-1.5">
@@ -3345,6 +3445,8 @@ export default function AdminPage() {
                   />
                 </div>
               </div>
+            </div>
+          </div>
 
               {/* Modal Actions */}
               <div className="flex items-center justify-between pt-4 mt-2 border-t border-amber-600/30">
