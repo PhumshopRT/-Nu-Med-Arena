@@ -153,20 +153,34 @@ describe("Rule Engine: Card Grading", () => {
     expect(resBlueWrong.points).toBe(1);
   });
 
-  it("Excess / guessing penalty: answering multiple mechanisms or mixing wrong mechanisms gives 0 points", () => {
+  it("Allows multiple accepted mechanisms, while wrong guesses and more than three stay invalid", () => {
     // 1. Mixing wrong mechanism (M-02) with correct mechanism (M-06) -> 0 points!
     const resMixed = grade("R-05", ["M-06", "M-02"], cb01);
     expect(resMixed.correct).toBe(false);
     expect(resMixed.points).toBe(0);
     expect(resMixed.hasInvalidMech).toBe(true);
 
-    // 2. Excess mechanisms even if both valid (M-06 and M-11) -> 0 points!
-    const resExcess = grade("R-05", ["M-06", "M-11"], cb01);
+    // 2. Multiple accepted mechanisms are valid; the case accepts either, and no count is required.
+    const resMultipleAccepted = grade("R-05", ["M-06", "M-11"], cb01);
+    expect(resMultipleAccepted.correct).toBe(true);
+    expect(resMultipleAccepted.points).toBe(2);
+
+    // 3. Three explicitly accepted mechanisms work; the fourth is rejected.
+    const threeAcceptedCase = { ...cb01, acceptedMechIds: ["M-06", "M-11", "M-03"] };
+    const resThreeAccepted = grade("R-05", ["M-06", "M-11", "M-03"], threeAcceptedCase);
+    expect(resThreeAccepted.correct).toBe(true);
+    expect(resThreeAccepted.points).toBe(2);
+    const resExcess = grade("R-05", ["M-06", "M-11", "M-03", "M-06"], threeAcceptedCase);
     expect(resExcess.correct).toBe(false);
     expect(resExcess.points).toBe(0);
     expect(resExcess.isExcess).toBe(true);
 
-    // 3. Comma-separated string with mixed mechanism -> 0 points!
+    // 4. Repeating the same card cannot be used to pad a submission.
+    const resDuplicate = grade("R-05", ["M-06", "M-06"], cb01);
+    expect(resDuplicate.correct).toBe(false);
+    expect(resDuplicate.points).toBe(0);
+
+    // 5. Comma-separated string with a mixed mechanism -> 0 points.
     const resComma = grade("R-05", "M-06, M-02", cb01);
     expect(resComma.correct).toBe(false);
     expect(resComma.points).toBe(0);

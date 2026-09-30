@@ -48,19 +48,19 @@ export function grade(
     };
   }
 
-  // Check if student submitted excess cards (>1 mech or >1 RP)
-  const isExcessMech = cleanMechs.length > 1;
+  // ASVS V2.2: enforce a small, deterministic bound on untrusted player submissions.
+  // Three mechanisms are allowed; the accepted answer IDs remain alternatives, not a required count.
+  const isExcessMech = cleanMechs.length > 3;
   const isExcessRp = cleanRps.length > 1;
   const isExcess = isExcessMech || isExcessRp;
 
   // Check if any submitted card is invalid
   const hasInvalidMech = cleanMechs.some(m => !caseCard.acceptedMechIds.includes(m));
   const hasInvalidRp = cleanRps.some(r => !caseCard.acceptedRpIds.includes(r));
+  const hasDuplicateMech = new Set(cleanMechs).size !== cleanMechs.length;
 
-  // Anti-guessing rule:
-  // If excess cards submitted (>1 mech or >1 RP), or if multiple mechanisms contain invalid one:
-  // Teacher specification: "ถ้าแบบตอบมาเกินหรือมีกลไกลที่ผิดและถูกเอาเป็นหักคะแนนหรือได้ 0 ไปเลยนะ"
-  if (isExcess || (cleanMechs.length > 1 && hasInvalidMech) || (cleanRps.length > 1 && hasInvalidRp)) {
+  // Preserve anti-guessing: any unaccepted submitted card invalidates that answer set.
+  if (isExcess || hasDuplicateMech || (cleanMechs.length > 1 && hasInvalidMech) || (cleanRps.length > 1 && hasInvalidRp)) {
     return {
       correct: false,
       points: 0,
@@ -78,11 +78,9 @@ export function grade(
     };
   }
 
-  // Normal submission (at most 1 RP and at most 1 Mech):
-  // For mechanism, even if the case has multiple valid mechanisms (e.g. 2 or 3),
-  // answering ANY 1 valid mechanism satisfies mechOk!
+  // A player may submit one to three mechanisms; all must be accepted, with no answer-key count exposed.
   const rpOk = Boolean(cleanRps.length === 1 && caseCard.acceptedRpIds.includes(cleanRps[0]));
-  const mechOk = Boolean(cleanMechs.length === 1 && caseCard.acceptedMechIds.includes(cleanMechs[0]));
+  const mechOk = Boolean(cleanMechs.length >= 1 && cleanMechs.length <= 3 && cleanMechs.every(m => caseCard.acceptedMechIds.includes(m)));
   const correct = rpOk && mechOk;
   const partialMech = !rpOk && mechOk;
   const partialRp = rpOk && !mechOk;

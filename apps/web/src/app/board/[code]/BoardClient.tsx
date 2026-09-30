@@ -175,7 +175,8 @@ export function BoardClient() {
                     ...p, 
                     locked: msg.locked,
                     selectedRpId: msg.answer?.rpId || p.selectedRpId,
-                    selectedMechId: msg.answer?.mechId || p.selectedMechId
+                    selectedMechIds: msg.answer?.mechIds || (msg.answer?.mechId ? [msg.answer.mechId] : p.selectedMechIds),
+                    selectedMechId: msg.answer?.mechIds?.[0] || msg.answer?.mechId || p.selectedMechId
                   }
                 : p
             );
@@ -324,7 +325,8 @@ export function BoardClient() {
       ...p, 
       locked: false,
       selectedRpId: undefined,
-      selectedMechId: undefined
+      selectedMechId: undefined,
+      selectedMechIds: undefined
     }));
     
     revealedRoundRef.current = null;
@@ -352,7 +354,7 @@ export function BoardClient() {
       const isBot = p.id.startsWith("bot_") || p.studentId.startsWith("BOT-");
       if (isBot) {
         let rpId = p.selectedRpId;
-        let mechId = p.selectedMechId;
+        let mechId: string | string[] = p.selectedMechIds?.length ? p.selectedMechIds : p.selectedMechId || "";
         if (!p.locked || !rpId || !mechId) {
           const botTemplate = BOTS.find(b => b.avatar === p.avatar) || BOTS[0];
           const botAns = simulateBotAnswer(botTemplate, currentCase, ALL_RP_CARDS);
@@ -369,7 +371,8 @@ export function BoardClient() {
           score: p.score + pts,
           streak: nextStreak,
           selectedRpId: rpId,
-          selectedMechId: mechId
+          selectedMechId: Array.isArray(mechId) ? mechId[0] : mechId,
+          selectedMechIds: Array.isArray(mechId) ? mechId : [mechId]
         };
       }
       return p;
@@ -405,6 +408,7 @@ export function BoardClient() {
       locked: false,
       selectedRpId: undefined,
       selectedMechId: undefined,
+      selectedMechIds: undefined,
       lastAnswerResult: undefined,
     }));
     const updated: PublicRoomState = {
@@ -577,7 +581,7 @@ export function BoardClient() {
                <div className="bg-emerald-950/90 border-4 border-emerald-500 rounded-3xl p-6 shadow-2xl flex flex-col items-center max-w-2xl">
                   <div className="text-center mb-4">
                     <h3 className="text-emerald-300 text-2xl font-black uppercase tracking-widest">คำตอบที่ถูกต้อง</h3>
-                    <p className="text-xs text-emerald-200/90 font-bold mt-1">ถูกทั้ง 2 ส่วน (การ์ดฟ้า 1 ใบ + กลไกใดก็ได้ 1 ใบ) ได้คะแนนเต็ม • ตอบถูกส่วนใดส่วนหนึ่งได้คะแนนครึ่งหนึ่ง (ตอบเกิน/เดาสุ่มได้ 0)</p>
+                    <p className="text-xs text-emerald-200/90 font-bold mt-1">เลือกสารและกลไกที่ถูกต้องเพื่อรับคะแนนเต็ม • ตอบถูกเพียงส่วนเดียวได้คะแนนครึ่งหนึ่ง • เลือกกลไกได้หลายใบแต่ห้ามมีใบที่ผิด (เลือกเกินกำหนด/เดาสุ่มได้ 0)</p>
                   </div>
                   <div className="flex items-center justify-center space-x-6 w-full">
                     <div className="flex-1 bg-black/50 rounded-2xl p-6 text-center border-2 border-emerald-800">
@@ -589,7 +593,7 @@ export function BoardClient() {
                       </div>
                     </div>
                     <div className="flex-1 bg-black/50 rounded-2xl p-6 text-center border-2 border-emerald-800">
-                      <div className="text-emerald-500 text-sm font-bold mb-2">กลไก (การ์ดสีส้ม - ตอบถูกเพียง 1 ใบใดก็ได้)</div>
+                      <div className="text-emerald-500 text-sm font-bold mb-2">กลไกที่ยอมรับ (การ์ดสีส้ม)</div>
                       <div className="text-white font-black text-2xl">
                         {correctMechs.length > 1
                           ? correctMechs.map((m) => m.titleTh).join(" หรือ ")

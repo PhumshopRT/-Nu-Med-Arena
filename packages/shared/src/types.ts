@@ -84,6 +84,7 @@ export interface PublicPlayer {
   handCount: number;
   selectedRpId?: string; // only revealed during REVEAL
   selectedMechId?: string; // only revealed during REVEAL
+  selectedMechIds?: string[]; // only revealed during REVEAL; legacy selectedMechId remains for older clients/bots
   usedClue?: boolean; // private to player or revealed in REVEAL
   lastAnswerResult?: {
     correct: boolean;

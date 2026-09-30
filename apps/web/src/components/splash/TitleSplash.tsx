@@ -525,7 +525,7 @@ export function TitleSplash({
                   <div>
                     <strong className="text-amber-200">เลือกคู่สาร + กลไก แล้วกด LOCK:</strong>
                     <p className="text-[11px] text-amber-100/80 mt-0.5">
-                      แตะ 1 การ์ด RP จากมือ + แตะ 1 กลไกจากแถบเลื่อน ◀ ▶ แล้วกดปุ่ม <strong>LOCK คำตอบ!</strong> ก่อนหมดเวลา 45 วินาที
+                      เลือกการ์ด RP จากมือและกลไกที่เกี่ยวข้องจากแถบเลื่อน ◀ ▶ แล้วกดปุ่ม <strong>LOCK คำตอบ!</strong> ก่อนหมดเวลา 45 วินาที
                     </p>
                   </div>
                 </div>

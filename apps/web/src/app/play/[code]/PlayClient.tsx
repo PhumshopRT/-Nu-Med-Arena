@@ -74,6 +74,8 @@ import { createRoomSync, RoomSyncHandle, SyncMessage } from "@/lib/sync";
 import { getAssetPath } from "@/lib/assets";
 import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
 
+const MAX_SELECTED_MECHANISMS = 3;
+
 export function PlayClient() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -103,7 +105,7 @@ export function PlayClient() {
 
   // Player Selection
   const [selectedRp, setSelectedRp] = useState<RadiopharmaceuticalCard | null>(null);
-  const [selectedMech, setSelectedMech] = useState<MechanismCard | null>(null);
+  const [selectedMechs, setSelectedMechs] = useState<MechanismCard[]>([]);
   const [expandedMechId, setExpandedMechId] = useState<string | null>(null);
   const [isMechPreviewCollapsed, setIsMechPreviewCollapsed] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
@@ -403,7 +405,8 @@ export function PlayClient() {
                     ...p,
                     locked: msg.locked,
                     selectedRpId: msg.answer?.rpId,
-                    selectedMechId: msg.answer?.mechId
+                    selectedMechIds: msg.answer?.mechIds || (msg.answer?.mechId ? [msg.answer.mechId] : undefined),
+                    selectedMechId: msg.answer?.mechIds?.[0] || msg.answer?.mechId
                   }
                 : p
             )
@@ -435,7 +438,7 @@ export function PlayClient() {
               const base = existsInRoom ? nonHostPlayers : (myPlayer ? [...nonHostPlayers, myPlayer] : nonHostPlayers);
               return base.map((p) => {
                 const localP = prev.find((lp) => lp.studentId === p.studentId);
-                return localP ? { ...p, score: p.score ?? localP.score, streak: p.streak ?? localP.streak, locked: localP.locked || p.locked, selectedRpId: localP.selectedRpId || p.selectedRpId, selectedMechId: localP.selectedMechId || p.selectedMechId } : p;
+                return localP ? { ...p, score: p.score ?? localP.score, streak: p.streak ?? localP.streak, locked: localP.locked || p.locked, selectedRpId: localP.selectedRpId || p.selectedRpId, selectedMechId: localP.selectedMechId || p.selectedMechId, selectedMechIds: localP.selectedMechIds || p.selectedMechIds } : p;
               });
             });
             if (msg.room.roundIndex && msg.room.roundIndex !== currentRound) {
@@ -476,7 +479,7 @@ export function PlayClient() {
           setShowClueConfirm(false);
 
           setSelectedRp(null);
-          setSelectedMech(null);
+          setSelectedMechs([]);
           setExpandedMechId(null);
           setIsMechPreviewCollapsed(false);
           setIsLocked(false);
@@ -489,7 +492,8 @@ export function PlayClient() {
               ...p,
               locked: false,
               selectedRpId: undefined,
-              selectedMechId: undefined
+              selectedMechId: undefined,
+              selectedMechIds: undefined
             }))
           );
           break;
@@ -543,7 +547,7 @@ export function PlayClient() {
 
     // Reset selection & timer
     setSelectedRp(null);
-    setSelectedMech(null);
+    setSelectedMechs([]);
     setExpandedMechId(null);
     setIsMechPreviewCollapsed(false);
     setIsLocked(false);
@@ -558,7 +562,8 @@ export function PlayClient() {
         ...p,
         locked: false,
         selectedRpId: undefined,
-        selectedMechId: undefined
+        selectedMechId: undefined,
+        selectedMechIds: undefined
       }))
     );
 
@@ -650,7 +655,8 @@ export function PlayClient() {
             ...p,
             locked: true,
             selectedRpId: selectedRp?.id,
-            selectedMechId: selectedMech?.id
+            selectedMechId: selectedMechs[0]?.id,
+            selectedMechIds: selectedMechs.map((mech) => mech.id)
           };
         }
         return p;
@@ -664,7 +670,7 @@ export function PlayClient() {
         locked: true,
         answer: {
           rpId: selectedRp?.id || "",
-          mechId: selectedMech?.id || ""
+          mechIds: selectedMechs.map((mech) => mech.id)
         }
       });
     }
@@ -686,7 +692,7 @@ export function PlayClient() {
     const result = gradeAnswer(
       currentCase,
       selectedRp?.id || "",
-      selectedMech?.id || "",
+      selectedMechs.map((mech) => mech.id),
       isClueRevealed
     );
 
@@ -764,7 +770,7 @@ export function PlayClient() {
       prev.map((p) => {
         const isMe = p.studentId === user?.studentId;
         const rpId = isMe ? selectedRp?.id || "" : p.selectedRpId || "";
-        const mechId = isMe ? selectedMech?.id || "" : p.selectedMechId || "";
+        const mechId = isMe ? selectedMechs.map((mech) => mech.id) : p.selectedMechIds?.length ? p.selectedMechIds : p.selectedMechId || "";
         const usedClue = isMe ? isClueRevealed : false; // Bots do not open clues!
 
         const grading = gradeAnswer(currentCase, rpId, mechId, usedClue);
@@ -1125,8 +1131,8 @@ export function PlayClient() {
                 {/* Mini Mech */}
                 <div className="w-10 h-13 rounded-lg border border-amber-400/60 bg-amber-950/40 flex flex-col items-center justify-center p-0.5 text-center">
                   <span className="text-[6.5px] text-amber-200 font-bold">MECH</span>
-                  {selectedMech ? (
-                    <span className="text-[6.5px] font-black text-amber-300 truncate max-w-[38px]">{selectedMech.id}</span>
+                  {selectedMechs.length > 0 ? (
+                    <span className="text-[6.5px] font-black text-amber-300 truncate max-w-[38px]">{selectedMechs.map((mech) => mech.id).join(" · ")}</span>
                   ) : (
                     <Settings className="w-2.5 h-2.5 opacity-60 text-amber-200" />
                   )}
@@ -1135,13 +1141,13 @@ export function PlayClient() {
               {/* Mobile LOCK Button */}
               <button
                 onClick={lockAnswer}
-                disabled={isLocked || (!selectedRp && !selectedMech)}
+                disabled={isLocked || (!selectedRp && selectedMechs.length === 0)}
                 className={`w-full py-1.5 px-2 rounded-lg font-game font-black text-[9px] flex items-center justify-center space-x-1 transition-all shadow-md cursor-pointer ${
                   isLocked
                     ? "bg-slate-700/80 text-slate-300 cursor-default"
-                    : selectedRp && selectedMech
+                    : selectedRp && selectedMechs.length > 0
                     ? "bg-gradient-to-b from-amber-400 to-amber-600 text-amber-950 font-bold border border-amber-200 animate-pulse shadow-md"
-                    : (selectedRp || selectedMech)
+                    : (selectedRp || selectedMechs.length > 0)
                     ? "bg-gradient-to-b from-amber-500 to-amber-700 text-amber-100 font-bold border border-amber-300 shadow-xs"
                     : "bg-black/40 text-amber-300/40 cursor-not-allowed border border-amber-800/40"
                 }`}
@@ -1150,10 +1156,8 @@ export function PlayClient() {
                 <span>
                   {isLocked
                     ? "LOCKED"
-                    : selectedRp && selectedMech
-                    ? "LOCK (2 ใบ เต็ม!)"
-                    : (selectedRp || selectedMech)
-                    ? "LOCK (1 ใบ)"
+                    : selectedRp || selectedMechs.length > 0
+                    ? "LOCK คำตอบ"
                     : "เลือกการ์ด"}
                 </span>
               </button>
@@ -1203,28 +1207,21 @@ export function PlayClient() {
               {/* Selected Mechanism Card */}
               <div className="flex flex-col items-center">
                 <span className="text-[9px] text-amber-300 font-bold mb-1">กลไก (MECH)</span>
-                {selectedMech ? (
-                  <motion.div
-                    initial={{ scale: 0.8, y: -5 }}
-                    animate={{ scale: 1, y: 0 }}
-                    className="w-22 lg:w-24 h-30 lg:h-34 rounded-2xl bg-[#EFA316] p-1 flex flex-col justify-between shadow-2xl border-2 border-amber-300 transform hover:scale-105 transition-transform select-none"
-                  >
-                    <div className="w-full flex-1 bg-white rounded-xl p-1.5 flex flex-col justify-between items-center text-center">
-                      <div className="w-full flex justify-between items-center">
-                        <span className="text-[7.5px] font-black bg-amber-100 text-[#D97706] px-1 py-0.5 rounded">{selectedMech.id}</span>
-                        <Settings className="w-2.5 h-2.5 text-[#D97706]" />
+                {selectedMechs.length > 0 ? (
+                  <div className="flex w-full max-w-[150px] flex-col gap-1.5">
+                    {selectedMechs.map((mech) => (
+                      <div key={mech.id} className="flex min-w-0 items-center gap-1.5 rounded-lg border border-amber-300/70 bg-amber-100 px-2 py-1.5 text-left text-slate-900 shadow-md">
+                        <Settings className="h-3 w-3 shrink-0 text-amber-700" />
+                        <span className="shrink-0 rounded bg-amber-200 px-1 py-0.5 text-[7.5px] font-black text-amber-900">{mech.id}</span>
+                        <span className="min-w-0 flex-1 truncate text-[8px] font-bold">{mech.titleEn}</span>
+                        <button type="button" onClick={() => setSelectedMechs((prev) => prev.filter((item) => item.id !== mech.id))} disabled={isLocked} aria-label={`นำ ${mech.id} ออกจากคำตอบ`} className="shrink-0 rounded px-1 font-black text-amber-800 hover:bg-amber-200 disabled:opacity-50">×</button>
                       </div>
-                      <div className="font-bold text-[10px] text-slate-900 leading-tight">{selectedMech.titleEn}</div>
-                      <div className="text-[7.5px] text-amber-800 font-medium truncate max-w-full">{selectedMech.titleTh}</div>
-                    </div>
-                    <div className="text-center py-0.5 text-[8px] font-black text-white uppercase tracking-wider">
-                      Mechanism
-                    </div>
-                  </motion.div>
+                    ))}
+                  </div>
                 ) : (
                   <div className="w-22 lg:w-24 h-30 lg:h-34 rounded-2xl border-2 border-dashed border-amber-400/50 bg-black/25 backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center">
                     <Settings className="w-5 h-5 mb-1 opacity-60 text-amber-300" />
-                    <span className="text-[8.5px] text-amber-200/80 font-bold">เลือก 1 อย่างจากแถบ</span>
+                    <span className="text-[8.5px] text-amber-200/80 font-bold">เลือกจากแถบกลไก</span>
                   </div>
                 )}
               </div>
@@ -1232,16 +1229,16 @@ export function PlayClient() {
 
             {/* Giant 3D LOCK Button */}
             <motion.button
-              whileHover={!isLocked && (selectedRp || selectedMech) ? { scale: 1.05 } : {}}
-              whileTap={!isLocked && (selectedRp || selectedMech) ? { scale: 0.95 } : {}}
+              whileHover={!isLocked && (selectedRp || selectedMechs.length > 0) ? { scale: 1.05 } : {}}
+              whileTap={!isLocked && (selectedRp || selectedMechs.length > 0) ? { scale: 0.95 } : {}}
               onClick={lockAnswer}
-              disabled={isLocked || (!selectedRp && !selectedMech)}
+              disabled={isLocked || (!selectedRp && selectedMechs.length === 0)}
               className={`w-full mt-3 py-2.5 lg:py-3 px-4 rounded-2xl font-game font-black text-sm md:text-base tracking-wider flex items-center justify-center space-x-2 transition-all shadow-xl cursor-pointer ${
                 isLocked
                   ? "bg-slate-700/80 border-2 border-slate-500 text-slate-300 cursor-default opacity-80"
-                  : selectedRp && selectedMech
+                  : selectedRp && selectedMechs.length > 0
                   ? "bg-gradient-to-b from-amber-400 via-amber-500 to-amber-700 hover:from-amber-300 hover:to-amber-600 text-amber-950 border-3 border-amber-200 shadow-[0_6px_0_#78350f,0_10px_20px_rgba(0,0,0,0.5)] animate-pulse"
-                  : (selectedRp || selectedMech)
+                  : (selectedRp || selectedMechs.length > 0)
                   ? "bg-gradient-to-b from-amber-500 via-amber-600 to-amber-800 hover:from-amber-400 hover:to-amber-700 text-amber-950 border-2 border-amber-300 shadow-[0_4px_0_#451a03,0_8px_16px_rgba(0,0,0,0.4)]"
                   : "bg-black/40 border border-amber-800/40 text-amber-300/40 cursor-not-allowed"
               }`}
@@ -1250,13 +1247,7 @@ export function PlayClient() {
               <span>
                 {isLocked
                   ? "ล็อคแล้ว (LOCKED)"
-                  : selectedRp && selectedMech
-                  ? "LOCK คำตอบ! (2 ใบ - ลุ้นคะแนนเต็ม)"
-                  : selectedRp
-                  ? "LOCK คำตอบ! (1 ใบ - การ์ดฟ้า +1 PTS)"
-                  : selectedMech
-                  ? "LOCK คำตอบ! (1 ใบ - การ์ดเหลือง +1 PTS)"
-                  : "เลือกการ์ดอย่างน้อย 1 ใบ"}
+                  : "LOCK คำตอบ"}
               </span>
             </motion.button>
           </div>
@@ -1269,7 +1260,7 @@ export function PlayClient() {
             <div className="flex min-w-0 items-center space-x-1 sm:space-x-2">
               <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
               <span className="font-game tracking-wider uppercase truncate">แถบกลไกการสะสมกลางโต๊ะ</span>
-              <span className="hidden sm:inline text-[10px] text-amber-300/80 font-normal">(แตะ 1 กลไกเพื่อจับคู่)</span>
+              <span className="hidden sm:inline text-[10px] text-amber-300/80 font-normal">(เลือกกลไกที่เกี่ยวข้อง • สูงสุด 3 ใบ)</span>
             </div>
             {expandedMechId && (
               <button
@@ -1304,25 +1295,29 @@ export function PlayClient() {
               style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
             >
               {getPlayableMechCards().map((mech) => {
-                const isSelected = selectedMech?.id === mech.id;
+                const isSelected = selectedMechs.some((selected) => selected.id === mech.id);
                 return (
                   <motion.button
                     key={mech.id}
+                    type="button"
+                    aria-pressed={isSelected}
+                    disabled={isLocked || (!isSelected && selectedMechs.length >= MAX_SELECTED_MECHANISMS)}
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.96 }}
                     onClick={() => {
                       sounds.playSelect();
-                      if (selectedMech?.id === mech.id) {
-                        setSelectedMech(null);
+                      if (isSelected) {
+                        setSelectedMechs((prev) => prev.filter((selected) => selected.id !== mech.id));
                         setExpandedMechId(null);
                         setIsMechPreviewCollapsed(false);
                       } else {
-                        setSelectedMech(mech);
+                        if (selectedMechs.length >= MAX_SELECTED_MECHANISMS) return;
+                        setSelectedMechs((prev) => [...prev, mech]);
                         setExpandedMechId(mech.id);
                         setIsMechPreviewCollapsed(false);
                       }
                     }}
-                    className={`flex-shrink-0 px-2 sm:px-3.5 py-1 sm:py-2 rounded-lg sm:rounded-xl text-left border-2 transition-all cursor-pointer select-none ${
+                    className={`flex-shrink-0 px-2 sm:px-3.5 py-1 sm:py-2 rounded-lg sm:rounded-xl text-left border-2 transition-all cursor-pointer select-none disabled:cursor-not-allowed disabled:opacity-45 ${
                       isSelected
                         ? "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 border-amber-100 text-amber-950 font-black shadow-[0_0_16px_rgba(245,158,11,0.7),0_4px_8px_rgba(0,0,0,0.4)] scale-104 -translate-y-0.5"
                         : "bg-black/45 hover:bg-amber-950/70 border-amber-600/40 hover:border-amber-400/70 text-amber-100 font-bold backdrop-blur-xs shadow-md"
@@ -1665,7 +1660,7 @@ export function PlayClient() {
                   {lastRoundResult.mechMatch ? <CheckCircle className="w-5 h-5 text-emerald-400" /> : <XCircle className="w-5 h-5 text-rose-400" />}
                   <div className="text-left">
                     <div className="text-[10px] uppercase font-bold">กลไกการสะสม (MECH)</div>
-                    <div className="text-xs font-bold">{selectedMech?.id || "ไม่ได้เลือก"}</div>
+                    <div className="text-xs font-bold">{selectedMechs.map((mech) => mech.id).join(", ") || "ไม่ได้เลือก"}</div>
                   </div>
                 </div>
               </div>
