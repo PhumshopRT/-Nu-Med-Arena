@@ -325,7 +325,7 @@ export default function ShopPage() {
             className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-yellow-400 hover:to-amber-300 text-slate-950 font-game font-black text-xs md:text-sm border-2 border-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.6)] flex items-center space-x-1.5 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-pulse"
           >
             <Dice5 className="w-4 h-4 text-slate-950" />
-            <span>เตาปฏิกรณ์ Hot Cell (กาชา)</span>
+            <span>ตู้สล็อต Hot Cell (สุ่มรางวัล)</span>
           </button>
 
           {/* Shards Indicator */}
