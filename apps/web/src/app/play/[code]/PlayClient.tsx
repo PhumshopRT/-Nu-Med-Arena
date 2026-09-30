@@ -163,6 +163,12 @@ export function PlayClient() {
     title: "title-none",
     table: "table-wood"
   });
+  const [tableBgError, setTableBgError] = useState(false);
+
+  useEffect(() => {
+    setTableBgError(false);
+  }, [equippedCosmetics.table]);
+
   const [activeFx, setActiveFx] = useState<"lock" | "win" | null>(null);
 
   // Timer
@@ -921,32 +927,38 @@ export function PlayClient() {
   return (
     <div className="relative min-h-[100dvh] text-amber-50 flex flex-col justify-between overflow-x-hidden select-none">
       {/* Fullscreen Casino Felt Table Background Layer */}
+      {/* Fullscreen Arena Table Background Layer with Automatic Custom Image Support */}
       <img
-        src={getAssetPath("/scene/play-table.webp")}
+        src={
+          tableBgError || !equippedCosmetics.table || equippedCosmetics.table === "table-wood"
+            ? getAssetPath("/scene/play-table.webp")
+            : getAssetPath(`/scene/${equippedCosmetics.table}.webp`)
+        }
+        onError={() => setTableBgError(true)}
         alt="Play Table Arena"
         className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none"
       />
 
-      {/* Dynamic Arena Table Theme Overlay */}
-      {equippedCosmetics.table === "table-cyber" && (
+      {/* Fallback Ambient Layer (Active if custom image file not yet present) */}
+      {tableBgError && equippedCosmetics.table === "table-cyber" && (
         <div className="fixed inset-0 pointer-events-none z-0 bg-[#020e18]/85 backdrop-blur-[1px] mix-blend-multiply">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(6,182,212,0.18)_0%,_transparent_75%)]" />
           <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.06)_1px,_transparent_1px),_linear-gradient(90deg,_rgba(6,182,212,0.06)_1px,_transparent_1px)] bg-[size:48px_48px]" />
         </div>
       )}
-      {equippedCosmetics.table === "table-emerald" && (
+      {tableBgError && equippedCosmetics.table === "table-emerald" && (
         <div className="fixed inset-0 pointer-events-none z-0 bg-[#042817]/85 backdrop-blur-[1px] mix-blend-multiply">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.18)_0%,_transparent_75%)]" />
           <div className="absolute inset-0 border-[16px] border-emerald-950/40 opacity-70" />
         </div>
       )}
-      {equippedCosmetics.table === "table-clinic" && (
+      {tableBgError && equippedCosmetics.table === "table-clinic" && (
         <div className="fixed inset-0 pointer-events-none z-0 bg-[#0d1d29]/88 backdrop-blur-[1px] mix-blend-multiply">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(56,189,248,0.16)_0%,_transparent_80%)]" />
           <div className="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,0.05)_1px,_transparent_1px),_linear-gradient(90deg,_rgba(56,189,248,0.05)_1px,_transparent_1px)] bg-[size:32px_32px]" />
         </div>
       )}
-      {equippedCosmetics.table === "table-cosmic" && (
+      {tableBgError && equippedCosmetics.table === "table-cosmic" && (
         <div className="fixed inset-0 pointer-events-none z-0 bg-[#0a061c]/90 backdrop-blur-[1px] mix-blend-multiply">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(168,85,247,0.22)_0%,_transparent_75%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle,_rgba(244,114,182,0.15)_1px,_transparent_1px)] bg-[size:36px_36px]" />
