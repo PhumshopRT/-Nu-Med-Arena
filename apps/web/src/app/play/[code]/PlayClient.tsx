@@ -704,9 +704,9 @@ export function PlayClient() {
     const isKahootMode = isExplicitKahoot && searchParams?.get("mode") !== "table";
     const timeRemaining = lockTimeLeft !== null ? lockTimeLeft : timeLeft;
     const isFullMatch = result.matchType === "full" || (result.rpMatch && result.mechMatch);
-    const isPartialMatch = Boolean(result.isPartial || result.matchType === "rp_only" || result.matchType === "mech_only" || (!isFullMatch && (result.rpMatch || result.mechMatch)));
+    const isPartialMatch = result.scoreAwarded > 0 && !isFullMatch && (result.isPartial || result.matchType === "mech_only");
     const fullKahootAward = calculateKahootScore(result.scoreAwarded > 0, timeRemaining, maxTime);
-    // If partial match (either RP or MECH only), award half Kahoot score (50%)
+    // If partial match (MECH only), award half Kahoot score (50%)
     const kahootAward = isPartialMatch ? Math.max(1, Math.round(fullKahootAward / 2)) : fullKahootAward;
 
     if (result.scoreAwarded > 0) {
@@ -1593,27 +1593,29 @@ export function PlayClient() {
                 {lastRoundResult.scoreAwarded > 0
                   ? (lastRoundResult.isFullMatch
                       ? `ยอดเยี่ยม! ถูกต้องทั้งสองส่วน (+${lastRoundResult.scoreAwarded} คะแนนเต็ม)`
-                      : lastRoundResult.matchType === "rp_only"
-                      ? `ถูกต้องเฉพาะสารเภสัชรังสี (การ์ดฟ้า)! +${lastRoundResult.scoreAwarded} คะแนน`
-                      : `ถูกต้องเฉพาะกลไก (การ์ดส้ม)! +${lastRoundResult.scoreAwarded} คะแนน`)
-                  : (lastRoundResult.isExcess || lastRoundResult.hasInvalidMech
+                      : `ถูกต้องเฉพาะกลไก (การ์ดเหลือง)! +${lastRoundResult.scoreAwarded} คะแนน (ได้ครึ่งคะแนน)`)
+                  : (lastRoundResult.rpMatch && !lastRoundResult.mechMatch
+                      ? "การ์ดฟ้าถูกแต่กลไกผิด (0 คะแนน)"
+                      : lastRoundResult.isExcess || lastRoundResult.hasInvalidMech
                       ? "ตอบเกินหรือมีกลไกที่ผิดปนมา (0 คะแนน)"
                       : "ยังไม่ถูกต้องในรอบนี้ (0 คะแนน)")}
               </h2>
+
+              {!lastRoundResult.scoreAwarded && lastRoundResult.rpMatch && !lastRoundResult.mechMatch && (
+                <div className="mt-2 px-3 py-1 bg-blue-950/90 border border-blue-500/60 rounded-full text-xs font-bold text-blue-200 inline-flex items-center space-x-1.5 shadow-sm">
+                  <span>ℹ️ การ์ดฟ้าถูกแต่กลไกผิด (กติกาให้คะแนนครึ่งหนึ่งเฉพาะเมื่อตอบกลไกถูกเท่านั้น)</span>
+                </div>
+              )}
 
               {lastRoundResult.scoreAwarded > 0 && (
                 <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-2">
                   {lastRoundResult.isFullMatch ? (
                     <span className="px-2.5 py-1 rounded-full bg-emerald-950/90 border border-emerald-400 text-emerald-200 text-xs font-black shadow-sm flex items-center space-x-1">
-                      <span>🎉 ถูกต้องสมบูรณ์ (การ์ดฟ้า + กลไก) (+${lastRoundResult.baseScore} PTS คะแนนเต็ม)</span>
-                    </span>
-                  ) : lastRoundResult.matchType === "rp_only" ? (
-                    <span className="px-2.5 py-1 rounded-full bg-blue-950/90 border border-blue-400 text-blue-200 text-xs font-black shadow-sm flex items-center space-x-1">
-                      <span>🔷 ถูกต้องเฉพาะการ์ดฟ้า (+${lastRoundResult.baseScore} PTS ครึ่งคะแนน)</span>
+                      <span>🎉 ถูกต้องสมบูรณ์ (การ์ดฟ้า + กลไก) (+{lastRoundResult.baseScore} PTS คะแนนเต็ม)</span>
                     </span>
                   ) : (
                     <span className="px-2.5 py-1 rounded-full bg-amber-950/90 border border-amber-400 text-amber-200 text-xs font-black shadow-sm flex items-center space-x-1">
-                      <span>⚡️ ถูกต้องเฉพาะกลไก (+${lastRoundResult.baseScore} PTS ครึ่งคะแนน)</span>
+                      <span>⚡️ ถูกต้องเฉพาะกลไก (+{lastRoundResult.baseScore} PTS ครึ่งคะแนน)</span>
                     </span>
                   )}
                   {lastRoundResult.speedBonus > 0 && (

@@ -82,16 +82,19 @@ export function grade(
   const rpOk = Boolean(cleanRps.length === 1 && caseCard.acceptedRpIds.includes(cleanRps[0]));
   const mechOk = Boolean(cleanMechs.length >= 1 && cleanMechs.length <= 3 && cleanMechs.every(m => caseCard.acceptedMechIds.includes(m)));
   const correct = rpOk && mechOk;
+  // Teacher rule: "คือไม่นับการ์ดฟ้าสิกฎอ่ะ เอาแค่การ์ดเหลืองที่ถูกก็ได้คะแนนครึ่งนึงง"
+  // Partial score is awarded EXCLUSIVELY when Mechanism (yellow card) is correct.
+  // Getting only RP (blue card) right with wrong/missing mechanism earns 0 points.
   const partialMech = !rpOk && mechOk;
-  const partialRp = rpOk && !mechOk;
-  const isPartial = partialMech || partialRp;
+  const partialRp = false;
+  const isPartial = partialMech;
 
   let matchType: "full" | "mech_only" | "rp_only" | "none" = "none";
   if (correct) {
     matchType = "full";
   } else if (partialMech) {
     matchType = "mech_only";
-  } else if (partialRp) {
+  } else if (rpOk && !mechOk) {
     matchType = "rp_only";
   }
 
@@ -106,8 +109,8 @@ export function grade(
       points = caseCard.points;
     }
   } else if (isPartial) {
-    // Either one matched! (RP only or MECH only)
-    // Teacher specification: "เลือกอันใดอันหนึ่งก็จะได้คะแนนหนึ่งคะแนน... ถ้าฟ้าผิดก็หักครึ่งตามกฎเดิมนะ"
+    // Only Mechanism (yellow card) matched!
+    // Teacher specification: "เอาแค่การ์ดเหลืองที่ถูกก็ได้คะแนนครึ่งนึงง"
     const halfBase = Math.max(1, Math.round(caseCard.points / 2));
     if (usedClue) {
       cluePenalty = 0.5;

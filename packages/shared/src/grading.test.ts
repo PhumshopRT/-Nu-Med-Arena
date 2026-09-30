@@ -25,22 +25,21 @@ describe("Rule Engine: Card Grading", () => {
     expect(res.mechOk).toBe(true);
   });
 
-  it("PE case (C-05) + MAA (R-07) + Facilitated Diffusion (M-02) = 2 points (half score for correct RP)", () => {
+  it("PE case (C-05) + MAA (R-07) + Facilitated Diffusion (M-02) = 0 points (RP only does not earn points when mechanism is wrong)", () => {
     const res = grade("R-07", "M-02", c05);
     expect(res.correct).toBe(false);
-    expect(res.isPartial).toBe(true);
-    expect(res.partialRp).toBe(true);
-    expect(res.points).toBe(2);
+    expect(res.isPartial).toBe(false);
+    expect(res.points).toBe(0);
     expect(res.rpOk).toBe(true);
     expect(res.mechOk).toBe(false);
   });
 
-  it("Single-card submission: RP only correct (R-07, null) on C-05 = 2 points", () => {
+  it("Single-card submission: RP only correct (R-07, null) on C-05 = 0 points (rule does not count blue card alone)", () => {
     const res = grade("R-07", null, c05);
     expect(res.correct).toBe(false);
-    expect(res.isPartial).toBe(true);
-    expect(res.partialRp).toBe(true);
-    expect(res.points).toBe(2);
+    expect(res.isPartial).toBe(false);
+    expect(res.points).toBe(0);
+    expect(res.rpOk).toBe(true);
   });
 
   it("Single-card submission: MECH only correct (null, M-03) on C-05 = 2 points", () => {
@@ -51,11 +50,11 @@ describe("Rule Engine: Card Grading", () => {
     expect(res.points).toBe(2);
   });
 
-  it("Single-card submission on BASIC case (C-B06): RP only (R-07, '') = 1 point", () => {
+  it("Single-card submission on BASIC case (C-B06): RP only (R-07, '') = 0 points", () => {
     const res = grade("R-07", "", cb06);
     expect(res.correct).toBe(false);
-    expect(res.isPartial).toBe(true);
-    expect(res.points).toBe(1);
+    expect(res.isPartial).toBe(false);
+    expect(res.points).toBe(0);
   });
 
   it("Single-card submission on BASIC case (C-B06): MECH only ('', M-03) = 1 point", () => {

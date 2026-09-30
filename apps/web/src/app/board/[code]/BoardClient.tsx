@@ -581,7 +581,7 @@ export function BoardClient() {
                <div className="bg-emerald-950/90 border-4 border-emerald-500 rounded-3xl p-6 shadow-2xl flex flex-col items-center max-w-2xl">
                   <div className="text-center mb-4">
                     <h3 className="text-emerald-300 text-2xl font-black uppercase tracking-widest">คำตอบที่ถูกต้อง</h3>
-                    <p className="text-xs text-emerald-200/90 font-bold mt-1">เลือกสารและกลไกที่ถูกต้องเพื่อรับคะแนนเต็ม • ตอบถูกเพียงส่วนเดียวได้คะแนนครึ่งหนึ่ง • เลือกกลไกได้หลายใบแต่ห้ามมีใบที่ผิด (เลือกเกินกำหนด/เดาสุ่มได้ 0)</p>
+                    <p className="text-xs text-emerald-200/90 font-bold mt-1">ถูกทั้งคู่ (การ์ดฟ้า + กลไก) ได้คะแนนเต็ม • ถูกเฉพาะกลไก (การ์ดเหลือง) ได้ครึ่งคะแนน • กลไกผิดได้ 0 คะแนน</p>
                   </div>
                   <div className="flex items-center justify-center space-x-6 w-full">
                     <div className="flex-1 bg-black/50 rounded-2xl p-6 text-center border-2 border-emerald-800">
