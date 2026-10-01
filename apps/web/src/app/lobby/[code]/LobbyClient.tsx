@@ -83,8 +83,8 @@ export function LobbyClient() {
 
   // Computed invite URL
   const inviteUrl = typeof window !== "undefined"
-    ? `${window.location.origin}${window.location.pathname.startsWith("/RTGAME") ? "/RTGAME" : ""}/lobby/?code=${roomCode}${isKahootMode ? "&mode=kahoot" : "&mode=table"}`
-    : `https://masterphum07-web.github.io/RTGAME/lobby/?code=${roomCode}${isKahootMode ? "&mode=kahoot" : "&mode=table"}`;
+    ? `${window.location.origin}${process.env.NEXT_PUBLIC_BASE_PATH || ""}/lobby/?code=${roomCode}${isKahootMode ? "&mode=kahoot" : "&mode=table"}`
+    : `https://phumshoprt.github.io/-Nu-Med-Arena/lobby/?code=${roomCode}${isKahootMode ? "&mode=kahoot" : "&mode=table"}`;
 
   // 1. Initialize user & initial room
   useEffect(() => {

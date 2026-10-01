@@ -8,12 +8,12 @@
 [![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
-[![License](https://img.shields.io/badge/Courseware-Nuclear_Medicine-gold?style=for-the-badge&logo=codewars)](https://github.com/masterphum07-web/RTGAME)
+[![License](https://img.shields.io/badge/Courseware-Nuclear_Medicine-gold?style=for-the-badge&logo=codewars)](https://github.com/PhumshopRT/-Nu-Med-Arena)
 
 **เกมไพ่การศึกษาแพทย์นิวเคลียร์ (Nuclear Medicine Educational Card Game)**  
 *พัฒนาขึ้นสำหรับรายวิชานิวเคลียร์เมดิซีน เพื่อการเรียนรู้กลไกการสะสมของสารเภสัชรังสีผ่านประสบการณ์บอร์ดเกมบนเว็บแบบเรียลไทม์*
 
-[🎮 เข้าสู่สังเวียนการประลอง (Live Web Demo)](https://masterphum07-web.github.io/RTGAME/) · [📖 วิธีการเล่น](#-วิธีการเล่น-how-to-play) · [🧪 สรุปกลไก 12 ชนิด](#-สรุป-12-กลไกการสะสมของสารเภสัชรังสี-mechanism-cheat-sheet) · [📱 การรองรับอุปกรณ์](#-รองรับทุกอุปกรณ์-responsive-design)
+[🎮 เข้าสู่สังเวียนการประลอง (Live Web Demo)](https://phumshoprt.github.io/-Nu-Med-Arena/) · [📖 วิธีการเล่น](#-วิธีการเล่น-how-to-play) · [🧪 สรุปกลไก 12 ชนิด](#-สรุป-12-กลไกการสะสมของสารเภสัชรังสี-mechanism-cheat-sheet) · [📱 การรองรับอุปกรณ์](#-รองรับทุกอุปกรณ์-responsive-design)
 
 </div>
 
@@ -26,8 +26,8 @@
 ผู้เล่นจะได้รับไพ่สารเภสัชรังสี (Radiopharmaceuticals) ประจำตัว และต้องแข่งขันกันวิเคราะห์อาการผู้ป่วยในแต่ละรอบ เพื่อจับคู่ **"สารรังสีที่ถูกต้อง"** และ **"กลไกการสะสมทางสรีรวิทยา (Localization Mechanism)"** ลงบนโต๊ะประลองแข่งขันกับเวลา พร้อมระบบ AI Bot จำลองผู้ร่วมแข่ง และสะสมเหรียญ **NucCoin** เพื่อแลกของรางวัลตกแต่ง!
 
 <div align="center">
-  <a href="https://github.com/masterphum07-web/RTGAME/blob/main/docs/screenshots/play_table.png">
-    <img src="https://raw.githubusercontent.com/masterphum07-web/RTGAME/main/docs/screenshots/play_table.png" alt="ภาพโต๊ะประลอง NucMed Arena ขณะกำลังเล่น: โจทย์ผู้ป่วย การ์ดกลไก และไพ่สารเภสัชรังสี" width="100%" />
+  <a href="https://github.com/PhumshopRT/-Nu-Med-Arena/blob/main/docs/screenshots/play_table.png">
+    <img src="https://raw.githubusercontent.com/PhumshopRT/-Nu-Med-Arena/main/docs/screenshots/play_table.png" alt="ภาพโต๊ะประลอง NucMed Arena ขณะกำลังเล่น: โจทย์ผู้ป่วย การ์ดกลไก และไพ่สารเภสัชรังสี" width="100%" />
   </a>
   <p><sub>ภาพตัวอย่างการเล่นจริง · เปิดภาพต้นฉบับได้โดยคลิกที่ภาพ</sub></p>
 </div>
@@ -157,8 +157,8 @@ flowchart LR
 
 ```bash
 # 1. โคลนคลังโค้ด
-git clone https://github.com/masterphum07-web/RTGAME.git
-cd RTGAME
+git clone https://github.com/PhumshopRT/-Nu-Med-Arena.git
+cd -- -Nu-Med-Arena
 
 # 2. ติดตั้งแพ็กเกจด้วย pnpm
 pnpm install

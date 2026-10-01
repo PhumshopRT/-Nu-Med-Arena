@@ -18,6 +18,7 @@ import { getLocalUser, getRememberedUser } from "@/lib/user";
 import { jev } from "@/lib/jev-engine";
 import { getAssetPath } from "@/lib/assets";
 import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
+import { CopyrightFooter } from "@/components/ui/CopyrightFooter";
 
 interface TitleSplashProps {
   currentUser?: StudentUser | null;
@@ -315,13 +316,9 @@ export function TitleSplash({
               </button>
             </div>
 
-            {/* Bottom Credits Plaque [z-40] */}
-            <div className="w-full flex justify-center pointer-events-auto z-40">
-              <div className="wood-panel px-6 py-1 rounded-lg border border-amber-950 text-center shadow-lg">
-                <span className="text-[11px] md:text-xs font-bold text-amber-200/90">
-                  พัฒนาสำหรับรายวิชานิวเคลียร์เมดิซีน (Nuclear Medicine Educational Card Game)
-                </span>
-              </div>
+            {/* Formal copyright information kept below the primary actions. */}
+            <div className="w-full z-40">
+              <CopyrightFooter />
             </div>
           </div>
         </div>

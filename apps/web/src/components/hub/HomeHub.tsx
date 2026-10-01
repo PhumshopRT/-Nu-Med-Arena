@@ -12,6 +12,7 @@ import { MechCard } from "../cards/MechCard";
 import { CaseCard } from "../cards/CaseCard";
 import { ClueCard } from "../cards/ClueCard";
 import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
+import { CopyrightFooter } from "@/components/ui/CopyrightFooter";
 import { AvatarBadge } from "@/components/ui/AvatarBadge";
 import { TrefoilIcon } from "@/components/ui/TrefoilIcon";
 import { getNaWallet } from "@/lib/user";
@@ -462,11 +463,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
       {/* --------------------------------------------------------
           LAYER 4: Footer Info [z-20]
           -------------------------------------------------------- */}
-      <footer className="w-full flex justify-center pb-2.5 z-20 pointer-events-auto">
-        <div className="text-[11px] text-amber-200/90 font-bold wood-panel px-5 py-1 rounded-full border border-amber-950/80 shadow-md">
-          NucMed Arena — Mode 1: Localization Match • พัฒนาสำหรับรายวิชานิวเคลียร์เมดิซีน
-        </div>
-      </footer>
+      <CopyrightFooter />
 
       {/* --------------------------------------------------------
           MODAL: กติกาการเล่น (How to play Modal) [z-50]
