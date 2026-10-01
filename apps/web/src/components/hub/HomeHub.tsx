@@ -12,7 +12,6 @@ import { MechCard } from "../cards/MechCard";
 import { CaseCard } from "../cards/CaseCard";
 import { ClueCard } from "../cards/ClueCard";
 import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
-import { CopyrightFooter } from "@/components/ui/CopyrightFooter";
 import { AvatarBadge } from "@/components/ui/AvatarBadge";
 import { TrefoilIcon } from "@/components/ui/TrefoilIcon";
 import { getNaWallet } from "@/lib/user";
@@ -459,11 +458,6 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
           </motion.div>
         </div>
       </main>
-
-      {/* --------------------------------------------------------
-          LAYER 4: Footer Info [z-20]
-          -------------------------------------------------------- */}
-      <CopyrightFooter />
 
       {/* --------------------------------------------------------
           MODAL: กติกาการเล่น (How to play Modal) [z-50]

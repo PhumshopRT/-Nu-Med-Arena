@@ -18,7 +18,6 @@ import { getLocalUser, getRememberedUser } from "@/lib/user";
 import { jev } from "@/lib/jev-engine";
 import { getAssetPath } from "@/lib/assets";
 import { NucCoinIcon } from "@/components/ui/NucCoinIcon";
-import { CopyrightFooter } from "@/components/ui/CopyrightFooter";
 
 interface TitleSplashProps {
   currentUser?: StudentUser | null;
@@ -89,22 +88,6 @@ export function TitleSplash({
 
       {/* Ambient Drifting Glowing Radiation Motes [z-5] */}
       <AmbientMotes />
-
-      {/* --------------------------------------------------------
-          LAYER 2: mascots.webp วางกึ่งกลาง ยืนบนเคาน์เตอร์ เหนือปุ่ม PLAY [z-25]
-          บนมือถือ (portrait): ดันตำแหน่งขึ้นเหนือปุ่ม PLAY (bottom-[31%]) ป้องกันปุ่มทับ
-          ความสูงไม่เกิน 28% ของจอ และหัวอยู่ใต้ป้ายไม้ มีระยะห่างเกิน 12px
-          -------------------------------------------------------- */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-[31%] xs:bottom-[31%] sm:bottom-[29%] md:bottom-[27.5%] lg:bottom-[27%] [@media(min-width:768px)_and_(max-height:850px)]:!bottom-[30%] pointer-events-none z-25 flex flex-col items-center">
-        <motion.img
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          src={getAssetPath("/scene/mascots.webp")}
-          alt="NuMedArena Mascots"
-          className="h-[16vh] min-h-[88px] max-h-[21vh] sm:h-[19vmin] md:h-[23vmin] lg:h-[27vmin] [@media(max-height:700px)]:max-h-[18vh] [@media(max-height:600px)]:max-h-[15vh] w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.65)]"
-        />
-      </div>
 
       {/* ========================================================
           3-ZONE CSS GRID FOREGROUND [z-20]
@@ -248,8 +231,19 @@ export function TitleSplash({
             </motion.div>
           </div>
 
-          {/* Spacer pushing controls down to counter table area */}
+          {/* Push the mascot-and-controls group down together; keep the image directly above PLAY. */}
           <div className="flex-1 pointer-events-none min-h-[40px]" />
+
+          <div className="w-full h-[clamp(76px,16vh,142px)] shrink-0 flex justify-center pointer-events-none z-25 -mt-1 mb-2">
+            <motion.img
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              src={getAssetPath("/scene/mascots.webp")}
+              alt="NuMedArena Mascots"
+              className="h-full w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.65)]"
+            />
+          </div>
 
           {/* ----------------------------------------------------
               LAYER 4 & 6: บนเคาน์เตอร์ไม้ (PLAY สี #2EAD4B + 3 ปุ่มใต้ PLAY) [z-30]
@@ -344,10 +338,6 @@ export function TitleSplash({
               </button>
             </div>
 
-            {/* Formal copyright information kept below the primary actions. */}
-            <div className="w-full z-40">
-              <CopyrightFooter />
-            </div>
           </div>
         </div>
 
