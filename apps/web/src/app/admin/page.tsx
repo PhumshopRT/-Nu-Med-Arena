@@ -3354,7 +3354,6 @@ export default function AdminPage() {
                         >
                           <option value={2}>2 คะแนน</option>
                           <option value={4}>4 คะแนน</option>
-                          <option value={8}>8 คะแนน</option>
                         </select>
                       </div>
                       <div>
