@@ -12,6 +12,8 @@ import {
 } from "@nucmed/shared";
 import { getPlayableCaseCards, getPlayableRpCards } from "@/lib/cards";
 import { CaseCard as CaseCardComponent } from "@/components/cards/CaseCard";
+import { RpCard } from "@/components/cards/RpCard";
+import { MechCard } from "@/components/cards/MechCard";
 import { getRememberedUser, getLocalUser } from "@/lib/user";
 import { createRoomSync, RoomSyncHandle, SyncMessage } from "@/lib/sync";
 import { sounds } from "@/lib/sound";
@@ -578,28 +580,52 @@ export function BoardClient() {
         ) : room.phase === "REVEAL" || room.phase === "RESULT" ? (
           <div className="flex flex-col w-full h-full items-center">
             <div className="w-full flex justify-between items-start mb-8">
-               <div className="bg-emerald-950/90 border-4 border-emerald-500 rounded-3xl p-6 shadow-2xl flex flex-col items-center max-w-2xl">
+               <div className="bg-emerald-950/90 border-4 border-emerald-500 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col items-center max-w-2xl">
                   <div className="text-center mb-4">
                     <h3 className="text-emerald-300 text-2xl font-black uppercase tracking-widest">คำตอบที่ถูกต้อง</h3>
                     <p className="text-xs text-emerald-200/90 font-bold mt-1">ถูกทั้งคู่ (การ์ดฟ้า + กลไก) ได้คะแนนเต็ม • ถูกเฉพาะกลไก (การ์ดเหลือง) ได้ครึ่งคะแนน • กลไกผิดได้ 0 คะแนน</p>
                   </div>
-                  <div className="flex items-center justify-center space-x-6 w-full">
-                    <div className="flex-1 bg-black/50 rounded-2xl p-6 text-center border-2 border-emerald-800">
-                      <div className="text-emerald-500 text-sm font-bold mb-2">สารเภสัชรังสี (การ์ดสีฟ้า)</div>
-                      <div className="text-white font-black text-2xl">
-                        {correctRps.length > 1
-                          ? correctRps.map((r) => r.titleTh).join(" หรือ ")
-                          : (correctRp?.titleTh || currentCase.acceptedRpIds[0])}
-                      </div>
-                    </div>
-                    <div className="flex-1 bg-black/50 rounded-2xl p-6 text-center border-2 border-emerald-800">
-                      <div className="text-emerald-500 text-sm font-bold mb-2">กลไกที่ยอมรับ (การ์ดสีส้ม)</div>
-                      <div className="text-white font-black text-2xl">
-                        {correctMechs.length > 1
-                          ? correctMechs.map((m) => m.titleTh).join(" หรือ ")
-                          : (correctMech?.titleTh || currentCase.acceptedMechIds[0])}
-                      </div>
-                    </div>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 w-full">
+                    <section className="flex flex-col items-center gap-2 min-w-0" aria-label="การ์ดสารเภสัชรังสีที่ถูกต้อง">
+                      <div className="text-sky-300 text-sm font-bold">สารเภสัชรังสี · การ์ดฟ้า</div>
+                      {correctRp ? (
+                        <RpCard card={correctRp} size="sm" isHoverable={false} />
+                      ) : (
+                        <div className="rounded-xl border-2 border-blue-500 bg-slate-950 px-5 py-4 text-center font-bold text-white">
+                          {currentCase.acceptedRpIds[0] || "ไม่พบข้อมูลการ์ด"}
+                        </div>
+                      )}
+                      {correctRps.length > 1 && (
+                        <div className="flex max-w-[198px] flex-wrap justify-center gap-1.5 text-center">
+                          <span className="w-full text-[10px] font-bold text-sky-200">การ์ดสารอื่นที่ยอมรับได้</span>
+                          {correctRps.slice(1).map((card) => (
+                            <span key={card.id} className="rounded-full border border-blue-400/50 bg-blue-950/70 px-2 py-1 text-[10px] text-blue-100">
+                              {card.id} · {card.titleTh}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </section>
+                    <section className="flex flex-col items-center gap-2 min-w-0" aria-label="การ์ดกลไกที่ถูกต้อง">
+                      <div className="text-amber-300 text-sm font-bold">กลไก · การ์ดเหลือง</div>
+                      {correctMech ? (
+                        <MechCard card={correctMech} size="sm" isHoverable={false} />
+                      ) : (
+                        <div className="rounded-xl border-2 border-amber-500 bg-slate-950 px-5 py-4 text-center font-bold text-white">
+                          {currentCase.acceptedMechIds[0] || "ไม่พบข้อมูลการ์ด"}
+                        </div>
+                      )}
+                      {correctMechs.length > 1 && (
+                        <div className="flex max-w-[198px] flex-wrap justify-center gap-1.5 text-center">
+                          <span className="w-full text-[10px] font-bold text-amber-200">การ์ดกลไกอื่นที่ยอมรับได้</span>
+                          {correctMechs.slice(1).map((card) => (
+                            <span key={card.id} className="rounded-full border border-amber-400/50 bg-amber-950/70 px-2 py-1 text-[10px] text-amber-100">
+                              {card.id} · {card.titleEn}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </section>
                   </div>
                </div>
             </div>

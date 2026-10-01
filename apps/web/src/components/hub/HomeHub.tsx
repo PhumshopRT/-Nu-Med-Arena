@@ -107,7 +107,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden flex flex-col justify-between items-center select-none">
+    <div className="relative w-screen h-screen overflow-hidden flex flex-col justify-between items-center select-none [@media(max-height:700px)]:!h-auto [@media(max-height:700px)]:min-h-screen [@media(max-height:700px)]:!overflow-x-hidden [@media(max-height:700px)]:!overflow-y-auto [@media(max-height:700px)]:!justify-start">
       {/* --------------------------------------------------------
           LAYER 1: splash-bg.webp เต็มจอ object-fit cover (ใช้พื้นหลังเดียวกับหน้าปก)
           ลบกล่องขาว 3 อันบนฟ้าเรียบร้อย ไม่มีบล็อกเมฆทึบบนฟ้า
@@ -213,7 +213,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
           Column 3: [ cards-right ] ริมจอขวา ต่ำกว่าแผง NucCoin 120 (C-05 & T-03)
           รับประกันศูนย์เปอร์เซ็นต์การทับซ้อน (Zero Overlap Guaranteed)
           -------------------------------------------------------- */}
-      <main className="flex-1 w-full grid grid-cols-1 md:grid-cols-[210px_1fr_210px] lg:grid-cols-[240px_1fr_240px] xl:grid-cols-[265px_1fr_265px] items-center px-3 md:px-6 z-20 overflow-hidden pointer-events-none">
+      <main className="flex-1 w-full grid grid-cols-1 md:grid-cols-[210px_1fr_210px] lg:grid-cols-[240px_1fr_240px] xl:grid-cols-[265px_1fr_265px] items-center px-3 md:px-6 z-20 overflow-hidden pointer-events-none [@media(max-height:700px)]:!flex-none [@media(max-height:700px)]:!overflow-visible">
         {/* ------------------------------------------------------
             ZONE 1: Left Column (R-01 บน, M-03 ล่าง)
             อยู่ต่ำกว่าแผงนักศึกษา 7052 ไม่มีการทับซ้อน
@@ -249,7 +249,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
         {/* ------------------------------------------------------
             ZONE 2: Center Column (ศูนย์รวมการประลอง ARENA HUB)
             ------------------------------------------------------ */}
-        <div className="flex flex-col items-center justify-center text-center px-2 lg:px-4 pointer-events-auto z-20 w-full max-w-2xl mx-auto">
+        <div className="relative flex flex-col items-center justify-center text-center px-2 lg:px-4 pointer-events-auto z-20 w-full max-w-2xl mx-auto [@media(max-height:700px)]:top-[-2rem]">
           {/* Arena Title Badge & Trefoil */}
           <motion.div
             initial={{ y: -15, opacity: 0 }}
