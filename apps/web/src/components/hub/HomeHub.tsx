@@ -116,7 +116,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img
           src={getAssetPath("/scene/splash-bg.webp")}
-          alt="NucMed Arena Laboratory Background"
+          alt="NuMedArena Laboratory Background"
           className="w-full h-full object-cover object-center"
         />
       </div>
@@ -483,7 +483,7 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
                   <BookOpen className="w-6 h-6 text-amber-300" />
                   <div>
                     <h3 className="text-lg sm:text-xl font-black font-game text-amber-200">
-                      คู่มือกติกา NucMed Arena
+                      คู่มือกติกา NuMedArena
                     </h3>
                     <p className="text-[10px] sm:text-xs text-amber-300/80">
                       Mode 1: Localization Match · ประลองจับคู่สารและกลไก
@@ -533,13 +533,13 @@ export function HomeHub({ user, onLogout, onOpenGallery, onSwitchAccount }: Home
                 <div className="p-3 bg-black/35 rounded-xl border border-amber-500/30">
                   <span className="font-bold text-amber-300 text-sm">4. ตอบคำถามภายในเวลา:</span>
                   <p className="mt-1">
-                    เลือกไพ่สาร 1 ใบจากมือ + เลือกกลไก 1 อย่างจากแถบกลไกกลางโต๊ะ แล้วกด <span className="text-emerald-400 font-bold">LOCK</span> ยืนยันคำตอบ
+                    เลือกไพ่สาร 1 ใบจากมือและกลไกที่คิดว่าใช่จากแถบกลางโต๊ะ (ระบบไม่บอกจำนวนกลไกในเฉลย) แล้วกด <span className="text-emerald-400 font-bold">LOCK</span> ยืนยันคำตอบ
                   </p>
                 </div>
                 <div className="p-3 bg-black/35 rounded-xl border border-blue-500/30">
                   <span className="font-bold text-blue-300 text-sm">5. การคิดคะแนนและรางวัล:</span>
                   <p className="mt-1">
-                    ตอบถูกทั้งสารและกลไกรับคะแนนเข้าสู่อันดับ + เหรียญ NucCoin สำหรับนำไปซื้อกรอบการ์ดและฉายาในร้านค้า!
+                    BASIC ถูกทั้งคู่ได้ 2 คะแนน, CLINICAL ได้ 4 คะแนน; กลไกสีเหลืองถูกอย่างเดียวได้ครึ่งคะแนน แต่สารสีฟ้าถูกอย่างเดียวได้ 0 คะแนน คำใบ้หัก 1 คะแนนเมื่อถูกทั้งคู่ คะแนนที่ได้ยังสะสมเป็น NucCoin/XP สำหรับร้านค้า และคำตอบผิดได้ 0 คะแนน
                   </p>
                 </div>
               </div>

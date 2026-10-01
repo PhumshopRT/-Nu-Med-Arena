@@ -128,7 +128,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
           transition={{ duration: 0.6 }}
           className="text-4xl sm:text-5xl md:text-7xl font-black text-amber-300 tracking-tight font-game text-shadow-gold-title filter drop-shadow-[0_12px_16px_rgba(0,0,0,0.7)] select-none"
         >
-          NucMed Arena
+          NuMedArena
         </motion.h1>
 
         {/* Mode & Subtitle Plaque */}
@@ -169,7 +169,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
           src={getAssetPath("/scene/mascots.webp")}
-          alt="NucMed Arena Mascots"
+          alt="NuMedArena Mascots"
           className="h-[17vh] min-h-[100px] max-h-[24vh] sm:h-[22vmin] md:h-[26vmin] lg:h-[30vmin] [@media(max-height:700px)]:max-h-[20vh] [@media(max-height:600px)]:max-h-[16vh] w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]"
         />
       </div>

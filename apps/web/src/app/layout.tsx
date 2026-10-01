@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NucMed Arena — Mode 1: Localization Match",
+  title: "NuMedArena — Mode 1: Localization Match",
   description: "เกมไพ่การศึกษาแพทย์นิวเคลียร์ เรียนรู้กลไกการสะสมสารเภสัชรังสีแบบเรียลไทม์",
 };
 

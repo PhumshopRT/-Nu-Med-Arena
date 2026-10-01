@@ -336,7 +336,7 @@ export default function GalleryPage() {
 
       {/* Footer */}
       <footer className="wood-panel py-3 px-4 text-center border-t-2 border-amber-950 mt-12 text-xs text-amber-200/80">
-        NucMed Arena — Mode 1: Localization Match • คลังสำรับการ์ดการศึกษาแพทย์นิวเคลียร์
+        NuMedArena — Mode 1: Localization Match • คลังสำรับการ์ดการศึกษาแพทย์นิวเคลียร์
       </footer>
     </div>
   );

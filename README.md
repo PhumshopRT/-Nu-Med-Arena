@@ -1,8 +1,8 @@
-# NucMed Arena — Mode 1: Localization Match ☢️🃏
+# NuMedArena — Mode 1: Localization Match ☢️🃏
 
 <div align="center">
 
-![NucMed Arena Banner](docs/screenshots/splash_layered_1440x900.png)
+![NuMedArena Banner](docs/screenshots/splash_layered_1440x900.png)
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.5-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)](https://react.dev/)
@@ -27,7 +27,7 @@
 
 <div align="center">
   <a href="https://github.com/PhumshopRT/-Nu-Med-Arena/blob/main/docs/screenshots/play_table.png">
-    <img src="https://raw.githubusercontent.com/PhumshopRT/-Nu-Med-Arena/main/docs/screenshots/play_table.png" alt="ภาพโต๊ะประลอง NucMed Arena ขณะกำลังเล่น: โจทย์ผู้ป่วย การ์ดกลไก และไพ่สารเภสัชรังสี" width="100%" />
+    <img src="https://raw.githubusercontent.com/PhumshopRT/-Nu-Med-Arena/main/docs/screenshots/play_table.png" alt="ภาพโต๊ะประลอง NuMedArena ขณะกำลังเล่น: โจทย์ผู้ป่วย การ์ดกลไก และไพ่สารเภสัชรังสี" width="100%" />
   </a>
   <p><sub>ภาพตัวอย่างการเล่นจริง · เปิดภาพต้นฉบับได้โดยคลิกที่ภาพ</sub></p>
 </div>

@@ -64,7 +64,7 @@ export function CardBack({ className, theme = "navy", backId, size = "md", onCli
         "text-[9px] font-bold uppercase tracking-widest pt-2",
         activeTheme === "cyclotron" ? "text-cyan-300" : activeTheme === "nightlab" ? "text-emerald-300" : "text-amber-300"
       )}>
-        NucMed Arena
+        NuMedArena
       </div>
 
       {/* Central Trefoil + Atom Icon */}

@@ -489,7 +489,7 @@ export function BoardClient() {
             ☢️
           </div>
           <div className="min-w-0">
-            <h1 className="font-black text-xl sm:text-2xl text-[#fff0bd] tracking-wide">NucMed Arena</h1>
+            <h1 className="font-black text-xl sm:text-2xl text-[#fff0bd] tracking-wide">NuMedArena</h1>
             <p className="text-xs sm:text-sm font-bold tracking-[.12em] text-[#9db4b9] mt-0.5">จอฉายห้องเรียน</p>
           </div>
           <div className="hidden h-10 w-px bg-white/10 sm:block" />
@@ -807,7 +807,7 @@ export function BoardClient() {
         </footer>
       ) : (
         <footer className="relative z-10 w-full py-2.5 bg-[#071a24]/70 border-t border-white/[0.08] flex justify-between items-center px-2 sm:px-4 text-[11px] sm:text-xs text-[#789198]">
-          <span>NucMed Arena · จอฉายห้องเรียน</span>
+          <span>NuMedArena · จอฉายห้องเรียน</span>
           <span>กด F11 บนคีย์บอร์ดเพื่อเปิดโหมดเต็มหน้าจอ</span>
         </footer>
       )}

@@ -75,14 +75,14 @@ export function TitleSplash({
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden select-none z-0">
+    <div className="relative w-screen h-[100svh] overflow-hidden select-none z-0">
       {/* --------------------------------------------------------
           LAYER 1: splash-bg.webp เต็มจอ object-fit cover [z-0]
           -------------------------------------------------------- */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
         <img
           src={getAssetPath("/scene/splash-bg.webp")}
-          alt="NucMed Arena Laboratory Background"
+          alt="NuMedArena Laboratory Background"
           className="w-full h-full object-cover object-center"
         />
       </div>
@@ -95,14 +95,14 @@ export function TitleSplash({
           บนมือถือ (portrait): ดันตำแหน่งขึ้นเหนือปุ่ม PLAY (bottom-[31%]) ป้องกันปุ่มทับ
           ความสูงไม่เกิน 28% ของจอ และหัวอยู่ใต้ป้ายไม้ มีระยะห่างเกิน 12px
           -------------------------------------------------------- */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-[31%] xs:bottom-[28%] sm:bottom-[24%] md:bottom-[21.5%] lg:bottom-[22%] pointer-events-none z-25 flex flex-col items-center">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-[31%] xs:bottom-[31%] sm:bottom-[29%] md:bottom-[27.5%] lg:bottom-[27%] [@media(min-width:768px)_and_(max-height:850px)]:!bottom-[30%] pointer-events-none z-25 flex flex-col items-center">
         <motion.img
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
           src={getAssetPath("/scene/mascots.webp")}
-          alt="NucMed Arena Mascots"
-          className="h-[18vh] min-h-[110px] max-h-[26vh] sm:h-[24vmin] md:h-[28vmin] lg:h-[32vmin] [@media(max-height:700px)]:max-h-[22vh] [@media(max-height:600px)]:max-h-[18vh] w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.65)]"
+          alt="NuMedArena Mascots"
+          className="h-[16vh] min-h-[88px] max-h-[21vh] sm:h-[19vmin] md:h-[23vmin] lg:h-[27vmin] [@media(max-height:700px)]:max-h-[18vh] [@media(max-height:600px)]:max-h-[15vh] w-auto max-w-[85vw] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.65)]"
         />
       </div>
 
@@ -113,11 +113,11 @@ export function TitleSplash({
           Column 3: [ cards-right ]  (C-05 & T-03)
           Guaranteed zero overlap between cards, mascots, and buttons
           ======================================================== */}
-      <div className="absolute inset-0 grid grid-cols-1 md:grid-cols-[210px_1fr_210px] lg:grid-cols-[240px_1fr_240px] xl:grid-cols-[260px_1fr_260px] h-full w-full pointer-events-none z-20">
+      <div className="absolute inset-0 grid grid-cols-1 xl:grid-cols-[clamp(170px,18vw,260px)_minmax(0,1fr)_clamp(170px,18vw,260px)] h-full w-full pointer-events-none z-20">
         {/* ------------------------------------------------------
             LAYER 5: ZONE 1 [ cards-left ] Left Column (R-01 & M-03) [z-25]
             ------------------------------------------------------ */}
-        <div className="hidden md:flex flex-col justify-center items-center gap-3 lg:gap-4 h-full py-4 pointer-events-auto z-25 overflow-visible scale-[0.78] lg:scale-[0.85] xl:scale-[0.92] origin-center">
+        <div className="hidden xl:flex flex-col justify-center items-center gap-3 h-full py-4 px-1 pointer-events-auto z-25 overflow-visible scale-[0.80] xl:scale-[0.90] 2xl:scale-[0.93] origin-center">
           {/* Upper Card: R-01 18F-FDG */}
           <motion.div
             animate={{ y: [-4, 4, -4] }}
@@ -146,8 +146,8 @@ export function TitleSplash({
         {/* ------------------------------------------------------
             ZONE 2: Center Column
             ------------------------------------------------------ */}
-        <div className="flex flex-col h-full w-full justify-between pointer-events-none z-20 pb-3">
-          {/* LAYER 3: โลโก้ NucMed Arena และป้ายจับคู่สารเป็น HTML ทับฟ้า [z-20] */}
+        <div className="flex flex-col h-full w-full min-w-0 justify-between pointer-events-none z-20 pb-3">
+          {/* LAYER 3: โลโก้ NuMedArena และป้ายจับคู่สารเป็น HTML ทับฟ้า [z-20] */}
           <div className="w-full flex flex-col items-center px-4 md:px-8 pt-3 pointer-events-none">
             {/* Top Bar: Mode status & quick links [z-40] */}
             <div className="w-full flex justify-between items-center pointer-events-auto z-40 mb-1">
@@ -233,7 +233,7 @@ export function TitleSplash({
               </div>
 
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-black font-game text-amber-300 text-shadow-gold-title tracking-tight filter drop-shadow-[0_12px_16px_rgba(0,0,0,0.7)] select-none">
-                NucMed Arena
+                NuMedArena
               </h1>
 
               {/* Wooden Subtitle Plaque */}
@@ -272,7 +272,7 @@ export function TitleSplash({
                   }
                 }}
                 onMouseEnter={() => sounds.playSelect()}
-                className="px-14 md:px-24 py-3.5 md:py-4.5 bg-[#2EAD4B] hover:bg-[#25943f] border-4 border-[#86EFAC] rounded-2xl text-white font-game font-black text-2xl md:text-4xl tracking-widest shadow-[0_8px_0_#1b632c,0_14px_24px_rgba(0,0,0,0.65)] active:translate-y-2 active:shadow-[0_2px_0_#1b632c,0_6px_10px_rgba(0,0,0,0.4)] transition-all flex items-center space-x-3.5 cursor-pointer group"
+                className="px-10 sm:px-14 md:px-20 py-3 md:py-4 bg-[#2EAD4B] hover:bg-[#25943f] border-4 border-[#86EFAC] rounded-2xl text-white font-game font-black text-2xl sm:text-3xl md:text-4xl tracking-widest shadow-[0_8px_0_#1b632c,0_14px_24px_rgba(0,0,0,0.65)] active:translate-y-2 active:shadow-[0_2px_0_#1b632c,0_6px_10px_rgba(0,0,0,0.4)] transition-all flex items-center space-x-3.5 cursor-pointer group"
               >
                 <Play className="w-7 h-7 md:w-8 md:h-8 fill-white text-white group-hover:translate-x-1.5 transition-transform filter drop-shadow" />
                 <span className="text-shadow-sub">PLAY</span>
@@ -326,7 +326,7 @@ export function TitleSplash({
         {/* ------------------------------------------------------
             LAYER 5: ZONE 3 [ cards-right ] Right Column (C-05 & T-03) [z-25]
             ------------------------------------------------------ */}
-        <div className="hidden md:flex flex-col justify-center items-center gap-3 lg:gap-4 h-full py-4 pointer-events-auto z-25 overflow-visible scale-[0.78] lg:scale-[0.85] xl:scale-[0.92] origin-center">
+        <div className="hidden xl:flex flex-col justify-center items-center gap-3 h-full py-4 px-1 pointer-events-auto z-25 overflow-visible scale-[0.80] xl:scale-[0.90] 2xl:scale-[0.93] origin-center">
           {/* Upper Card: C-05 Suspected PE */}
           <motion.div
             animate={{ y: [4, -4, 4] }}
@@ -422,7 +422,7 @@ export function TitleSplash({
                 <BookOpen className="w-6 h-6 text-amber-300" />
                 <div>
                   <h3 className="text-lg sm:text-xl font-black font-game text-amber-200">
-                    คู่มือกติกา NucMed Arena
+                    คู่มือกติกา NuMedArena
                   </h3>
                   <p className="text-[10px] sm:text-xs text-amber-300/80">
                     Mode 1: Localization Match · ประลองจับคู่สารและกลไก
@@ -522,7 +522,7 @@ export function TitleSplash({
                   <div>
                     <strong className="text-amber-200">เลือกคู่สาร + กลไก แล้วกด LOCK:</strong>
                     <p className="text-[11px] text-amber-100/80 mt-0.5">
-                      เลือกการ์ด RP จากมือและกลไกที่เกี่ยวข้องจากแถบเลื่อน ◀ ▶ แล้วกดปุ่ม <strong>LOCK คำตอบ!</strong> ก่อนหมดเวลา 45 วินาที
+                      เลือกการ์ด RP จากมือและกลไกที่คิดว่าใช่จากแถบเลื่อน ◀ ▶ ระบบไม่บอกจำนวนกลไกในเฉลย จากนั้นกด <strong>LOCK คำตอบ!</strong> ก่อนหมดเวลา 45 วินาที
                     </p>
                   </div>
                 </div>
@@ -534,7 +534,7 @@ export function TitleSplash({
                   <div>
                     <strong className="text-blue-200">เฉลยแต้มคะแนน & รับ NucCoin:</strong>
                     <p className="text-[11px] text-blue-100/80 mt-0.5">
-                      เมื่อตอบถูกทั้งคู่ รับคะแนนเข้าสู่ตารางคะแนน พร้อมเหรียญ <strong>NucCoin</strong> และค่า <strong>XP</strong> ไปช้อปปิ้งในร้านค้า
+                      BASIC ตอบถูกทั้งคู่ได้ 2 คะแนน, CLINICAL ได้ 4 คะแนน; ถ้ากลไกสีเหลืองถูกแต่สารสีฟ้าผิดหรือไม่เลือก ได้ครึ่งคะแนน ส่วนสารสีฟ้าถูกอย่างเดียวได้ 0 คะแนน คำใบ้หัก 1 คะแนนเมื่อตอบถูกทั้งคู่ พร้อมรับ NucCoin และ XP ตามระบบเดิม
                     </p>
                   </div>
                 </div>

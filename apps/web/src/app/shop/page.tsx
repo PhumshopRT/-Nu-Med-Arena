@@ -510,7 +510,7 @@ export default function ShopPage() {
 
       {/* Bottom Footer */}
       <footer className="relative z-10 w-full py-3 bg-amber-950/90 border-t-2 border-amber-900 text-center text-xs text-amber-300/80">
-        NucMed Arena • สะสม NucCoin จากการตอบคำถามถูกเพื่อแลกไอเทมตกแต่งโต๊ะแข่ง
+        NuMedArena • สะสม NucCoin จากการตอบคำถามถูกเพื่อแลกไอเทมตกแต่งโต๊ะแข่ง
       </footer>
 
       {/* Hot Cell Mystery Gacha Modal */}
