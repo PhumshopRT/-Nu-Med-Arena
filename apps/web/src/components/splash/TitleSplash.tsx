@@ -236,7 +236,7 @@ export function TitleSplash({
 
           <div className="w-full h-[clamp(96px,20vh,184px)] [@media(max-height:700px)]:!h-[18vh] shrink-0 flex justify-center pointer-events-none z-25 -mt-1 mb-2">
             <motion.img
-              initial={{ y: 20, opacity: 0 }}
+              initial={{ y: -12, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.7, ease: "easeOut" }}
               src={getAssetPath("/scene/mascots.webp")}
