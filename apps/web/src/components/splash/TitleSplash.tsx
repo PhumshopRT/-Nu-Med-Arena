@@ -96,7 +96,7 @@ export function TitleSplash({
           Column 3: [ cards-right ]  (C-05 & T-03)
           Guaranteed zero overlap between cards, mascots, and buttons
           ======================================================== */}
-      <div className="absolute inset-0 grid grid-cols-1 xl:grid-cols-[clamp(170px,18vw,260px)_minmax(0,1fr)_clamp(170px,18vw,260px)] h-full w-full pointer-events-none z-20">
+      <div className="absolute inset-0 grid grid-rows-[minmax(0,1fr)] grid-cols-1 xl:grid-cols-[clamp(170px,18vw,260px)_minmax(0,1fr)_clamp(170px,18vw,260px)] h-full w-full pointer-events-none z-20">
         {/* ------------------------------------------------------
             LAYER 5: ZONE 1 [ cards-left ] Left Column (R-01 & M-03) [z-25]
             ------------------------------------------------------ */}
@@ -129,9 +129,9 @@ export function TitleSplash({
         {/* ------------------------------------------------------
             ZONE 2: Center Column
             ------------------------------------------------------ */}
-        <div className="flex flex-col h-full w-full min-w-0 justify-between pointer-events-none z-20 pb-3">
+        <div className="flex flex-col h-full w-full min-w-0 justify-between pointer-events-none z-20 pb-3 [@media(max-height:700px)]:pb-2">
           {/* LAYER 3: โลโก้ NuMedArena และป้ายจับคู่สารเป็น HTML ทับฟ้า [z-20] */}
-          <div className="w-full flex flex-col items-center px-4 md:px-8 pt-3 pointer-events-none">
+          <div className="w-full flex flex-col items-center px-4 md:px-8 pt-3 [@media(max-height:700px)]:pt-1 pointer-events-none">
             {/* Top Bar: Mode status & quick links [z-40] */}
             <div className="w-full flex justify-between items-center pointer-events-auto z-40 mb-1">
               {/* Left: Active User Plaque OR Mode Indicator */}
@@ -210,17 +210,17 @@ export function TitleSplash({
             >
               {/* Radioactive Trefoil Badge on top */}
               <div className="relative mb-[-10px] z-30">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 border-2 md:border-3 border-amber-800 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                <div className="w-10 h-10 md:w-12 md:h-12 [@media(max-height:700px)]:!w-9 [@media(max-height:700px)]:!h-9 rounded-full bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 border-2 md:border-3 border-amber-800 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
                   <TrefoilIcon size={22} className="text-amber-950" />
                 </div>
               </div>
 
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-black font-game text-amber-300 text-shadow-gold-title tracking-tight filter drop-shadow-[0_12px_16px_rgba(0,0,0,0.7)] select-none">
+              <h1 className="text-4xl md:text-6xl lg:text-7xl [@media(max-height:700px)]:!text-[clamp(2rem,8vh,3.5rem)] font-black font-game text-amber-300 text-shadow-gold-title tracking-tight filter drop-shadow-[0_12px_16px_rgba(0,0,0,0.7)] select-none">
                 NuMedArena
               </h1>
 
               {/* Wooden Subtitle Plaque */}
-              <div className="wood-panel px-4 md:px-6 py-1 md:py-1.5 rounded-xl mt-0.5 text-center shadow-xl border-2 border-amber-950 flex flex-col items-center">
+              <div className="wood-panel px-4 md:px-6 py-1 md:py-1.5 [@media(max-height:700px)]:!py-0.5 rounded-xl mt-0.5 text-center shadow-xl border-2 border-amber-950 flex flex-col items-center">
                 <div className="text-amber-100 font-black text-xs md:text-sm font-game tracking-wider">
                   จับคู่สาร · จับคู่กลไก · รอบโต๊ะไพ่
                 </div>
@@ -232,9 +232,9 @@ export function TitleSplash({
           </div>
 
           {/* Push the mascot-and-controls group down together; keep the image directly above PLAY. */}
-          <div className="flex-1 pointer-events-none min-h-[40px]" />
+          <div className="flex-1 pointer-events-none min-h-[40px] [@media(max-height:700px)]:min-h-0" />
 
-          <div className="w-full h-[clamp(76px,16vh,142px)] shrink-0 flex justify-center pointer-events-none z-25 -mt-1 mb-2">
+          <div className="w-full h-[clamp(76px,16vh,142px)] [@media(max-height:700px)]:!h-[13vh] shrink-0 flex justify-center pointer-events-none z-25 -mt-1 mb-2">
             <motion.img
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -249,7 +249,7 @@ export function TitleSplash({
               LAYER 4 & 6: บนเคาน์เตอร์ไม้ (PLAY สี #2EAD4B + 3 ปุ่มใต้ PLAY) [z-30]
               ไม่มีแผงผู้เล่นมาทับบังตัวละคร mascots อีกต่อไป
               ---------------------------------------------------- */}
-          <div className="w-full flex flex-col items-center pointer-events-none z-30 space-y-2">
+          <div className="w-full flex flex-col items-center pointer-events-none z-30 space-y-2 [@media(max-height:700px)]:!space-y-1">
             {/* 4) ปุ่ม PLAY สี #2EAD4B วางบนเคาน์เตอร์ไม้ [z-40] */}
             <motion.div
               whileHover={{ scale: 1.06 }}
@@ -266,7 +266,7 @@ export function TitleSplash({
                   }
                 }}
                 onMouseEnter={() => sounds.playSelect()}
-                className="px-10 sm:px-14 md:px-20 py-3 md:py-4 bg-[#2EAD4B] hover:bg-[#25943f] border-4 border-[#86EFAC] rounded-2xl text-white font-game font-black text-2xl sm:text-3xl md:text-4xl tracking-widest shadow-[0_8px_0_#1b632c,0_14px_24px_rgba(0,0,0,0.65)] active:translate-y-2 active:shadow-[0_2px_0_#1b632c,0_6px_10px_rgba(0,0,0,0.4)] transition-all flex items-center space-x-3.5 cursor-pointer group"
+                className="px-10 sm:px-14 md:px-20 py-3 md:py-4 [@media(max-height:700px)]:!py-2 bg-[#2EAD4B] hover:bg-[#25943f] border-4 border-[#86EFAC] rounded-2xl text-white font-game font-black text-2xl sm:text-3xl md:text-4xl [@media(max-height:700px)]:!text-3xl tracking-widest shadow-[0_8px_0_#1b632c,0_14px_24px_rgba(0,0,0,0.65)] active:translate-y-2 active:shadow-[0_2px_0_#1b632c,0_6px_10px_rgba(0,0,0,0.4)] transition-all flex items-center space-x-3.5 cursor-pointer group"
               >
                 <Play className="w-7 h-7 md:w-8 md:h-8 fill-white text-white group-hover:translate-x-1.5 transition-transform filter drop-shadow" />
                 <span className="text-shadow-sub">PLAY</span>
@@ -277,7 +277,7 @@ export function TitleSplash({
             <div className="flex flex-wrap items-center justify-center gap-2.5 md:gap-3 pointer-events-auto z-40">
               <button
                 onClick={handleOpenJoinRoom}
-                className="wood-panel px-4 py-2 rounded-xl text-amber-100 hover:text-white text-xs md:text-sm font-bold flex items-center space-x-1.5 hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer border border-amber-600/50"
+                className="wood-panel px-4 py-2 [@media(max-height:700px)]:!py-1 rounded-xl text-amber-100 hover:text-white text-xs md:text-sm font-bold flex items-center space-x-1.5 hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer border border-amber-600/50"
               >
                 <LogIn className="w-4 h-4 text-emerald-300" />
                 <span>เข้าห้องด้วยรหัส</span>
@@ -292,7 +292,7 @@ export function TitleSplash({
                     router.push("/shop");
                   }
                 }}
-                className="wood-panel px-4 py-2 rounded-xl text-amber-100 hover:text-white text-xs md:text-sm font-bold flex items-center space-x-1.5 hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer border border-amber-600/50"
+                className="wood-panel px-4 py-2 [@media(max-height:700px)]:!py-1 rounded-xl text-amber-100 hover:text-white text-xs md:text-sm font-bold flex items-center space-x-1.5 hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer border border-amber-600/50"
               >
                 <ShoppingBag className="w-4 h-4 text-amber-400" />
                 <span>ร้านค้า NucCoin</span>
@@ -303,7 +303,7 @@ export function TitleSplash({
                   sounds.playClick();
                   setShowHowToModal(true);
                 }}
-                className="wood-panel px-4 py-2 rounded-xl text-amber-100 hover:text-white text-xs md:text-sm font-bold flex items-center space-x-1.5 hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer border border-amber-600/50"
+                className="wood-panel px-4 py-2 [@media(max-height:700px)]:!py-1 rounded-xl text-amber-100 hover:text-white text-xs md:text-sm font-bold flex items-center space-x-1.5 hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer border border-amber-600/50"
               >
                 <BookOpen className="w-4 h-4 text-cyan-300" />
                 <span>วิธีเล่น</span>
@@ -318,7 +318,7 @@ export function TitleSplash({
                   sounds.playClick();
                   router.push("/admin");
                 }}
-                className="wood-panel px-3 py-1.5 rounded-lg text-emerald-100 hover:text-white text-[10px] sm:text-xs font-bold flex items-center space-x-1.5 border border-emerald-400/50 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                className="wood-panel px-3 py-1.5 [@media(max-height:700px)]:!py-1 rounded-lg text-emerald-100 hover:text-white text-[10px] sm:text-xs font-bold flex items-center space-x-1.5 border border-emerald-400/50 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 aria-label="เปิดแผงอาจารย์"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
@@ -330,7 +330,7 @@ export function TitleSplash({
                   sounds.playClick();
                   router.push(`/board/?code=${generateKahootPin()}`);
                 }}
-                className="wood-panel px-3 py-1.5 rounded-lg text-purple-100 hover:text-white text-[10px] sm:text-xs font-bold flex items-center space-x-1.5 border border-purple-400/50 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                className="wood-panel px-3 py-1.5 [@media(max-height:700px)]:!py-1 rounded-lg text-purple-100 hover:text-white text-[10px] sm:text-xs font-bold flex items-center space-x-1.5 border border-purple-400/50 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 aria-label="เปิดโหมดฉายภาพสำหรับอาจารย์"
               >
                 <Tv className="w-3.5 h-3.5 text-purple-300" />
