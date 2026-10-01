@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { AmbientMotes } from "./AmbientMotes";
 import { StudentLoginModal } from "./StudentLoginModal";
-import { Play, LogIn, ShoppingBag, BookOpen, Volume2, VolumeX, Image as ImageIcon, Lightbulb, X, Layers } from "lucide-react";
-import { StudentUser, PROTOTYPE_4_CARDS } from "@nucmed/shared";
+import { Play, LogIn, ShoppingBag, BookOpen, Volume2, VolumeX, Image as ImageIcon, Lightbulb, X, Layers, ShieldCheck, Tv } from "lucide-react";
+import { StudentUser, PROTOTYPE_4_CARDS, generateKahootPin } from "@nucmed/shared";
 import { RpCard } from "@/components/cards/RpCard";
 import { MechCard } from "@/components/cards/MechCard";
 import { CaseCard } from "@/components/cards/CaseCard";
@@ -313,6 +313,34 @@ export function TitleSplash({
               >
                 <BookOpen className="w-4 h-4 text-cyan-300" />
                 <span>วิธีเล่น</span>
+              </button>
+            </div>
+
+            {/* Teacher tools remain directly accessible from the title screen. */}
+            <div className="flex flex-wrap items-center justify-center gap-2 pointer-events-auto z-40">
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  router.push("/admin");
+                }}
+                className="wood-panel px-3 py-1.5 rounded-lg text-emerald-100 hover:text-white text-[10px] sm:text-xs font-bold flex items-center space-x-1.5 border border-emerald-400/50 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                aria-label="เปิดแผงอาจารย์"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+                <span>สำหรับอาจารย์</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  router.push(`/board/?code=${generateKahootPin()}`);
+                }}
+                className="wood-panel px-3 py-1.5 rounded-lg text-purple-100 hover:text-white text-[10px] sm:text-xs font-bold flex items-center space-x-1.5 border border-purple-400/50 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                aria-label="เปิดโหมดฉายภาพสำหรับอาจารย์"
+              >
+                <Tv className="w-3.5 h-3.5 text-purple-300" />
+                <span>โหมดฉายภาพ</span>
               </button>
             </div>
 
