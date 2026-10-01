@@ -215,7 +215,7 @@ export function TitleSplash({
                 </div>
               </div>
 
-              <h1 className="text-4xl md:text-6xl lg:text-8xl [@media(max-height:700px)]:!text-[clamp(2.5rem,10vh,4rem)] font-black font-game text-amber-300 text-shadow-gold-title tracking-tight filter drop-shadow-[0_12px_16px_rgba(0,0,0,0.7)] select-none">
+              <h1 className="text-4xl md:text-6xl lg:text-8xl [@media(max-height:700px)]:!text-[clamp(2.5rem,10vh,4rem)] font-black font-game text-amber-300 text-shadow-gold-title tracking-tight [-webkit-text-stroke:1px_rgba(180,83,9,0.55)] filter drop-shadow-[0_12px_16px_rgba(0,0,0,0.7)] drop-shadow-[0_0_18px_rgba(255,190,40,0.28)] select-none">
                 NuMedArena
               </h1>
 
@@ -234,7 +234,7 @@ export function TitleSplash({
           {/* Push the mascot-and-controls group down together; keep the image directly above PLAY. */}
           <div className="flex-1 pointer-events-none min-h-[40px] [@media(max-height:700px)]:min-h-0" />
 
-          <div className="w-full h-[clamp(88px,18vh,170px)] [@media(max-height:700px)]:!h-[16vh] shrink-0 flex justify-center pointer-events-none z-25 -mt-1 mb-2">
+          <div className="w-full h-[clamp(96px,20vh,184px)] [@media(max-height:700px)]:!h-[18vh] shrink-0 flex justify-center pointer-events-none z-25 -mt-1 mb-2">
             <motion.img
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
