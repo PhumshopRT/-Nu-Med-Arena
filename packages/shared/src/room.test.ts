@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { upsertRoomPlayer } from "./room";
-import type { PublicPlayer } from "./types";
+import { getStartedRoomPath, isValidRoomState, upsertRoomPlayer } from "./room";
+import type { PublicPlayer, PublicRoomState } from "./types";
 
 function player(index: number): PublicPlayer {
   return {
@@ -42,5 +42,39 @@ describe("classroom room capacity", () => {
     const updated = upsertRoomPlayer([existing], rejoin, 55);
 
     expect(updated[0]).toMatchObject({ score: 42, locked: true, streak: 3 });
+  });
+});
+
+describe("started classroom routing", () => {
+  const startedRoom: PublicRoomState = {
+    code: "609975",
+    hostId: "p_teacher",
+    phase: "DEAL",
+    roundIndex: 1,
+    totalRounds: 10,
+    caseCardId: null,
+    clueCardId: null,
+    sharedMechanisms: [],
+    endsAt: 0,
+    players: [],
+    settings: { totalRounds: 10, thinkSeconds: 30, basicCount: 6, clinicalCount: 4, hintAtPercent: 0, swapEvery: 3, maxPlayers: 55, minPlayersToStart: 1, allowBots: false, spotlightMode: "big-card" },
+  };
+
+  it("routes a student to the matching started classroom", () => {
+    expect(getStartedRoomPath(startedRoom, "609975", "student")).toBe("/play/?code=609975&mode=kahoot");
+    expect(isValidRoomState(startedRoom, "609975")).toBe(true);
+    expect(isValidRoomState({ ...startedRoom, code: 123 }, "609975")).toBe(false);
+  });
+
+  it("does not route on lobby, a different room, invalid phase, or the host's device", () => {
+    expect(getStartedRoomPath({ ...startedRoom, phase: "LOBBY" }, "609975", "student")).toBeNull();
+    expect(getStartedRoomPath(startedRoom, "123456", "student")).toBeNull();
+    expect(getStartedRoomPath({ ...startedRoom, phase: "UNKNOWN" }, "609975", "student")).toBeNull();
+    expect(getStartedRoomPath(startedRoom, "609975", "teacher")).toBeNull();
+  });
+
+  it("keeps a started six-seat room in table mode", () => {
+    const tableRoom = { ...startedRoom, settings: { ...startedRoom.settings, maxPlayers: 6, spotlightMode: undefined } };
+    expect(getStartedRoomPath(tableRoom, "609975", "student")).toBe("/play/?code=609975&mode=table");
   });
 });

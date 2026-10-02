@@ -1,8 +1,45 @@
-import { RoomSettings, PublicPlayer, CaseCard, RadiopharmaceuticalCard } from "./types";
+import { RoomSettings, PublicPlayer, CaseCard, RadiopharmaceuticalCard, PublicRoomState, MatchPhase } from "./types";
 import { ALL_RP_CARDS, ALL_MECH_CARDS } from "./cards/seed";
 
 // Room code alphabet excluding ambiguous characters: 0, O, 1, I, L
 const SAFE_ROOM_CHARS = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+
+const MATCH_PHASES: MatchPhase[] = [
+  "LOBBY", "DEAL", "SHOW_CASE", "THINK", "LOCKED", "REVEAL", "SWAP", "NEXT_CASE", "TIEBREAK", "RESULT",
+];
+
+/** Validate the minimum room envelope used for state-driven client decisions. */
+export function isValidRoomState(candidate: unknown, expectedCode: string): candidate is PublicRoomState {
+  if (!candidate || typeof candidate !== "object") return false;
+  const room = candidate as Partial<PublicRoomState>;
+  return Boolean(
+    typeof room.code === "string" && room.code.trim().toUpperCase() === expectedCode.trim().toUpperCase() &&
+    typeof room.hostId === "string" && room.hostId.length > 0 &&
+    typeof room.phase === "string" && MATCH_PHASES.includes(room.phase as MatchPhase) &&
+    Number.isInteger(room.roundIndex) && Number.isInteger(room.totalRounds) &&
+    room.settings && Number.isFinite(room.settings.maxPlayers) &&
+    Array.isArray(room.players) && room.players.every((player) =>
+      Boolean(player && typeof player.id === "string" && typeof player.studentId === "string")
+    )
+  );
+}
+
+/** Resolve the student destination only from a started room with a matching identity. */
+export function getStartedRoomPath(
+  candidate: unknown,
+  expectedCode: string,
+  studentId: string
+): string | null {
+  if (!isValidRoomState(candidate, expectedCode) || candidate.phase === "LOBBY") return null;
+  const room = candidate;
+  const code = expectedCode.trim().toUpperCase();
+
+  if (room.hostId === `p_${studentId}`) return null;
+  const isClassroom = room.settings.spotlightMode === "big-card" || room.settings.maxPlayers > 6;
+  return isClassroom
+    ? `/play/?code=${encodeURIComponent(code)}&mode=kahoot`
+    : `/play/?code=${encodeURIComponent(code)}&mode=table`;
+}
 
 /**
  * Generate a 6-digit numeric Game PIN for Kahoot classroom mode (e.g. "482915")

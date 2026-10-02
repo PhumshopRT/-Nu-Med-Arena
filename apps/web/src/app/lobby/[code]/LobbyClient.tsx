@@ -32,7 +32,9 @@ import {
   DEFAULT_ROOM_SETTINGS, 
   BOTS, 
   StudentUser,
-  upsertRoomPlayer
+  upsertRoomPlayer,
+  getStartedRoomPath,
+  isValidRoomState
 } from "@nucmed/shared";
 import { 
   getLocalUser, 
@@ -80,6 +82,12 @@ export function LobbyClient() {
 
   const isHost = Boolean(user && room && room.hostId === `p_${user.studentId}`);
   const myPlayer = room?.players.find((p) => p.studentId === user?.studentId);
+
+  useEffect(() => {
+    if (!room || !user || isHost) return;
+    const destination = getStartedRoomPath(room, roomCode, user.studentId);
+    if (destination) router.replace(destination);
+  }, [room, user, isHost, roomCode, router]);
 
   // Computed invite URL
   const inviteUrl = typeof window !== "undefined"
@@ -196,17 +204,18 @@ export function LobbyClient() {
         }
 
         case "ROOM_STATE_SYNC": {
-          // If we receive authoritative room state from host, sync with it
-          if (msg.room && msg.room.hostId) {
+          const syncedRoom = msg.room;
+          // ASVS V2.2.1: validate the expected room envelope and allow-listed phase before broker input changes navigation state.
+          if (isValidRoomState(syncedRoom, roomCode)) {
             setRoom((prev) => {
               // Ensure myself is retained in players if already present
-              const hasMe = msg.room.players.some((p) => p.studentId === localUser.studentId);
-              let finalRoom = msg.room;
-              const maxCapacity = (msg.room.settings.spotlightMode || (msg.room.settings.maxPlayers && msg.room.settings.maxPlayers > 6) || isKahootInit) ? 55 : (msg.room.settings.maxPlayers || 6);
-              if (!hasMe && msg.room.players.length < maxCapacity) {
+              const hasMe = syncedRoom.players.some((p) => p.studentId === localUser.studentId);
+              let finalRoom = syncedRoom;
+              const maxCapacity = (syncedRoom.settings.spotlightMode || (syncedRoom.settings.maxPlayers && syncedRoom.settings.maxPlayers > 6) || isKahootInit) ? 55 : (syncedRoom.settings.maxPlayers || 6);
+              if (!hasMe && syncedRoom.players.length < maxCapacity) {
                 finalRoom = {
-                  ...msg.room,
-                  players: upsertRoomPlayer(msg.room.players, myPlayerInfo, maxCapacity)
+                  ...syncedRoom,
+                  players: upsertRoomPlayer(syncedRoom.players, myPlayerInfo, maxCapacity)
                 };
               }
               roomRef.current = finalRoom;
@@ -233,14 +242,11 @@ export function LobbyClient() {
         }
 
         case "MATCH_START": {
-          sounds.playWin();
-          const targetMode = (roomRef.current?.settings.spotlightMode || (roomRef.current?.settings.maxPlayers && roomRef.current.settings.maxPlayers > 6) || isKahootInit) ? "kahoot" : "table";
+          // A start signal is only a prompt to fetch state; the room phase drives navigation.
+          // This recovers cleanly if the QoS 0 MATCH_START or preceding state packet was missed.
+          if (typeof msg.roomCode !== "string" || msg.roomCode.trim().toUpperCase() !== roomCode) return;
           const hostIsMe = roomRef.current?.hostId === `p_${localUser.studentId}` || isCreateIntent;
-          if (hostIsMe && (targetMode === "kahoot" || isKahootInit)) {
-            router.push(`/board/?code=${roomCode}`);
-            return;
-          }
-          router.push(`/play/?code=${roomCode}&mode=${targetMode}`);
+          if (!hostIsMe) syncRef.current?.publish({ type: "REQUEST_ROOM_STATE", player: myPlayerInfo });
           break;
         }
 

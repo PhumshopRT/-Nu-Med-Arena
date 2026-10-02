@@ -478,10 +478,10 @@ export function BoardClient() {
   const correctMech = correctMechs[0];
 
   return (
-    <div className="relative isolate min-h-screen bg-[#07131f] text-[#f6f0de] flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden font-game">
+    <div className="relative isolate min-h-screen bg-felt-table text-[#f6f0de] flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden font-game">
       {/* Background */}
-      <div aria-hidden="true" className="absolute inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_at_50%_0%,rgba(32,77,86,0.48),transparent_55%),linear-gradient(135deg,#07131f_0%,#0a1d2a_52%,#07131f_100%)]" />
-      <div aria-hidden="true" className="absolute inset-0 -z-10 pointer-events-none opacity-[0.07] [background-image:linear-gradient(rgba(188,218,207,.3)_1px,transparent_1px),linear-gradient(90deg,rgba(188,218,207,.3)_1px,transparent_1px)] [background-size:48px_48px]" />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_at_50%_0%,rgba(32,77,86,0.34),transparent_55%),linear-gradient(135deg,rgba(7,19,31,.58)_0%,rgba(10,29,42,.42)_52%,rgba(7,19,31,.58)_100%)]" />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 pointer-events-none opacity-[0.045] [background-image:linear-gradient(rgba(188,218,207,.3)_1px,transparent_1px),linear-gradient(90deg,rgba(188,218,207,.3)_1px,transparent_1px)] [background-size:48px_48px]" />
 
       {/* Header */}
       <header className="relative z-10 w-full flex flex-wrap justify-between items-center gap-4 overflow-hidden bg-[#132a35]/90 border border-[#d79b35]/40 p-4 sm:p-5 rounded-[1.75rem] shadow-[0_18px_60px_rgba(0,0,0,.28)] backdrop-blur-xl">
@@ -698,12 +698,16 @@ export function BoardClient() {
             </div>
           </div>
         ) : (
-          <div className="flex-1 grid grid-cols-12 gap-8 items-center w-full h-full">
+          <div className="flex-1 grid grid-cols-12 gap-4 md:gap-6 items-stretch w-full h-full rounded-[2rem] border border-amber-400/30 bg-emerald-950/25 p-3 sm:p-4 lg:p-5 shadow-[inset_0_0_60px_rgba(16,185,129,.06)]">
             {/* Left: Case Display */}
-            <div className="col-span-12 lg:col-span-7 flex flex-col items-center justify-center h-full">
+            <div className="col-span-12 lg:col-span-7 flex flex-col items-center justify-center min-h-[360px] lg:min-h-0 rounded-[1.5rem] border border-emerald-300/20 bg-[#06251f]/55 px-3 py-5 sm:px-5 shadow-inner">
               <div className="flex flex-col items-center justify-center w-full h-full">
+                <div className="mb-2 flex items-center gap-2 rounded-full border border-rose-300/25 bg-rose-950/35 px-4 py-1.5 text-xs font-black tracking-wide text-rose-200 sm:text-sm">
+                  <span className="h-2 w-2 rounded-full bg-rose-400 shadow-[0_0_12px_rgba(251,113,133,.7)]" />
+                  โจทย์รอบนี้ · {room.roundIndex}/{room.totalRounds}
+                </div>
                 {displayMode === "big-card" ? (
-                  <div className="transform scale-110 md:scale-125 my-8">
+                  <div className="transform scale-[.94] sm:scale-105 xl:scale-110 my-2 sm:my-4">
                     <CaseCardComponent card={currentCase} size="lg" isHoverable={false} />
                   </div>
                 ) : (
@@ -727,8 +731,8 @@ export function BoardClient() {
             </div>
 
             {/* Right: Leaderboard (THINK Phase) */}
-            <div className="col-span-12 lg:col-span-5 flex flex-col h-[600px]">
-              <div className="wood-panel p-6 rounded-3xl border-4 border-amber-950 shadow-2xl flex flex-col h-full bg-black/60 backdrop-blur-md">
+            <div className="col-span-12 lg:col-span-5 flex flex-col min-h-[360px] lg:min-h-0 lg:max-h-[min(680px,72vh)]">
+              <div className="wood-panel p-4 sm:p-5 rounded-3xl border-4 border-amber-950 shadow-2xl flex flex-col h-full min-h-0 bg-black/45 backdrop-blur-md">
                 <div className="flex justify-between items-center mb-4 border-b border-amber-800/80 pb-3">
                   <div className="flex items-center space-x-2">
                     <Trophy className="w-6 h-6 text-amber-400" />
