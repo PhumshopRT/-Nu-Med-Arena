@@ -12,7 +12,6 @@ import { MechCard } from "@/components/cards/MechCard";
 import { CaseCard } from "@/components/cards/CaseCard";
 import { ClueCard } from "@/components/cards/ClueCard";
 import { AvatarBadge } from "@/components/ui/AvatarBadge";
-import { TrefoilIcon } from "@/components/ui/TrefoilIcon";
 import { sounds } from "@/lib/sound";
 import { getLocalUser, getRememberedUser } from "@/lib/user";
 import { jev } from "@/lib/jev-engine";
@@ -208,14 +207,13 @@ export function TitleSplash({
               transition={{ duration: 0.5, type: "spring", bounce: 0.3 }}
               className="relative flex flex-col items-center text-center mt-0.5 pointer-events-auto"
             >
-              {/* Radioactive Trefoil Badge on top */}
-              <div className="relative mb-[-10px] z-30">
-                <div className="w-10 h-10 md:w-12 md:h-12 [@media(max-height:700px)]:!w-9 [@media(max-height:700px)]:!h-9 rounded-full bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 border-2 md:border-3 border-amber-800 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
-                  <TrefoilIcon size={22} className="text-amber-950" />
-                </div>
-              </div>
-
-              <h1 className="text-4xl md:text-6xl lg:text-8xl [@media(max-height:700px)]:!text-[clamp(2.5rem,10vh,4rem)] font-black font-game text-amber-300 text-shadow-gold-title tracking-tight [-webkit-text-stroke:1px_rgba(180,83,9,0.55)] filter drop-shadow-[0_12px_16px_rgba(0,0,0,0.7)] drop-shadow-[0_0_18px_rgba(255,190,40,0.28)] select-none">
+              <h1 className="flex items-center justify-center gap-2 md:gap-3 text-4xl md:text-6xl lg:text-8xl [@media(max-height:700px)]:!text-[clamp(2.5rem,10vh,4rem)] font-black font-game text-amber-300 text-shadow-gold-title tracking-tight [-webkit-text-stroke:1px_rgba(180,83,9,0.55)] filter drop-shadow-[0_12px_16px_rgba(0,0,0,0.7)] drop-shadow-[0_0_18px_rgba(255,190,40,0.28)] select-none">
+                <motion.img
+                  src={getAssetPath("/icons/icon-512.png")}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-10 w-10 shrink-0 rounded-xl border border-amber-300/80 shadow-[0_3px_12px_rgba(0,0,0,0.55)] sm:h-12 sm:w-12 lg:h-16 lg:w-16 [@media(max-height:700px)]:!h-10 [@media(max-height:700px)]:!w-10"
+                />
                 NuMedArena
               </h1>
 
